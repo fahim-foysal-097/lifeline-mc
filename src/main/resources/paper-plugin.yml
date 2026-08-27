@@ -1,0 +1,21 @@
+name: Lifeline
+version: '${version}'
+main: com.lifeline.Lifeline
+api-version: '1.21'
+description: A 2-player co-op plugin with Shared Waypoints, Shared Vault, and a Downed/Revive System.
+authors:
+  - LifelineDev
+
+permissions:
+  lifeline.use:
+    description: Allows using general Lifeline co-op features.
+    default: true
+  lifeline.waypoint:
+    description: Allows access to the shared waypoint system.
+    default: true
+  lifeline.vault:
+    description: Allows access to the shared vault.
+    default: true
+  lifeline.revive:
+    description: Allows reviving downed teammates.
+    default: true
