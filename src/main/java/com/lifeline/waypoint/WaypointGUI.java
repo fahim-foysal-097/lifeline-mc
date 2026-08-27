@@ -40,9 +40,14 @@ public class WaypointGUI implements Listener, InventoryHolder {
         this.pageKey = new NamespacedKey(plugin, "gui_page");
     }
 
+    // Sentinel inventory returned by the InventoryHolder contract.
+    // Each GUI open creates a fresh inventory; this sentinel is never shown to players.
+    private final org.bukkit.inventory.Inventory holderSentinel =
+            Bukkit.createInventory(null, 9);
+
     @Override
-    public Inventory getInventory() {
-        return null;
+    public org.bukkit.inventory.Inventory getInventory() {
+        return holderSentinel;
     }
 
     /**
@@ -56,6 +61,11 @@ public class WaypointGUI implements Listener, InventoryHolder {
      * Opens a specific page of the shared waypoints GUI.
      */
     public void open(Player player, int page) {
+        if (plugin.getPluginConfig().isBedrockFormsEnabled() && com.lifeline.bedrock.GeyserHook.isBedrockPlayer(player)) {
+            com.lifeline.bedrock.GeyserHook.openWaypointsForm(player, manager, plugin);
+            return;
+        }
+
         int maxConfigPages = plugin.getPluginConfig().getWaypointMaxPages();
         List<Waypoint> waypointsList = new ArrayList<>(manager.getAllWaypoints());
         int totalWaypoints = waypointsList.size();

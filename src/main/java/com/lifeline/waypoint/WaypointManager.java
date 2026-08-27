@@ -92,6 +92,10 @@ public class WaypointManager implements Listener {
         return waypoints.get(name.toLowerCase(Locale.ROOT));
     }
 
+    public boolean isWarmingUp(UUID uuid) {
+        return uuid != null && activeWarmups.containsKey(uuid);
+    }
+
     public synchronized boolean addWaypoint(Waypoint waypoint) {
         String key = waypoint.getName().toLowerCase(Locale.ROOT);
         if (waypoints.containsKey(key)) {
@@ -245,6 +249,9 @@ public class WaypointManager implements Listener {
                         cancelWarmup(player, false);
                         player.teleportAsync(targetLoc).thenAccept(success -> {
                             Bukkit.getScheduler().runTask(plugin, () -> {
+                                if (!player.isOnline()) {
+                                    return;
+                                }
                                 if (success) {
                                     MessageUtil.sendPrefixed(player, "waypoints.teleport-success", MessageUtil.unparsed("name", waypoint.getName()));
                                     MessageUtil.sendActionBar(player, "waypoints.teleport-actionbar");
@@ -272,6 +279,9 @@ public class WaypointManager implements Listener {
     }
 
     public void cancelWarmup(Player player, boolean notify, String reasonKey) {
+        if (player == null) {
+            return;
+        }
         UUID uuid = player.getUniqueId();
         BukkitTask task = activeWarmups.remove(uuid);
         warmupStartLocations.remove(uuid);
@@ -327,7 +337,9 @@ public class WaypointManager implements Listener {
             return;
         }
 
-        // Async chat -> run waypoint creation and map mutation on primary thread
+        // IMPORTANT: AsyncChatEvent fires on a background thread. Do NOT access or mutate
+        // the waypoints map (or any other Bukkit state) directly here.
+        // All map mutations MUST be dispatched to the main thread via runTask() below.
         Bukkit.getScheduler().runTask(plugin, () -> {
             // Re-check name uniqueness on the main thread (safe, synchronized on the main thread)
             if (waypoints.containsKey(input.toLowerCase(Locale.ROOT))) {

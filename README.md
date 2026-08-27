@@ -42,6 +42,20 @@ Yeah, also works 26.2+
 - Interactive chat buttons for accepting or declining requests, with shorthand commands (`/tpq a`, `/tpq d`, `/tpq c`) for mobile / Bedrock players (Geyser / Pojav).
 - Configurable warm-up delay that aborts if you move or take damage.
 
+### Bedrock Native Forms (Geyser API Hook)
+
+- When Bedrock / Pocket Edition players join via [Geyser](https://geysermc.org/), Lifeline automatically renders native Bedrock Form UI windows instead of virtual chest inventories.
+- Native forms for browsing waypoints, modal forms for waypoint actions (teleport/delete), custom text-input forms for naming waypoints, and native button lists for `/tpq`.
+- Java Edition players continue to receive native chest GUIs seamlessly.
+
+### Teammate Actionbar Radar (`/coradar`)
+
+- Live actionbar HUD showing your nearby partner's live status, health, and a dynamic 8-directional arrow (`Partner: 140m ↗ | ❤ 8.5/10`).
+- Dynamically updates relative to your player's facing direction (`↑`, `↗` ...).
+- Only appears when your teammate is within nearby range (configurable, default 100m in the same dimension).
+- Toggleable per player via `/coradar` (aliases: `/teamradar`, `/lfradar`) or `/lifeline radar [on|off|toggle]`.
+- Master toggle in `config.yml` under `radar.enabled`.
+
 ### Localization & Config
 
 - All messages, GUI titles, and action bar text are in `messages.yml` using [MiniMessage](https://docs.advntr.dev/minimessage/format.html) (supports hex colors and gradients).
@@ -52,18 +66,20 @@ Yeah, also works 26.2+
 
 ## Commands & Permissions
 
-| Command                           | Aliases / Shortcuts      | Description                      | Permission        |
-| :-------------------------------- | :----------------------- | :------------------------------- | :---------------- |
-| `/node`                           | `/nd`, `/wp`             | Open waypoints GUI               | `lifeline.node`   |
-| `/stash`                          | `/st`, `/safe`           | Open shared stash                | `lifeline.stash`  |
-| `/tpq`                            | `/teleportgui`           | Open player teleport GUI         | `lifeline.tpq`    |
-| `/tpq <player>`                   | —                        | Send a teleport request          | `lifeline.tpq`    |
-| `/tpq accept [player]`            | `/tpq a`                 | Accept teleport request          | `lifeline.tpq`    |
-| `/tpq deny [player]`              | `/tpq d`, `/tpq decline` | Deny teleport request            | `lifeline.tpq`    |
-| `/tpq cancel`                     | `/tpq c`                 | Cancel outgoing teleport request | `lifeline.tpq`    |
-| `/lifeline revives [player]`      | `/ll revives`            | Check remaining revives          | `lifeline.revive` |
-| `/lifeline reload`                | `/ll reload`             | Reload configuration & messages  | `lifeline.admin`  |
-| `/lifeline resetrevives <player>` | `/ll resetrevives`       | Reset player revive counters     | `lifeline.admin`  |
+| Command                             | Aliases / Shortcuts      | Description                       | Permission        |
+| :---------------------------------- | :----------------------- | :-------------------------------- | :---------------- |
+| `/node`                             | `/nd`, `/wp`             | Open waypoints GUI / Bedrock form | `lifeline.node`   |
+| `/stash`                            | `/st`, `/safe`           | Open shared stash                 | `lifeline.stash`  |
+| `/tpq`                              | `/teleportgui`           | Open player teleport GUI / form   | `lifeline.tpq`    |
+| `/tpq <player>`                     | —                        | Send a teleport request           | `lifeline.tpq`    |
+| `/tpq accept [player]`              | `/tpq a`                 | Accept teleport request           | `lifeline.tpq`    |
+| `/tpq deny [player]`                | `/tpq d`, `/tpq decline` | Deny teleport request             | `lifeline.tpq`    |
+| `/tpq cancel`                       | `/tpq c`                 | Cancel outgoing teleport request  | `lifeline.tpq`    |
+| `/coradar`                          | `/teamradar`, `/lfradar` | Toggle teammate actionbar radar   | `lifeline.radar`  |
+| `/lifeline radar [on\|off\|toggle]` | `/ll radar`              | Toggle or set teammate radar      | `lifeline.radar`  |
+| `/lifeline revives [player]`        | `/ll revives`            | Check remaining revives           | `lifeline.revive` |
+| `/lifeline reload`                  | `/ll reload`             | Reload configuration & messages   | `lifeline.admin`  |
+| `/lifeline resetrevives <player>`   | `/ll resetrevives`       | Reset player revive counters      | `lifeline.admin`  |
 
 ---
 
@@ -88,7 +104,7 @@ tether:
   request-timeout-seconds: 60
   cooldown-seconds: 30
 
-downed-timer-seconds: 30 # Set to 0 to disable revives
+downed-timer-seconds: 30
 ```
 
 ### Customizing `messages.yml`

@@ -39,6 +39,16 @@ public class DownedManager {
         return downedPlayers.get(uuid);
     }
 
+    public boolean isRevivingSomeone(UUID uuid) {
+        if (uuid == null) return false;
+        for (DownedState state : downedPlayers.values()) {
+            if (uuid.equals(state.getActiveReviverUuid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Gets the remaining revives for a player.
      * If uninitialized and max-revives > 0, initializes to max-revives.
@@ -181,12 +191,14 @@ public class DownedManager {
             player.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, player.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.1);
         }
 
-        // Start bleed-out countdown task
+        // Start bleed-out countdown task.
+        // Initial delay is 2L (not 0L) to guarantee state.setCountdownTask() is assigned
+        // before the first tick fires, preventing a race where cancelAllTasks() finds null.
         final int finalLeft = left;
         BukkitTask countdownTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (!player.isOnline() || player.isDead()) {
                 killPlayerSafely(player);
-                return;  // task is now cancelled by killPlayerSafely; stop processing this tick
+                return;  // task is cancelled via cancelAllTasks(); stop processing this tick
             }
 
             // Keep health at 1.0 and prevent burning/drowning during downed state
@@ -226,7 +238,7 @@ public class DownedManager {
             } else {
                 state.decrementSeconds();
             }
-        }, 0L, 20L);
+        }, 2L, 20L);
 
         state.setCountdownTask(countdownTask);
     }
@@ -420,7 +432,15 @@ public class DownedManager {
             player.removePotionEffect(PotionEffectType.GLOWING);
 
             if (!player.isDead()) {
-                player.setHealth(0.0);
+                if (Bukkit.getServer() != null && !Bukkit.isPrimaryThread()) {
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (player.isOnline() && !player.isDead()) {
+                            player.setHealth(0.0);
+                        }
+                    });
+                } else {
+                    player.setHealth(0.0);
+                }
             }
         }
     }

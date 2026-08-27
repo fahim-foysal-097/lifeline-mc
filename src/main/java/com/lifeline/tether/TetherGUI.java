@@ -40,15 +40,24 @@ public class TetherGUI implements Listener, InventoryHolder {
         this.playerKey = new NamespacedKey(plugin, "target_player_uuid");
     }
 
+    // Sentinel inventory returned by the InventoryHolder contract.
+    // Each GUI open creates a fresh inventory; this sentinel is never shown to players.
+    private final Inventory holderSentinel = Bukkit.createInventory(null, 9);
+
     @Override
     public Inventory getInventory() {
-        return null;
+        return holderSentinel;
     }
 
     /**
      * Opens the Teleport Player GUI for the specified player.
      */
     public void open(Player player) {
+        if (plugin.getPluginConfig().isBedrockFormsEnabled() && com.lifeline.bedrock.GeyserHook.isBedrockPlayer(player)) {
+            com.lifeline.bedrock.GeyserHook.openTetherForm(player, manager, plugin);
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(this, 27, MessageUtil.get("teleport.gui-title"));
 
         List<Player> targets = new ArrayList<>(Bukkit.getOnlinePlayers());

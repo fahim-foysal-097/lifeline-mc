@@ -14,9 +14,14 @@
 # Example: If set to 3, player can be revived 3 times. On the 4th fatal damage, they die completely.
 max-revives: 0
 
+# Master toggle for the entire revive / downed system.
+# When set to false, players die instantly on fatal damage regardless of other settings.
+revive-enabled: true
+
 # Bleed-out countdown timer in seconds for downed players.
 # - Range: 0 to 60 seconds (values above 60 will be capped at 60).
-# - Setting this to 0 COMPLETELY DISABLES the revive system (players die instantly on fatal damage).
+# - Setting this to 0 means the player bleeds out INSTANTLY (no chance to be revived by teammates).
+#   The revive system remains enabled — use revive-enabled: false to disable it entirely.
 downed-timer-seconds: 30
 
 # Whether downed players are completely invincible to all damage during the bleed-out timer.
@@ -103,4 +108,33 @@ tether:
 
   # Cooldown (in seconds) between sending teleport requests (0 = disabled).
   cooldown-seconds: 0
+
+
+# ------------------------------------------------------------------------------
+# Bedrock Native Forms (Geyser API Hook)
+# ------------------------------------------------------------------------------
+# Automatically render native Bedrock UI forms for waypoints and /tpq
+# instead of virtual chest inventories for Bedrock/Pocket Edition players.
+bedrock-forms:
+  enabled: true
+
+
+# ------------------------------------------------------------------------------
+# Teammate Actionbar Radar
+# ------------------------------------------------------------------------------
+# Displays your teammate's live status, health, and a dynamic directional arrow
+# in the actionbar (e.g., Partner: 24m ↗ | ❤ 8.5/10) when nearby.
+radar:
+  # Master toggle to enable/disable the entire teammate actionbar radar feature.
+  enabled: true
+
+  # Whether players have the radar display enabled by default.
+  enabled-by-default: true
+
+  # Maximum distance in blocks for the radar to detect and display a nearby partner.
+  # Teammates further than this or in other dimensions will not be shown.
+  max-distance: 40
+
+  # Update interval in server ticks (20 ticks = 1 second, 10 ticks = 0.5s).
+  update-interval-ticks: 10
 

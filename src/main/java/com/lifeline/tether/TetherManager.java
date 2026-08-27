@@ -44,6 +44,10 @@ public class TetherManager implements Listener {
         this.plugin = plugin;
     }
 
+    public boolean isWarmingUp(UUID uuid) {
+        return uuid != null && activeWarmups.containsKey(uuid);
+    }
+
     /**
      * Sends a teleport request from sender to target.
      */
@@ -469,6 +473,9 @@ public class TetherManager implements Listener {
         sender.teleportAsync(dest).thenAccept(success -> {
             // teleportAsync completes on a background thread - schedule all Bukkit API work onto the main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!sender.isOnline()) {
+                    return;
+                }
                 if (success) {
                     MessageUtil.sendPrefixed(sender, "teleport.teleport-success-sender", MessageUtil.p("player", target.getName()));
                     MessageUtil.sendActionBar(sender, "teleport.teleport-success-actionbar");
@@ -504,9 +511,13 @@ public class TetherManager implements Listener {
         if (task != null) {
             task.cancel();
             if (notify && sender.isOnline()) {
-                String key = reasonKey != null ? reasonKey : "teleport.teleport-cancelled-actionbar";
-                MessageUtil.sendPrefixed(sender, key, resolvers);
-                MessageUtil.sendActionBar(sender, "teleport.teleport-cancelled-actionbar");
+                // Send a prefixed chat message with the reason key.
+                // Only fall back to the actionbar key if no specific reason is provided.
+                if (reasonKey != null) {
+                    MessageUtil.sendPrefixed(sender, reasonKey, resolvers);
+                } else {
+                    MessageUtil.sendActionBar(sender, "teleport.teleport-cancelled-actionbar");
+                }
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     sender.playSound(sender.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }

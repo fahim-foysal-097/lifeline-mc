@@ -11,6 +11,7 @@ public class PluginConfig {
     private final Lifeline plugin;
 
     private int maxRevives;
+    private boolean reviveEnabled;
     private int downedTimerSeconds;
     private boolean downedInvulnerable;
     private int reviveChannelSeconds;
@@ -49,6 +50,15 @@ public class PluginConfig {
     private int tetherTimeoutSeconds;
     private int tetherCooldownSeconds;
 
+    // Bedrock Forms
+    private boolean bedrockFormsEnabled;
+
+    // Teammate Radar
+    private boolean radarEnabled;
+    private boolean radarDefaultEnabled;
+    private double radarMaxDistance;
+    private int radarUpdateIntervalTicks;
+
     public PluginConfig(Lifeline plugin) {
         this.plugin = plugin;
         if (plugin != null) {
@@ -75,7 +85,10 @@ public class PluginConfig {
         // 1. Max Revives (0 = infinite revives)
         this.maxRevives = Math.max(0, config.getInt("max-revives", 0));
 
-        // 2. Downed Timer in seconds (0 = disabled, max = 60)
+        // 2. Explicit revive system enable/disable flag
+        this.reviveEnabled = config.getBoolean("revive-enabled", true);
+
+        // 3. Downed Timer in seconds (0 = instant bleed-out, max = 60)
         int rawTimer = config.getInt("downed-timer-seconds", 30);
         this.downedTimerSeconds = Math.max(0, Math.min(60, rawTimer));
 
@@ -119,6 +132,15 @@ public class PluginConfig {
         this.tetherWarmupSeconds = Math.max(0, config.getInt("tether.teleport-warmup-seconds", 3));
         this.tetherTimeoutSeconds = Math.max(5, config.getInt("tether.request-timeout-seconds", 60));
         this.tetherCooldownSeconds = Math.max(0, config.getInt("tether.cooldown-seconds", 0));
+
+        // 10. Bedrock Forms
+        this.bedrockFormsEnabled = config.getBoolean("bedrock-forms.enabled", true);
+
+        // 11. Teammate Radar
+        this.radarEnabled = config.getBoolean("radar.enabled", true);
+        this.radarDefaultEnabled = config.getBoolean("radar.enabled-by-default", true);
+        this.radarMaxDistance = Math.max(5.0, config.getDouble("radar.max-distance", 40.0));
+        this.radarUpdateIntervalTicks = Math.max(1, config.getInt("radar.update-interval-ticks", 10));
     }
 
     public int getMaxRevives() {
@@ -130,7 +152,7 @@ public class PluginConfig {
     }
 
     public boolean isReviveEnabled() {
-        return downedTimerSeconds > 0;
+        return reviveEnabled && downedTimerSeconds > 0;
     }
 
     public boolean isDownedInvulnerable() {
@@ -231,5 +253,25 @@ public class PluginConfig {
 
     public int getTetherCooldownSeconds() {
         return tetherCooldownSeconds;
+    }
+
+    public boolean isBedrockFormsEnabled() {
+        return bedrockFormsEnabled;
+    }
+
+    public boolean isRadarEnabled() {
+        return radarEnabled;
+    }
+
+    public boolean isRadarDefaultEnabled() {
+        return radarDefaultEnabled;
+    }
+
+    public double getRadarMaxDistance() {
+        return radarMaxDistance;
+    }
+
+    public int getRadarUpdateIntervalTicks() {
+        return radarUpdateIntervalTicks;
     }
 }

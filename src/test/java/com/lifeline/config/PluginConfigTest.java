@@ -69,6 +69,7 @@ public class PluginConfigTest {
         assertTrue(config.isSoundEffectsEnabled());
         assertTrue(config.isParticlesEnabled());
         assertEquals(3, config.getWaypointWarmupSeconds());
+        assertEquals(40.0, config.getRadarMaxDistance());
     }
 
     @Test
@@ -91,6 +92,12 @@ public class PluginConfigTest {
         YamlConfiguration configNegative = YamlConfiguration.loadConfiguration(new StringReader("downed-timer-seconds: -10"));
         config.load(configNegative);
         assertEquals(0, config.getDownedTimerSeconds());
+        assertFalse(config.isReviveEnabled());
+
+        // Test explicit revive-enabled: false toggle
+        YamlConfiguration configExplicitDisabled = YamlConfiguration.loadConfiguration(new StringReader("revive-enabled: false\ndowned-timer-seconds: 30"));
+        config.load(configExplicitDisabled);
+        assertEquals(30, config.getDownedTimerSeconds());
         assertFalse(config.isReviveEnabled());
     }
 
@@ -197,5 +204,48 @@ public class PluginConfigTest {
                 com.lifeline.util.MessageUtil.p("y", "64"),
                 com.lifeline.util.MessageUtil.p("z", "-200"));
         assertEquals(2, lore.size());
+    }
+
+    @Test
+    public void testBedrockFormsAndRadarConfigSettings() {
+        PluginConfig config = new PluginConfig(null);
+
+        String yaml = """
+                bedrock-forms:
+                  enabled: true
+                radar:
+                  enabled: true
+                  enabled-by-default: true
+                  max-distance: 75.0
+                  update-interval-ticks: 8
+                """;
+        YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(new StringReader(yaml));
+        config.load(yamlConfig);
+
+        assertTrue(config.isBedrockFormsEnabled());
+        assertTrue(config.isRadarEnabled());
+        assertTrue(config.isRadarDefaultEnabled());
+        assertEquals(75.0, config.getRadarMaxDistance());
+        assertEquals(8, config.getRadarUpdateIntervalTicks());
+    }
+
+    @Test
+    public void testRadarDisabledAndClamping() {
+        PluginConfig config = new PluginConfig(null);
+
+        String yaml = """
+                radar:
+                  enabled: false
+                  enabled-by-default: false
+                  max-distance: 2.0
+                  update-interval-ticks: 0
+                """;
+        YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(new StringReader(yaml));
+        config.load(yamlConfig);
+
+        assertFalse(config.isRadarEnabled());
+        assertFalse(config.isRadarDefaultEnabled());
+        assertEquals(5.0, config.getRadarMaxDistance()); // Clamped to min 5.0
+        assertEquals(1, config.getRadarUpdateIntervalTicks()); // Clamped to min 1
     }
 }

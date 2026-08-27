@@ -37,6 +37,7 @@ public final class Lifeline extends JavaPlugin {
     private ReviveListener reviveListener;
     private TetherManager tetherManager;
     private TetherGUI tetherGUI;
+    private com.lifeline.radar.RadarManager radarManager;
 
     @Override
     public void onEnable() {
@@ -55,6 +56,7 @@ public final class Lifeline extends JavaPlugin {
         this.reviveListener = new ReviveListener(this, this.downedManager);
         this.tetherManager = new TetherManager(this);
         this.tetherGUI = new TetherGUI(this, this.tetherManager);
+        this.radarManager = new com.lifeline.radar.RadarManager(this);
 
         // Register Event Listeners
         PluginManager pm = getServer().getPluginManager();
@@ -64,6 +66,7 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.reviveListener, this);
         pm.registerEvents(this.tetherManager, this);
         pm.registerEvents(this.tetherGUI, this);
+        pm.registerEvents(this.radarManager, this);
 
         registerCommands();
 
@@ -90,6 +93,10 @@ public final class Lifeline extends JavaPlugin {
             this.tetherManager.cleanup();
         }
 
+        if (this.radarManager != null) {
+            this.radarManager.cleanup();
+        }
+
         getLogger().info("Lifeline successfully disabled.");
     }
 
@@ -100,7 +107,7 @@ public final class Lifeline extends JavaPlugin {
             commands.register(
                     "node",
                     "Opens the shared waypoints (nodes) menu",
-                    List.of("nd", "wp"),
+                    List.of("nd", "wp", "nodes", "waypoint", "waypoints"),
                     new BasicCommand() {
                         @Override
                         public void execute(CommandSourceStack stack, String[] args) {
@@ -254,6 +261,58 @@ public final class Lifeline extends JavaPlugin {
             );
 
             commands.register(
+                    "coradar",
+                    "Toggles the live teammate actionbar radar",
+                    List.of("teamradar", "lfradar"),
+                    new BasicCommand() {
+                        @Override
+                        public void execute(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
+                                return;
+                            }
+
+                            if (!hasRadarPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "radar.no-permission");
+                                return;
+                            }
+
+                            if (!pluginConfig.isRadarEnabled()) {
+                                MessageUtil.sendPrefixed(player, "radar.globally-disabled");
+                                return;
+                            }
+
+                            if (args.length == 0 || args[0].equalsIgnoreCase("toggle")) {
+                                radarManager.toggle(player);
+                            } else if (args[0].equalsIgnoreCase("on") || args[0].equalsIgnoreCase("enable")) {
+                                radarManager.setEnabled(player, true);
+                            } else if (args[0].equalsIgnoreCase("off") || args[0].equalsIgnoreCase("disable")) {
+                                radarManager.setEnabled(player, false);
+                            } else {
+                                radarManager.toggle(player);
+                            }
+                        }
+
+                        @Override
+                        public Collection<String> suggest(CommandSourceStack stack, String[] args) {
+                            if (args.length <= 1) {
+                                String prefix = args.length == 0 ? "" : args[0].toLowerCase();
+                                return List.of("toggle", "on", "off").stream()
+                                        .filter(s -> s.startsWith(prefix))
+                                        .toList();
+                            }
+                            return List.of();
+                        }
+
+                        @Override
+                        public boolean canUse(CommandSender sender) {
+                            return hasRadarPermission(sender);
+                        }
+                    }
+            );
+
+            commands.register(
                     "lifeline",
                     "Lifeline plugin administration and management commands",
                     List.of("ll"),
@@ -277,6 +336,7 @@ public final class Lifeline extends JavaPlugin {
                                     pluginConfig.load();
                                     MessageUtil.load(Lifeline.this);
                                     waypointManager.loadWaypoints();
+                                    radarManager.startTask();
                                     if (!pluginConfig.isReviveEnabled()) {
                                         for (Player p : Bukkit.getOnlinePlayers()) {
                                             if (downedManager.isDowned(p.getUniqueId())) {
@@ -285,6 +345,29 @@ public final class Lifeline extends JavaPlugin {
                                         }
                                     }
                                     MessageUtil.sendPrefixed(sender, "general.config-reloaded");
+                                }
+                                case "radar" -> {
+                                    if (!(sender instanceof Player player)) {
+                                        MessageUtil.sendPrefixed(sender, "general.player-only");
+                                        return;
+                                    }
+                                    if (!hasRadarPermission(player)) {
+                                        MessageUtil.sendPrefixed(player, "radar.no-permission");
+                                        return;
+                                    }
+                                    if (!pluginConfig.isRadarEnabled()) {
+                                        MessageUtil.sendPrefixed(player, "radar.globally-disabled");
+                                        return;
+                                    }
+                                    if (args.length == 1 || args[1].equalsIgnoreCase("toggle")) {
+                                        radarManager.toggle(player);
+                                    } else if (args[1].equalsIgnoreCase("on") || args[1].equalsIgnoreCase("enable")) {
+                                        radarManager.setEnabled(player, true);
+                                    } else if (args[1].equalsIgnoreCase("off") || args[1].equalsIgnoreCase("disable")) {
+                                        radarManager.setEnabled(player, false);
+                                    } else {
+                                        radarManager.toggle(player);
+                                    }
                                 }
                                 case "revives" -> {
                                     if (args.length > 1) {
@@ -333,13 +416,19 @@ public final class Lifeline extends JavaPlugin {
                         @Override
                         public Collection<String> suggest(CommandSourceStack stack, String[] args) {
                             if (args.length <= 1) {
-                                List<String> list = new java.util.ArrayList<>(List.of("help", "revives"));
+                                List<String> list = new java.util.ArrayList<>(List.of("help", "radar", "revives"));
                                 if (stack.getSender().hasPermission("lifeline.admin")) {
                                     list.add("reload");
                                     list.add("resetrevives");
                                 }
                                 String prefix = args.length == 0 ? "" : args[0].toLowerCase();
                                 return list.stream().filter(s -> s.startsWith(prefix)).toList();
+                            }
+                            if (args.length == 2 && args[0].equalsIgnoreCase("radar")) {
+                                String prefix = args[1].toLowerCase();
+                                return List.of("toggle", "on", "off").stream()
+                                        .filter(s -> s.startsWith(prefix))
+                                        .toList();
                             }
                             if (args.length == 2 && (args[0].equalsIgnoreCase("revives") || args[0].equalsIgnoreCase("resetrevives"))) {
                                 String prefix = args[1].toLowerCase();
@@ -358,6 +447,10 @@ public final class Lifeline extends JavaPlugin {
                     }
             );
         });
+    }
+
+    private boolean hasRadarPermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.radar") || sender.hasPermission("lifeline.use");
     }
 
     private boolean hasNodePermission(CommandSender sender) {
@@ -379,6 +472,7 @@ public final class Lifeline extends JavaPlugin {
         MessageUtil.sendRaw(sender, "help.node");
         MessageUtil.sendRaw(sender, "help.stash");
         MessageUtil.sendRaw(sender, "help.tpq");
+        MessageUtil.sendRaw(sender, "help.radar");
         MessageUtil.sendRaw(sender, "help.revives");
         if (sender.hasPermission("lifeline.admin")) {
             MessageUtil.sendRaw(sender, "help.reload");
@@ -433,5 +527,9 @@ public final class Lifeline extends JavaPlugin {
 
     public TetherGUI getTetherGUI() {
         return tetherGUI;
+    }
+
+    public com.lifeline.radar.RadarManager getRadarManager() {
+        return radarManager;
     }
 }

@@ -5,6 +5,11 @@ api-version: '1.21'
 description: A 2-player co-op plugin with Shared Waypoints, Shared Vault, and a Downed/Revive System.
 authors:
   - LifelineDev
+dependencies:
+  server:
+    Geyser-Spigot:
+      load: BEFORE
+      required: false
 
 permissions:
   lifeline.use:
@@ -33,6 +38,9 @@ permissions:
     default: true
   lifeline.revive:
     description: Allows reviving downed teammates and checking own revives.
+    default: true
+  lifeline.radar:
+    description: Allows toggling and viewing the teammate actionbar radar.
     default: true
   lifeline.admin:
     description: Allows reloading configuration and managing other players' revives.
