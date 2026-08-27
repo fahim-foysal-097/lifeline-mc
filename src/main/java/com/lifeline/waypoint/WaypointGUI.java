@@ -146,6 +146,13 @@ public class WaypointGUI implements Listener, InventoryHolder {
 
         // Add Waypoint button clicked
         if (slot == 49) {
+            if (manager.getAllWaypoints().size() >= 45) {
+                MessageUtil.sendPrefixed(player, "<red>Maximum capacity reached! You can have at most 45 shared waypoints. Please delete one first.");
+                if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                }
+                return;
+            }
             manager.startAddWaypointPrompt(player);
             return;
         }
@@ -178,6 +185,13 @@ public class WaypointGUI implements Listener, InventoryHolder {
         // Left-Click: Teleport
         if (event.getClick() == ClickType.LEFT) {
             manager.startTeleportWarmup(player, wp);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof WaypointGUI) {
+            event.setCancelled(true);
         }
     }
 }

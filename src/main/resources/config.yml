@@ -82,3 +82,20 @@ waypoints:
   # If the player moves or takes damage during warm-up, the teleport is cancelled.
   # Setting this to 0 means INSTANT TELEPORTATION (no warm-up).
   teleport-warmup-seconds: 3
+
+
+# ------------------------------------------------------------------------------
+# Player-to-Player Teleport Request Settings (/tpq, /teleportgui)
+# ------------------------------------------------------------------------------
+tether:
+  # Teleport warm-up duration in seconds after a request is accepted.
+  # If the player moves or takes damage during warm-up, the teleport is cancelled.
+  # Setting this to 0 means INSTANT TELEPORTATION (no warm-up).
+  teleport-warmup-seconds: 3
+
+  # How long (in seconds) a teleport request remains valid before expiring.
+  request-timeout-seconds: 60
+
+  # Cooldown (in seconds) between sending teleport requests (0 = disabled).
+  cooldown-seconds: 0
+

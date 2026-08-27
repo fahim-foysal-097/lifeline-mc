@@ -155,6 +155,9 @@ public class WaypointManager implements Listener {
         }
 
         cancelWarmup(player, false);
+        if (plugin.getTetherManager() != null) {
+            plugin.getTetherManager().cancelWarmup(player, false, null);
+        }
         player.closeInventory();
 
         PluginConfig config = plugin.getPluginConfig();
@@ -195,7 +198,7 @@ public class WaypointManager implements Listener {
 
             @Override
             public void run() {
-                if (!player.isOnline()) {
+                if (!player.isOnline() || player.isDead()) {
                     cancelWarmup(player, false);
                     return;
                 }
@@ -222,22 +225,24 @@ public class WaypointManager implements Listener {
                 }
 
                 if (elapsed >= totalTicks) {
-                    // Teleport successful
-                    cancelWarmup(player, false);
-                    player.teleportAsync(targetLoc).thenAccept(success -> {
-                        if (success) {
-                            MessageUtil.sendPrefixed(player, "<green>Teleported to <aqua>" + waypoint.getName() + "</aqua>!");
-                            MessageUtil.sendActionBar(player, "<green>✔ Teleport Complete</green>");
-                            if (config.isSoundEffectsEnabled()) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                    // Only teleport if warmup hasn't been externally cancelled (e.g. by event listener)
+                    if (activeWarmups.containsKey(uuid)) {
+                        cancelWarmup(player, false);
+                        player.teleportAsync(targetLoc).thenAccept(success -> {
+                            if (success) {
+                                MessageUtil.sendPrefixed(player, "<green>Teleported to <aqua>" + waypoint.getName() + "</aqua>!");
+                                MessageUtil.sendActionBar(player, "<green>✔ Teleport Complete</green>");
+                                if (config.isSoundEffectsEnabled()) {
+                                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                                }
+                                if (config.isParticlesEnabled()) {
+                                    player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                                }
+                            } else {
+                                MessageUtil.sendPrefixed(player, "<red>Failed to teleport to destination.");
                             }
-                            if (config.isParticlesEnabled()) {
-                                player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
-                            }
-                        } else {
-                            MessageUtil.sendPrefixed(player, "<red>Failed to teleport to destination.");
-                        }
-                    });
+                        });
+                    }
                 }
             }
         }, 0L, interval);
@@ -334,7 +339,7 @@ public class WaypointManager implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
             if (activeWarmups.containsKey(player.getUniqueId())) {

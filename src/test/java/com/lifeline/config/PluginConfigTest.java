@@ -123,4 +123,22 @@ public class PluginConfigTest {
         config.load(instantWp);
         assertEquals(0, config.getWaypointWarmupSeconds());
     }
+
+    @Test
+    public void testTetherConfigSettings() {
+        PluginConfig config = new PluginConfig(null);
+
+        String yaml = """
+                tether:
+                  teleport-warmup-seconds: 5
+                  request-timeout-seconds: 45
+                  cooldown-seconds: 10
+                """;
+        YamlConfiguration tetherConfig = YamlConfiguration.loadConfiguration(new StringReader(yaml));
+        config.load(tetherConfig);
+
+        assertEquals(5, config.getTetherWarmupSeconds());
+        assertEquals(45, config.getTetherTimeoutSeconds());
+        assertEquals(10, config.getTetherCooldownSeconds());
+    }
 }

@@ -126,11 +126,8 @@ public class ReviveListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        if (!plugin.getPluginConfig().isReviveEnabled()) {
-            return;
-        }
-        Player player = event.getPlayer();
-        downedManager.resetRevives(player.getUniqueId());
+        // Revive counter is already reset on PlayerDeathEvent.
+        // No additional reset needed here.
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

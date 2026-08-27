@@ -56,15 +56,45 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 
 ---
 
+### 🚀 4. Player Teleportation System & GUI
+
+- **Open GUI**: `/tpq` or `/teleportgui`
+- **Direct Request**: `/tpq <player>`
+- **Sleek 27-Slot Player Selection GUI**:
+  - Shows custom player heads of all online teammates with real-time **Dimension**, **Distance (in blocks)**, and **Health** stats.
+  - Downed players are shown with a red label and cannot be selected.
+  - Spectator mode players are shown with a gray label and cannot be selected.
+  - Click any valid player head to instantly dispatch a teleport request.
+- **Interactive Chat Buttons**:
+  - The recipient receives interactive MiniMessage chat buttons:
+    - `[✔ ACCEPT]` - click to run `/tpq accept <player>`
+    - `[✖ DECLINE]` - click to run `/tpq deny <player>`
+  - Requests expire automatically after the configured timeout (default: 60s).
+- **Safe Warm-Up**:
+  - Upon acceptance, the requester undergoes a configurable **warm-up** (default: 3s) with portal particle cues, audio ticks, and Action Bar countdown.
+  - **Cancels automatically** if the requester moves, takes damage, dies, gets downed, or if the target disconnects or dies during warm-up.
+  - Starting a waypoint (`/node`) warm-up cancels any active teleport warm-up, and vice versa - they are mutually exclusive.
+  - The requester is automatically ejected from any vehicle before teleportation.
+- **Guard Rails**:
+  - Cannot send requests to yourself, downed players, or players in Spectator mode.
+  - Cooldown between requests is configurable (default: 30s).
+
+---
+
 ## 📜 Commands & Permissions
 
-| Command                           | Aliases        | Description                                 | Permission                               |
-| :-------------------------------- | :------------- | :------------------------------------------ | :--------------------------------------- |
-| `/node`                           | `/nd`, `/wp`   | Opens the shared waypoints (nodes) GUI      | `lifeline.node` (or `lifeline.waypoint`) |
-| `/stash`                          | `/st`, `/safe` | Opens the shared 54-slot co-op stash / safe | `lifeline.stash` (or `lifeline.safe`)    |
-| `/lifeline revives [player]`      | `/ll`          | Checks remaining co-op revives              | `lifeline.revive`                        |
-| `/lifeline reload`                | `/ll`          | Reloads plugin configuration                | `lifeline.admin`                         |
-| `/lifeline resetrevives <player>` | `/ll`          | Resets player revive counters               | `lifeline.admin`                         |
+| Command                           | Aliases            | Description                                 | Permission                               |
+| :-------------------------------- | :----------------- | :------------------------------------------ | :--------------------------------------- |
+| `/node`                           | `/nd`, `/wp`       | Opens the shared waypoints (nodes) GUI      | `lifeline.node` (or `lifeline.waypoint`) |
+| `/stash`                          | `/st`, `/safe`     | Opens the shared 54-slot co-op stash / safe | `lifeline.stash` (or `lifeline.safe`)    |
+| `/tpq`                            | `/teleportgui`     | Opens player teleport GUI                   | `lifeline.tpq` (or `lifeline.tether`)    |
+| `/tpq <player>`                   | -                  | Sends a teleport request to a player        | `lifeline.tpq`                           |
+| `/tpq accept [player]`            | -                  | Accepts an incoming teleport request        | `lifeline.tpq`                           |
+| `/tpq deny [player]`              | -                  | Declines an incoming teleport request       | `lifeline.tpq`                           |
+| `/tpq cancel`                     | -                  | Cancels your outgoing teleport request      | `lifeline.tpq`                           |
+| `/lifeline revives [player]`      | `/ll revives`      | Checks remaining co-op revives              | `lifeline.use`                           |
+| `/lifeline reload`                | `/ll reload`       | Reloads plugin configuration                | `lifeline.admin`                         |
+| `/lifeline resetrevives <player>` | `/ll resetrevives` | Resets player revive counters               | `lifeline.admin`                         |
 
 ---
 

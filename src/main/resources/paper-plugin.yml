@@ -25,6 +25,12 @@ permissions:
   lifeline.vault:
     description: Legacy alias for lifeline.stash.
     default: true
+  lifeline.tpq:
+    description: Allows sending and accepting player-to-player teleport requests.
+    default: true
+  lifeline.tether:
+    description: Alias for lifeline.tpq.
+    default: true
   lifeline.revive:
     description: Allows reviving downed teammates and checking own revives.
     default: true

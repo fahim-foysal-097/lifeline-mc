@@ -43,6 +43,11 @@ public class PluginConfig {
     // Waypoints
     private int waypointWarmupSeconds;
 
+    // Tether (/tpq)
+    private int tetherWarmupSeconds;
+    private int tetherTimeoutSeconds;
+    private int tetherCooldownSeconds;
+
     public PluginConfig(Lifeline plugin) {
         this.plugin = plugin;
         if (plugin != null) {
@@ -103,6 +108,11 @@ public class PluginConfig {
 
         // 8. Waypoint settings
         this.waypointWarmupSeconds = Math.max(0, config.getInt("waypoints.teleport-warmup-seconds", 3));
+
+        // 9. Tether settings
+        this.tetherWarmupSeconds = Math.max(0, config.getInt("tether.teleport-warmup-seconds", 3));
+        this.tetherTimeoutSeconds = Math.max(5, config.getInt("tether.request-timeout-seconds", 60));
+        this.tetherCooldownSeconds = Math.max(0, config.getInt("tether.cooldown-seconds", 0));
     }
 
     public int getMaxRevives() {
@@ -195,5 +205,17 @@ public class PluginConfig {
 
     public int getWaypointWarmupSeconds() {
         return waypointWarmupSeconds;
+    }
+
+    public int getTetherWarmupSeconds() {
+        return tetherWarmupSeconds;
+    }
+
+    public int getTetherTimeoutSeconds() {
+        return tetherTimeoutSeconds;
+    }
+
+    public int getTetherCooldownSeconds() {
+        return tetherCooldownSeconds;
     }
 }

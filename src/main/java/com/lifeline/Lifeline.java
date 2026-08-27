@@ -3,6 +3,8 @@ package com.lifeline;
 import com.lifeline.config.PluginConfig;
 import com.lifeline.revive.DownedManager;
 import com.lifeline.revive.ReviveListener;
+import com.lifeline.tether.TetherGUI;
+import com.lifeline.tether.TetherManager;
 import com.lifeline.util.MessageUtil;
 import com.lifeline.vault.SharedVaultManager;
 import com.lifeline.waypoint.WaypointGUI;
@@ -33,6 +35,8 @@ public final class Lifeline extends JavaPlugin {
     private SharedVaultManager sharedVaultManager;
     private DownedManager downedManager;
     private ReviveListener reviveListener;
+    private TetherManager tetherManager;
+    private TetherGUI tetherGUI;
 
     @Override
     public void onEnable() {
@@ -48,6 +52,8 @@ public final class Lifeline extends JavaPlugin {
         this.sharedVaultManager = new SharedVaultManager(this);
         this.downedManager = new DownedManager(this);
         this.reviveListener = new ReviveListener(this, this.downedManager);
+        this.tetherManager = new TetherManager(this);
+        this.tetherGUI = new TetherGUI(this, this.tetherManager);
 
         // Register Event Listeners
         PluginManager pm = getServer().getPluginManager();
@@ -55,13 +61,15 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.waypointGUI, this);
         pm.registerEvents(this.sharedVaultManager, this);
         pm.registerEvents(this.reviveListener, this);
+        pm.registerEvents(this.tetherManager, this);
+        pm.registerEvents(this.tetherGUI, this);
 
         // Register Commands via modern Paper LifecycleEvents
         registerCommands();
 
         getLogger().info("==================================================");
         getLogger().info("Lifeline v" + getPluginMeta().getVersion() + " initialization complete!");
-        getLogger().info("Co-op systems (Nodes, Stash, Revive) are online.");
+        getLogger().info("Co-op systems (Nodes, Stash, Teleport, Revive) are online.");
         getLogger().info("==================================================");
     }
 
@@ -79,6 +87,10 @@ public final class Lifeline extends JavaPlugin {
 
         if (this.downedManager != null) {
             this.downedManager.cleanupAll();
+        }
+
+        if (this.tetherManager != null) {
+            this.tetherManager.cleanup();
         }
 
         getLogger().info("Lifeline successfully disabled.");
@@ -152,6 +164,97 @@ public final class Lifeline extends JavaPlugin {
                         @Override
                         public boolean canUse(CommandSender sender) {
                             return hasStashPermission(sender);
+                        }
+                    }
+            );
+
+            // Register /tpq and /teleportgui
+            commands.register(
+                    "tpq",
+                    "Opens the player teleport GUI or manages teleport requests",
+                    List.of("teleportgui"),
+                    new BasicCommand() {
+                        @Override
+                        public void execute(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                MessageUtil.sendPrefixed(sender, "<red>This command can only be executed by players.");
+                                return;
+                            }
+
+                            if (!hasTetherPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "<red>You do not have permission to use player teleportation.");
+                                return;
+                            }
+
+                            if (downedManager.isDowned(player.getUniqueId())) {
+                                MessageUtil.sendPrefixed(player, "<red>You cannot use teleportation while downed!");
+                                return;
+                            }
+
+                            if (args.length == 0) {
+                                tetherGUI.open(player);
+                                return;
+                            }
+
+                            String sub = args[0].toLowerCase();
+                            switch (sub) {
+                                case "accept" -> {
+                                    String targetSender = args.length > 1 ? args[1] : null;
+                                    tetherManager.acceptRequest(player, targetSender);
+                                }
+                                case "deny", "decline" -> {
+                                    String targetSender = args.length > 1 ? args[1] : null;
+                                    tetherManager.denyRequest(player, targetSender);
+                                }
+                                case "cancel" -> {
+                                    tetherManager.cancelOutgoingRequest(player);
+                                }
+                                case "gui", "menu" -> {
+                                    tetherGUI.open(player);
+                                }
+                                default -> {
+                                    Player target = Bukkit.getPlayer(args[0]);
+                                    if (target == null || !target.isOnline()) {
+                                        MessageUtil.sendPrefixed(player, "<red>Player '<yellow>" + args[0] + "</yellow>' is not online.");
+                                        return;
+                                    }
+                                    tetherManager.sendRequest(player, target);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public Collection<String> suggest(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                return List.of();
+                            }
+
+                            if (args.length <= 1) {
+                                List<String> list = new java.util.ArrayList<>(List.of("accept", "deny", "cancel", "gui"));
+                                for (Player p : Bukkit.getOnlinePlayers()) {
+                                    if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                        list.add(p.getName());
+                                    }
+                                }
+                                String prefix = args.length == 0 ? "" : args[0].toLowerCase();
+                                return list.stream().filter(s -> s.toLowerCase().startsWith(prefix)).toList();
+                            }
+
+                            if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("deny") || args[0].equalsIgnoreCase("decline"))) {
+                                String prefix = args[1].toLowerCase();
+                                return tetherManager.getPendingSenderNames(player).stream()
+                                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                                        .toList();
+                            }
+
+                            return List.of();
+                        }
+
+                        @Override
+                        public boolean canUse(CommandSender sender) {
+                            return hasTetherPermission(sender);
                         }
                     }
             );
@@ -272,10 +375,15 @@ public final class Lifeline extends JavaPlugin {
                 || sender.hasPermission("lifeline.vault");
     }
 
+    private boolean hasTetherPermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.tpq") || sender.hasPermission("lifeline.tether");
+    }
+
     private void sendHelp(CommandSender sender) {
         MessageUtil.sendPrefixed(sender, "<gold><bold>Lifeline Commands</bold></gold>");
         MessageUtil.sendRaw(sender, "  <yellow>/node (or /nd, /wp)</yellow> <dark_gray>-</dark_gray> <gray>Open shared waypoints</gray>");
         MessageUtil.sendRaw(sender, "  <yellow>/stash (or /st, /safe)</yellow> <dark_gray>-</dark_gray> <gray>Open shared co-op stash</gray>");
+        MessageUtil.sendRaw(sender, "  <yellow>/tpq (or /teleportgui)</yellow> <dark_gray>-</dark_gray> <gray>Open player teleport GUI / request</gray>");
         MessageUtil.sendRaw(sender, "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>");
         if (sender.hasPermission("lifeline.admin")) {
             MessageUtil.sendRaw(sender, "  <yellow>/lifeline reload</yellow> <dark_gray>-</dark_gray> <gray>Reload configuration</gray>");
@@ -319,5 +427,13 @@ public final class Lifeline extends JavaPlugin {
 
     public DownedManager getDownedManager() {
         return downedManager;
+    }
+
+    public TetherManager getTetherManager() {
+        return tetherManager;
+    }
+
+    public TetherGUI getTetherGUI() {
+        return tetherGUI;
     }
 }

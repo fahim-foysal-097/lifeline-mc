@@ -112,10 +112,17 @@ public class DownedManager {
         DownedState state = new DownedState(uuid, timerSeconds);
         downedPlayers.put(uuid, state);
 
-        // Cancel any active waypoint teleport warmup
+        // Cancel any active waypoint or tether teleport warmup
         if (plugin.getWaypointManager() != null) {
             plugin.getWaypointManager().cancelWarmup(player, false);
         }
+        if (plugin.getTetherManager() != null) {
+            plugin.getTetherManager().cancelWarmup(player, false, null);
+            plugin.getTetherManager().cancelOutgoingRequest(player);
+        }
+
+        // Close any open GUI
+        player.closeInventory();
 
         // Eject from vehicles if riding
         if (player.isInsideVehicle()) {
