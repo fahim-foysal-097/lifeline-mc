@@ -440,8 +440,18 @@ public class DownedManager {
     }
 
     public void cleanupAll() {
-        for (DownedState state : downedPlayers.values()) {
-            state.cancelAllTasks();
+        for (UUID uuid : downedPlayers.keySet()) {
+            DownedState state = downedPlayers.get(uuid);
+            if (state != null) {
+                state.cancelAllTasks();
+            }
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null && p.isOnline()) {
+                p.removePotionEffect(PotionEffectType.DARKNESS);
+                p.removePotionEffect(PotionEffectType.BLINDNESS);
+                p.removePotionEffect(PotionEffectType.SLOWNESS);
+                p.removePotionEffect(PotionEffectType.GLOWING);
+            }
         }
         downedPlayers.clear();
         remainingRevives.clear();

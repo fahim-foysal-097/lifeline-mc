@@ -24,4 +24,19 @@ public class TetherRequestTest {
         assertFalse(activeReq.isExpired());
         assertTrue(activeReq.getRemainingSeconds() > 0);
     }
+
+    @Test
+    public void testClickButtonPlaceholderResolution() {
+        String template = "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept teleport request from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>";
+        String resolved = template.replace("<player>", "TestPlayer");
+
+        net.kyori.adventure.text.Component component = com.lifeline.util.MessageUtil.parse(resolved);
+        assertNotNull(component);
+
+        // Verify that parsing unparsed placeholder doesn't crash or break
+        com.lifeline.util.MessageUtil.load(new org.bukkit.configuration.file.YamlConfiguration());
+        net.kyori.adventure.text.Component parsed = com.lifeline.util.MessageUtil.parse("<yellow><player></yellow>",
+                com.lifeline.util.MessageUtil.unparsed("player", "<player>"));
+        assertNotNull(parsed);
+    }
 }

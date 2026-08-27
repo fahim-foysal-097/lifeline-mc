@@ -133,7 +133,13 @@ public class Waypoint {
         float yaw = ((Number) map.getOrDefault("yaw", 0.0)).floatValue();
         float pitch = ((Number) map.getOrDefault("pitch", 0.0)).floatValue();
         String uuidStr = (String) map.get("creatorUuid");
-        UUID creatorUuid = uuidStr != null ? UUID.fromString(uuidStr) : null;
+        UUID creatorUuid = null;
+        if (uuidStr != null) {
+            try {
+                creatorUuid = UUID.fromString(uuidStr);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
         String creatorName = (String) map.getOrDefault("creatorName", "Unknown");
         long createdAt = ((Number) map.getOrDefault("createdAt", System.currentTimeMillis())).longValue();
 

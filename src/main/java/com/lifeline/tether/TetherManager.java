@@ -117,7 +117,12 @@ public class TetherManager implements Listener {
 
         // Notify target with interactive clickable components
         MessageUtil.sendPrefixed(target, "teleport.request-received-target", MessageUtil.unparsed("player", sender.getName()));
-        MessageUtil.sendPrefixed(target, "teleport.request-received-buttons", MessageUtil.unparsed("player", sender.getName()));
+
+        // Pre-substitute player name into raw button template so <click:run_command:'/tpq accept <player>'> has the actual name
+        String rawButtons = MessageUtil.getRaw("teleport.request-received-buttons",
+                "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept teleport request from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>   <red><bold><click:run_command:'/tpq deny <player>'><hover:show_text:'<red>Click to decline teleport request from <player></red>'>[✖ DECLINE]</click></hover></bold></red>")
+                .replace("<player>", sender.getName());
+        MessageUtil.sendPrefixed(target, rawButtons);
 
         if (config.isSoundEffectsEnabled()) {
             target.playSound(target.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.4f);
@@ -161,8 +166,13 @@ public class TetherManager implements Listener {
             return false;
         }
 
+        // Normalize senderName: if empty, blank, or placeholder "<player>", treat as null to accept newest
+        if (senderNameOrNull != null && (senderNameOrNull.isBlank() || senderNameOrNull.equalsIgnoreCase("<player>"))) {
+            senderNameOrNull = null;
+        }
+
         TetherRequest matchingRequest = null;
-        if (senderNameOrNull != null && !senderNameOrNull.isBlank()) {
+        if (senderNameOrNull != null) {
             for (TetherRequest req : requests.values()) {
                 if (req.senderName().equalsIgnoreCase(senderNameOrNull)) {
                     matchingRequest = req;
@@ -170,7 +180,7 @@ public class TetherManager implements Listener {
                 }
             }
             if (matchingRequest == null) {
-                MessageUtil.sendPrefixed(target, "teleport.no-request-from-player", MessageUtil.p("player", senderNameOrNull));
+                MessageUtil.sendPrefixed(target, "teleport.no-request-from-player", MessageUtil.unparsed("player", senderNameOrNull));
                 return false;
             }
         } else {
@@ -195,16 +205,16 @@ public class TetherManager implements Listener {
 
         Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
         if (sender == null || !sender.isOnline()) {
-            MessageUtil.sendPrefixed(target, "teleport.player-offline", MessageUtil.p("player", matchingRequest.senderName()));
+            MessageUtil.sendPrefixed(target, "teleport.player-offline", MessageUtil.unparsed("player", matchingRequest.senderName()));
             return false;
         }
 
         if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(sender.getUniqueId())) {
-            MessageUtil.sendPrefixed(target, "teleport.target-downed-accept", MessageUtil.p("player", sender.getName()));
+            MessageUtil.sendPrefixed(target, "teleport.target-downed-accept", MessageUtil.unparsed("player", sender.getName()));
             return false;
         }
 
-        MessageUtil.sendPrefixed(target, "teleport.accept-target", MessageUtil.p("player", sender.getName()));
+        MessageUtil.sendPrefixed(target, "teleport.accept-target", MessageUtil.unparsed("player", sender.getName()));
         if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
             target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
         }
@@ -235,8 +245,13 @@ public class TetherManager implements Listener {
             return false;
         }
 
+        // Normalize senderName: if empty, blank, or placeholder "<player>", treat as null to deny newest
+        if (senderNameOrNull != null && (senderNameOrNull.isBlank() || senderNameOrNull.equalsIgnoreCase("<player>"))) {
+            senderNameOrNull = null;
+        }
+
         TetherRequest matchingRequest = null;
-        if (senderNameOrNull != null && !senderNameOrNull.isBlank()) {
+        if (senderNameOrNull != null) {
             for (TetherRequest req : requests.values()) {
                 if (req.senderName().equalsIgnoreCase(senderNameOrNull)) {
                     matchingRequest = req;
@@ -244,7 +259,7 @@ public class TetherManager implements Listener {
                 }
             }
             if (matchingRequest == null) {
-                MessageUtil.sendPrefixed(target, "teleport.no-request-from-player", MessageUtil.p("player", senderNameOrNull));
+                MessageUtil.sendPrefixed(target, "teleport.no-request-from-player", MessageUtil.unparsed("player", senderNameOrNull));
                 return false;
             }
         } else {
@@ -264,11 +279,11 @@ public class TetherManager implements Listener {
 
         removeRequest(matchingRequest);
 
-        MessageUtil.sendPrefixed(target, "teleport.deny-target", MessageUtil.p("player", matchingRequest.senderName()));
+        MessageUtil.sendPrefixed(target, "teleport.deny-target", MessageUtil.unparsed("player", matchingRequest.senderName()));
 
         Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
         if (sender != null && sender.isOnline()) {
-            MessageUtil.sendPrefixed(sender, "teleport.deny-sender", MessageUtil.p("player", target.getName()));
+            MessageUtil.sendPrefixed(sender, "teleport.deny-sender", MessageUtil.unparsed("player", target.getName()));
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.8f, 0.6f);
             }
@@ -298,7 +313,7 @@ public class TetherManager implements Listener {
             }
         }
 
-        MessageUtil.sendPrefixed(sender, "teleport.cancel-outgoing", MessageUtil.p("player", req.targetName()));
+        MessageUtil.sendPrefixed(sender, "teleport.cancel-outgoing", MessageUtil.unparsed("player", req.targetName()));
         return true;
     }
 
@@ -310,7 +325,7 @@ public class TetherManager implements Listener {
 
             Player sender = Bukkit.getPlayer(request.senderUuid());
             if (sender != null && sender.isOnline()) {
-                MessageUtil.sendPrefixed(sender, "teleport.request-expired-sender", MessageUtil.p("player", request.targetName()));
+                MessageUtil.sendPrefixed(sender, "teleport.request-expired-sender", MessageUtil.unparsed("player", request.targetName()));
             }
         }
     }

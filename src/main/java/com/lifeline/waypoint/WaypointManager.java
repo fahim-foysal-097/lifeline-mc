@@ -146,11 +146,17 @@ public class WaypointManager implements Listener {
      */
     public void startTeleportWarmup(Player player, Waypoint waypoint) {
         Location targetLoc = waypoint.toLocation();
-        if (targetLoc == null) {
-            MessageUtil.sendPrefixed(player, "waypoints.world-not-loaded", MessageUtil.p("world", waypoint.getWorldName()));
+        if (targetLoc == null || targetLoc.getWorld() == null) {
+            MessageUtil.sendPrefixed(player, "waypoints.world-not-loaded", MessageUtil.unparsed("world", waypoint.getWorldName()));
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
+            return;
+        }
+
+        // Void safety check
+        if (targetLoc.getY() < targetLoc.getWorld().getMinHeight()) {
+            MessageUtil.sendPrefixed(player, "teleport.teleport-cancelled-void");
             return;
         }
 
@@ -160,24 +166,31 @@ public class WaypointManager implements Listener {
         }
         player.closeInventory();
 
+        // Eject vehicle
+        if (player.isInsideVehicle()) {
+            player.leaveVehicle();
+        }
+
         PluginConfig config = plugin.getPluginConfig();
         int warmupSeconds = config.getWaypointWarmupSeconds();
 
         // 0 seconds = Instant teleportation
         if (warmupSeconds <= 0) {
             player.teleportAsync(targetLoc).thenAccept(success -> {
-                if (success) {
-                    MessageUtil.sendPrefixed(player, "waypoints.teleport-success", MessageUtil.p("name", waypoint.getName()));
-                    MessageUtil.sendActionBar(player, "waypoints.teleport-actionbar");
-                    if (config.isSoundEffectsEnabled()) {
-                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (success) {
+                        MessageUtil.sendPrefixed(player, "waypoints.teleport-success", MessageUtil.unparsed("name", waypoint.getName()));
+                        MessageUtil.sendActionBar(player, "waypoints.teleport-actionbar");
+                        if (config.isSoundEffectsEnabled()) {
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        }
+                        if (config.isParticlesEnabled()) {
+                            player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                        }
+                    } else {
+                        MessageUtil.sendPrefixed(player, "waypoints.teleport-failed");
                     }
-                    if (config.isParticlesEnabled()) {
-                        player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
-                    }
-                } else {
-                    MessageUtil.sendPrefixed(player, "waypoints.teleport-failed");
-                }
+                });
             });
             return;
         }
@@ -186,7 +199,7 @@ public class WaypointManager implements Listener {
         warmupStartLocations.put(uuid, player.getLocation().clone());
 
         MessageUtil.sendPrefixed(player, "waypoints.warmup-start",
-                MessageUtil.p("name", waypoint.getName()),
+                MessageUtil.unparsed("name", waypoint.getName()),
                 MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
         if (config.isSoundEffectsEnabled()) {
             player.playSound(player.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 0.5f, 1.8f);
@@ -231,18 +244,20 @@ public class WaypointManager implements Listener {
                     if (activeWarmups.containsKey(uuid)) {
                         cancelWarmup(player, false);
                         player.teleportAsync(targetLoc).thenAccept(success -> {
-                            if (success) {
-                                MessageUtil.sendPrefixed(player, "waypoints.teleport-success", MessageUtil.p("name", waypoint.getName()));
-                                MessageUtil.sendActionBar(player, "waypoints.teleport-actionbar");
-                                if (config.isSoundEffectsEnabled()) {
-                                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                if (success) {
+                                    MessageUtil.sendPrefixed(player, "waypoints.teleport-success", MessageUtil.unparsed("name", waypoint.getName()));
+                                    MessageUtil.sendActionBar(player, "waypoints.teleport-actionbar");
+                                    if (config.isSoundEffectsEnabled()) {
+                                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                                    }
+                                    if (config.isParticlesEnabled()) {
+                                        player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                                    }
+                                } else {
+                                    MessageUtil.sendPrefixed(player, "waypoints.teleport-failed");
                                 }
-                                if (config.isParticlesEnabled()) {
-                                    player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
-                                }
-                            } else {
-                                MessageUtil.sendPrefixed(player, "waypoints.teleport-failed");
-                            }
+                            });
                         });
                     }
                 }
