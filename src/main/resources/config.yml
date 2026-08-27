@@ -1,0 +1,84 @@
+# ==============================================================================
+#                       LIFELINE - CO-OP CONFIGURATION
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Revive & Downed Mechanics
+# ------------------------------------------------------------------------------
+
+# Max number of revives a player can receive before completely dying.
+# Once a player uses up all their revives and dies, the counter will reset back
+# to this value upon their next respawn/death.
+#
+# Setting this to 0 means INFINITE REVIVES (players will always enter downed state).
+# Example: If set to 3, player can be revived 3 times. On the 4th fatal damage, they die completely.
+max-revives: 0
+
+# Bleed-out countdown timer in seconds for downed players.
+# - Range: 0 to 60 seconds (values above 60 will be capped at 60).
+# - Setting this to 0 COMPLETELY DISABLES the revive system (players die instantly on fatal damage).
+downed-timer-seconds: 30
+
+# Whether downed players are completely invincible to all damage during the bleed-out timer.
+# When enabled (true), mobs, players, fire, lava, projectiles, fall damage, etc. cannot damage
+# or kill the downed player while waiting for a teammate to revive them.
+downed-invulnerable: true
+
+# Time (in seconds) that a player must hold Sneak + Right-Click to revive their teammate.
+# Default: 3 seconds.
+revive-channel-seconds: 3
+
+# Maximum distance (in blocks) the reviver can move away from the downed player during revival.
+# If they move further away, the revive is interrupted.
+revive-max-distance: 4.0
+
+# Amount of health restored when a player is successfully revived (2.0 = 1 full heart).
+# Default: 6.0 (3 hearts).
+revive-health-restored: 6.0
+
+
+# ------------------------------------------------------------------------------
+# Downed Debuffs & Visuals
+# ------------------------------------------------------------------------------
+# Potion effects applied to a player while in the downed state.
+downed-effects:
+  darkness: true
+  blindness: true
+  glowing: true
+  slowness-level: 5
+
+
+# ------------------------------------------------------------------------------
+# Post-Revive Recovery Buffs
+# ------------------------------------------------------------------------------
+# Potion buffs granted to the player immediately after being revived.
+revive-buffs:
+  regeneration:
+    enabled: true
+    duration-seconds: 4
+    amplifier: 1
+  resistance:
+    enabled: true
+    duration-seconds: 3
+    amplifier: 0
+  fire-resistance:
+    enabled: true
+    duration-seconds: 10
+    amplifier: 0
+
+
+# ------------------------------------------------------------------------------
+# Audio & Particle Effects
+# ------------------------------------------------------------------------------
+sound-effects: true
+particles: true
+
+
+# ------------------------------------------------------------------------------
+# Waypoint Settings
+# ------------------------------------------------------------------------------
+waypoints:
+  # Teleport warm-up duration in seconds when teleporting to a shared waypoint.
+  # If the player moves or takes damage during warm-up, the teleport is cancelled.
+  # Setting this to 0 means INSTANT TELEPORTATION (no warm-up).
+  teleport-warmup-seconds: 3

@@ -17,5 +17,8 @@ permissions:
     description: Allows access to the shared vault.
     default: true
   lifeline.revive:
-    description: Allows reviving downed teammates.
+    description: Allows reviving downed teammates and checking own revives.
     default: true
+  lifeline.admin:
+    description: Allows reloading configuration and managing other players' revives.
+    default: op

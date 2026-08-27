@@ -1,6 +1,7 @@
 package com.lifeline.waypoint;
 
 import com.lifeline.Lifeline;
+import com.lifeline.config.PluginConfig;
 import com.lifeline.util.MessageUtil;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -121,7 +122,9 @@ public class WaypointManager implements Listener {
 
         MessageUtil.sendPrefixed(player, "<yellow>Please enter a name for the new waypoint in chat within <gold>15 seconds</gold>.");
         MessageUtil.sendPrefixed(player, "<gray>(Type <red>cancel</red> to abort)</gray>");
-        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
+        if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
+        }
 
         // Schedule timeout expiration check
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -130,33 +133,61 @@ public class WaypointManager implements Listener {
                 pendingPrompts.remove(player.getUniqueId());
                 if (player.isOnline()) {
                     MessageUtil.sendPrefixed(player, "<red>Waypoint creation timed out.");
-                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
+                    if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
+                    }
                 }
             }
         }, 20L * 16);
     }
 
     /**
-     * Starts a 3-second teleport warmup to a target waypoint.
+     * Starts teleportation to a target waypoint. Warmup is configurable (0 = instant).
      */
     public void startTeleportWarmup(Player player, Waypoint waypoint) {
         Location targetLoc = waypoint.toLocation();
         if (targetLoc == null) {
             MessageUtil.sendPrefixed(player, "<red>World '<gold>" + waypoint.getWorldName() + "</gold>' is not currently loaded.");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            }
             return;
         }
 
         cancelWarmup(player, false);
         player.closeInventory();
 
+        PluginConfig config = plugin.getPluginConfig();
+        int warmupSeconds = config.getWaypointWarmupSeconds();
+
+        // 0 seconds = Instant teleportation
+        if (warmupSeconds <= 0) {
+            player.teleportAsync(targetLoc).thenAccept(success -> {
+                if (success) {
+                    MessageUtil.sendPrefixed(player, "<green>Teleported to <aqua>" + waypoint.getName() + "</aqua>!");
+                    MessageUtil.sendActionBar(player, "<green>✔ Teleport Complete</green>");
+                    if (config.isSoundEffectsEnabled()) {
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                    }
+                    if (config.isParticlesEnabled()) {
+                        player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                    }
+                } else {
+                    MessageUtil.sendPrefixed(player, "<red>Failed to teleport to destination.");
+                }
+            });
+            return;
+        }
+
         UUID uuid = player.getUniqueId();
         warmupStartLocations.put(uuid, player.getLocation().clone());
 
-        MessageUtil.sendPrefixed(player, "<yellow>Teleporting to <aqua>" + waypoint.getName() + "</aqua> in <gold>3 seconds</gold>. <red>Do not move!</red>");
-        player.playSound(player.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 0.5f, 1.8f);
+        MessageUtil.sendPrefixed(player, "<yellow>Teleporting to <aqua>" + waypoint.getName() + "</aqua> in <gold>" + warmupSeconds + " seconds</gold>. <red>Do not move!</red>");
+        if (config.isSoundEffectsEnabled()) {
+            player.playSound(player.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 0.5f, 1.8f);
+        }
 
-        final int totalTicks = 60; // 3 seconds = 60 ticks
+        final int totalTicks = warmupSeconds * 20;
         final int interval = 5;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
@@ -181,10 +212,14 @@ public class WaypointManager implements Listener {
 
                 if (elapsed % 20 == 0 && remainingSeconds > 0) {
                     MessageUtil.sendActionBar(player, "<gold>Teleporting in <yellow>" + remainingSeconds + "s</yellow>... <gray>(Stay still)</gray>");
-                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.8f, 1.2f);
+                    if (config.isSoundEffectsEnabled()) {
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.8f, 1.2f);
+                    }
                 }
 
-                player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation().add(0, 1, 0), 6, 0.3, 0.5, 0.3, 0.05);
+                if (config.isParticlesEnabled()) {
+                    player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation().add(0, 1, 0), 6, 0.3, 0.5, 0.3, 0.05);
+                }
 
                 if (elapsed >= totalTicks) {
                     // Teleport successful
@@ -193,8 +228,12 @@ public class WaypointManager implements Listener {
                         if (success) {
                             MessageUtil.sendPrefixed(player, "<green>Teleported to <aqua>" + waypoint.getName() + "</aqua>!");
                             MessageUtil.sendActionBar(player, "<green>✔ Teleport Complete</green>");
-                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                            player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                            if (config.isSoundEffectsEnabled()) {
+                                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                            }
+                            if (config.isParticlesEnabled()) {
+                                player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                            }
                         } else {
                             MessageUtil.sendPrefixed(player, "<red>Failed to teleport to destination.");
                         }
@@ -215,7 +254,9 @@ public class WaypointManager implements Listener {
             if (notify && player.isOnline()) {
                 MessageUtil.sendPrefixed(player, "<red>Teleportation cancelled because you moved!");
                 MessageUtil.sendActionBar(player, "<red>✖ Teleport Cancelled</red>");
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                }
             }
         }
     }
@@ -236,23 +277,34 @@ public class WaypointManager implements Listener {
             return;
         }
 
+        if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(player.getUniqueId())) {
+            MessageUtil.sendPrefixed(player, "<red>You cannot create waypoints while downed.");
+            return;
+        }
+
         String input = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
 
         if (input.equalsIgnoreCase("cancel")) {
             MessageUtil.sendPrefixed(player, "<yellow>Waypoint creation cancelled.");
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.8f);
+            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.8f);
+            }
             return;
         }
 
         if (input.length() < 2 || input.length() > 24) {
             MessageUtil.sendPrefixed(player, "<red>Waypoint name must be between 2 and 24 characters.");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            }
             return;
         }
 
         if (waypoints.containsKey(input.toLowerCase(Locale.ROOT))) {
             MessageUtil.sendPrefixed(player, "<red>A waypoint named '<yellow>" + input + "</yellow>' already exists.");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            }
             return;
         }
 
@@ -261,7 +313,9 @@ public class WaypointManager implements Listener {
             Waypoint newWaypoint = Waypoint.fromLocation(input, prompt.location(), player.getUniqueId(), player.getName());
             if (addWaypoint(newWaypoint)) {
                 MessageUtil.broadcast("<green>Player <yellow>" + player.getName() + "</yellow> created shared waypoint: <aqua><bold>" + input + "</bold></aqua>!");
-                player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
+                if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                    player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
+                }
             } else {
                 MessageUtil.sendPrefixed(player, "<red>Failed to save waypoint.");
             }

@@ -10,15 +10,16 @@ import java.util.UUID;
 public class DownedState {
 
     private final UUID downedPlayerUuid;
-    private int remainingSeconds = 30;
+    private int remainingSeconds;
     private BukkitTask countdownTask;
 
     private UUID activeReviverUuid;
     private int reviveProgressTicks = 0;
     private BukkitTask reviveTask;
 
-    public DownedState(UUID downedPlayerUuid) {
+    public DownedState(UUID downedPlayerUuid, int initialSeconds) {
         this.downedPlayerUuid = downedPlayerUuid;
+        this.remainingSeconds = initialSeconds;
     }
 
     public UUID getDownedPlayerUuid() {
@@ -27,6 +28,10 @@ public class DownedState {
 
     public int getRemainingSeconds() {
         return remainingSeconds;
+    }
+
+    public void setRemainingSeconds(int remainingSeconds) {
+        this.remainingSeconds = remainingSeconds;
     }
 
     public void decrementSeconds() {
