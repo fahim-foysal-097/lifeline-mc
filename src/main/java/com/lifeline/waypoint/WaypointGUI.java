@@ -24,8 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 54-Slot chest GUI for displaying, teleporting to, and managing shared waypoints
- * with multi-page navigation (supporting up to the configured max pages, hard max: 2).
+ * GUI for browsing, teleporting to, and managing shared waypoints.
  */
 public class WaypointGUI implements Listener, InventoryHolder {
 
@@ -79,7 +78,7 @@ public class WaypointGUI implements Listener, InventoryHolder {
             inv.setItem(i - startIndex, createWaypointItem(wp));
         }
 
-        // Fill bottom row with gray stained glass panes (slots 45 - 53)
+        // Bottom row border
         ItemStack border = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta borderMeta = border.getItemMeta();
         borderMeta.displayName(Component.empty());
@@ -106,12 +105,11 @@ public class WaypointGUI implements Listener, InventoryHolder {
         addMeta.displayName(MessageUtil.get("waypoints.add-button-name"));
         addMeta.lore(MessageUtil.getList("waypoints.add-button-lore"));
         // Store current page on the button's metadata BEFORE placing it in the inventory.
-        // Bukkit stores a copy of the ItemStack internally, so any mutation after inv.setItem() is ignored.
         addMeta.getPersistentDataContainer().set(pageKey, PersistentDataType.INTEGER, safePage);
         addButton.setItemMeta(addMeta);
         inv.setItem(49, addButton);
 
-        // Next Page Button in slot 53 (if safePage < totalPages && safePage < maxConfigPages)
+        // Next Page Button in slot 53
         if (safePage < totalPages && safePage < maxConfigPages) {
             ItemStack nextButton = new ItemStack(Material.FEATHER);
             ItemMeta nextMeta = nextButton.getItemMeta();
@@ -255,7 +253,7 @@ public class WaypointGUI implements Listener, InventoryHolder {
             return;
         }
 
-        // Shift + Right-Click: Delete
+        // Delete
         if (event.getClick() == ClickType.SHIFT_RIGHT) {
             if (manager.deleteWaypoint(wpName)) {
                 MessageUtil.sendPrefixed(player, "waypoints.deleted", MessageUtil.p("name", wpName));
@@ -267,7 +265,7 @@ public class WaypointGUI implements Listener, InventoryHolder {
             return;
         }
 
-        // Left-Click: Teleport
+        // Teleport
         if (event.getClick() == ClickType.LEFT) {
             manager.startTeleportWarmup(player, wp);
         }

@@ -42,7 +42,7 @@ public final class Lifeline extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        // Ensure default config is created and load configuration
+        // Ensure default config is created and load config
         saveDefaultConfig();
         this.pluginConfig = new PluginConfig(this);
         MessageUtil.load(this);
@@ -65,13 +65,9 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.tetherManager, this);
         pm.registerEvents(this.tetherGUI, this);
 
-        // Register Commands via modern Paper LifecycleEvents
         registerCommands();
 
-        getLogger().info("==================================================");
-        getLogger().info("Lifeline v" + getPluginMeta().getVersion() + " initialization complete!");
-        getLogger().info("Co-op systems (Nodes, Stash, Teleport, Revive) are online.");
-        getLogger().info("==================================================");
+        getLogger().info("Lifeline v" + getPluginMeta().getVersion() + " loaded.");
     }
 
     @Override
@@ -101,7 +97,6 @@ public final class Lifeline extends JavaPlugin {
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             final Commands commands = event.registrar();
 
-            // Register /node with aliases /nd and /wp
             commands.register(
                     "node",
                     "Opens the shared waypoints (nodes) menu",
@@ -135,7 +130,6 @@ public final class Lifeline extends JavaPlugin {
                     }
             );
 
-            // Register /stash with aliases /st and /safe
             commands.register(
                     "stash",
                     "Opens the shared co-op stash / safe",
@@ -169,7 +163,6 @@ public final class Lifeline extends JavaPlugin {
                     }
             );
 
-            // Register /tpq and /teleportgui
             commands.register(
                     "tpq",
                     "Opens the player teleport GUI or manages teleport requests",
@@ -260,7 +253,6 @@ public final class Lifeline extends JavaPlugin {
                     }
             );
 
-            // Register /lifeline and /ll
             commands.register(
                     "lifeline",
                     "Lifeline plugin administration and management commands",

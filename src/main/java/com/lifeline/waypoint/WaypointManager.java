@@ -327,8 +327,7 @@ public class WaypointManager implements Listener {
             return;
         }
 
-        // All map-reads and writes must happen on the main thread (LinkedHashMap is not thread-safe).
-        // Run waypoint creation on the primary thread to avoid async race conditions.
+        // Async chat -> run waypoint creation and map mutation on primary thread
         Bukkit.getScheduler().runTask(plugin, () -> {
             // Re-check name uniqueness on the main thread (safe, synchronized on the main thread)
             if (waypoints.containsKey(input.toLowerCase(Locale.ROOT))) {

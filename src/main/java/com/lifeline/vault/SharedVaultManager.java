@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 /**
- * Manages the shared 54-slot vault, ensuring in-memory synchronization and persistence.
+ * Manages the shared 54-slot vault and persistence to vault.yml.
  */
 public class SharedVaultManager implements Listener, InventoryHolder {
 
@@ -50,7 +50,7 @@ public class SharedVaultManager implements Listener, InventoryHolder {
     }
 
     /**
-     * Loads saved item stacks from vault.yml into the singleton inventory.
+     * Loads saved item stacks from vault.yml into the inventory.
      */
     public synchronized void loadVault() {
         if (!vaultFile.exists()) {
@@ -72,7 +72,7 @@ public class SharedVaultManager implements Listener, InventoryHolder {
     }
 
     /**
-     * Saves the singleton inventory contents directly to vault.yml.
+     * Saves the inventory contents directly to vault.yml.
      */
     public synchronized void saveVault() {
         if (!plugin.getDataFolder().exists()) {
