@@ -45,6 +45,7 @@ public final class Lifeline extends JavaPlugin {
         // Ensure default config is created and load configuration
         saveDefaultConfig();
         this.pluginConfig = new PluginConfig(this);
+        MessageUtil.load(this);
 
         // Initialize Managers
         this.waypointManager = new WaypointManager(this);
@@ -110,17 +111,17 @@ public final class Lifeline extends JavaPlugin {
                         public void execute(CommandSourceStack stack, String[] args) {
                             CommandSender sender = stack.getSender();
                             if (!(sender instanceof Player player)) {
-                                MessageUtil.sendPrefixed(sender, "<red>This command can only be executed by players.");
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
                                 return;
                             }
 
                             if (!hasNodePermission(player)) {
-                                MessageUtil.sendPrefixed(player, "<red>You do not have permission to use waypoints.");
+                                MessageUtil.sendPrefixed(player, "waypoints.no-permission");
                                 return;
                             }
 
                             if (downedManager.isDowned(player.getUniqueId())) {
-                                MessageUtil.sendPrefixed(player, "<red>You cannot open waypoints while downed!");
+                                MessageUtil.sendPrefixed(player, "waypoints.downed-blocked");
                                 return;
                             }
 
@@ -144,17 +145,17 @@ public final class Lifeline extends JavaPlugin {
                         public void execute(CommandSourceStack stack, String[] args) {
                             CommandSender sender = stack.getSender();
                             if (!(sender instanceof Player player)) {
-                                MessageUtil.sendPrefixed(sender, "<red>This command can only be executed by players.");
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
                                 return;
                             }
 
                             if (!hasStashPermission(player)) {
-                                MessageUtil.sendPrefixed(player, "<red>You do not have permission to access the stash.");
+                                MessageUtil.sendPrefixed(player, "stash.no-permission");
                                 return;
                             }
 
                             if (downedManager.isDowned(player.getUniqueId())) {
-                                MessageUtil.sendPrefixed(player, "<red>You cannot access the stash while downed!");
+                                MessageUtil.sendPrefixed(player, "stash.downed-blocked");
                                 return;
                             }
 
@@ -178,17 +179,17 @@ public final class Lifeline extends JavaPlugin {
                         public void execute(CommandSourceStack stack, String[] args) {
                             CommandSender sender = stack.getSender();
                             if (!(sender instanceof Player player)) {
-                                MessageUtil.sendPrefixed(sender, "<red>This command can only be executed by players.");
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
                                 return;
                             }
 
                             if (!hasTetherPermission(player)) {
-                                MessageUtil.sendPrefixed(player, "<red>You do not have permission to use player teleportation.");
+                                MessageUtil.sendPrefixed(player, "teleport.no-permission");
                                 return;
                             }
 
                             if (downedManager.isDowned(player.getUniqueId())) {
-                                MessageUtil.sendPrefixed(player, "<red>You cannot use teleportation while downed!");
+                                MessageUtil.sendPrefixed(player, "teleport.downed-blocked");
                                 return;
                             }
 
@@ -216,7 +217,7 @@ public final class Lifeline extends JavaPlugin {
                                 default -> {
                                     Player target = Bukkit.getPlayer(args[0]);
                                     if (target == null || !target.isOnline()) {
-                                        MessageUtil.sendPrefixed(player, "<red>Player '<yellow>" + args[0] + "</yellow>' is not online.");
+                                        MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.p("player", args[0]));
                                         return;
                                     }
                                     tetherManager.sendRequest(player, target);
@@ -245,8 +246,8 @@ public final class Lifeline extends JavaPlugin {
                             if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("deny") || args[0].equalsIgnoreCase("decline"))) {
                                 String prefix = args[1].toLowerCase();
                                 return tetherManager.getPendingSenderNames(player).stream()
-                                        .filter(name -> name.toLowerCase().startsWith(prefix))
-                                        .toList();
+                                         .filter(name -> name.toLowerCase().startsWith(prefix))
+                                         .toList();
                             }
 
                             return List.of();
@@ -278,10 +279,11 @@ public final class Lifeline extends JavaPlugin {
                             switch (sub) {
                                 case "reload" -> {
                                     if (!sender.hasPermission("lifeline.admin")) {
-                                        MessageUtil.sendPrefixed(sender, "<red>You do not have permission to reload Lifeline.");
+                                        MessageUtil.sendPrefixed(sender, "general.no-permission-reload");
                                         return;
                                     }
                                     pluginConfig.load();
+                                    MessageUtil.load(Lifeline.this);
                                     if (!pluginConfig.isReviveEnabled()) {
                                         for (Player p : Bukkit.getOnlinePlayers()) {
                                             if (downedManager.isDowned(p.getUniqueId())) {
@@ -289,23 +291,23 @@ public final class Lifeline extends JavaPlugin {
                                             }
                                         }
                                     }
-                                    MessageUtil.sendPrefixed(sender, "<green>Configuration successfully reloaded!");
+                                    MessageUtil.sendPrefixed(sender, "general.config-reloaded");
                                 }
                                 case "revives" -> {
                                     if (args.length > 1) {
                                         if (!sender.hasPermission("lifeline.admin")) {
-                                            MessageUtil.sendPrefixed(sender, "<red>You do not have permission to check other players' revives.");
+                                            MessageUtil.sendPrefixed(sender, "revive.no-permission-other");
                                             return;
                                         }
                                         Player target = Bukkit.getPlayer(args[1]);
                                         if (target == null) {
-                                            MessageUtil.sendPrefixed(sender, "<red>Player '<yellow>" + args[1] + "</yellow>' not found.");
+                                            MessageUtil.sendPrefixed(sender, "revive.player-not-found", MessageUtil.p("player", args[1]));
                                             return;
                                         }
                                         displayRevives(sender, target);
                                     } else {
                                         if (!(sender instanceof Player player)) {
-                                            MessageUtil.sendPrefixed(sender, "<red>Usage: /lifeline revives <player>");
+                                            MessageUtil.sendPrefixed(sender, "revive.usage-revives");
                                             return;
                                         }
                                         displayRevives(sender, player);
@@ -313,23 +315,23 @@ public final class Lifeline extends JavaPlugin {
                                 }
                                 case "resetrevives" -> {
                                     if (!sender.hasPermission("lifeline.admin")) {
-                                        MessageUtil.sendPrefixed(sender, "<red>You do not have permission to reset revives.");
+                                        MessageUtil.sendPrefixed(sender, "revive.no-permission-reset");
                                         return;
                                     }
                                     if (args.length < 2) {
-                                        MessageUtil.sendPrefixed(sender, "<red>Usage: /lifeline resetrevives <player>");
+                                        MessageUtil.sendPrefixed(sender, "revive.usage-resetrevives");
                                         return;
                                     }
                                     Player target = Bukkit.getPlayer(args[1]);
                                     if (target == null) {
-                                        MessageUtil.sendPrefixed(sender, "<red>Player '<yellow>" + args[1] + "</yellow>' not found.");
+                                        MessageUtil.sendPrefixed(sender, "revive.player-not-found", MessageUtil.p("player", args[1]));
                                         return;
                                     }
                                     downedManager.resetRevives(target.getUniqueId());
                                     int max = pluginConfig.getMaxRevives();
                                     String countStr = max == 0 ? "Infinite" : String.valueOf(max);
-                                    MessageUtil.sendPrefixed(sender, "<green>Reset revives for <yellow>" + target.getName() + "</yellow> to <gold>" + countStr + "</gold>.");
-                                    MessageUtil.sendPrefixed(target, "<green>Your revives counter has been reset to <gold>" + countStr + "</gold> by an administrator.");
+                                    MessageUtil.sendPrefixed(sender, "revive.reset-revives-sender", MessageUtil.p("player", target.getName()), MessageUtil.p("count", countStr));
+                                    MessageUtil.sendPrefixed(target, "revive.reset-revives-target", MessageUtil.p("count", countStr));
                                 }
                                 default -> sendHelp(sender);
                             }
@@ -380,28 +382,31 @@ public final class Lifeline extends JavaPlugin {
     }
 
     private void sendHelp(CommandSender sender) {
-        MessageUtil.sendPrefixed(sender, "<gold><bold>Lifeline Commands</bold></gold>");
-        MessageUtil.sendRaw(sender, "  <yellow>/node (or /nd, /wp)</yellow> <dark_gray>-</dark_gray> <gray>Open shared waypoints</gray>");
-        MessageUtil.sendRaw(sender, "  <yellow>/stash (or /st, /safe)</yellow> <dark_gray>-</dark_gray> <gray>Open shared co-op stash</gray>");
-        MessageUtil.sendRaw(sender, "  <yellow>/tpq (or /teleportgui)</yellow> <dark_gray>-</dark_gray> <gray>Open player teleport GUI / request</gray>");
-        MessageUtil.sendRaw(sender, "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>");
+        MessageUtil.sendPrefixed(sender, "help.header");
+        MessageUtil.sendRaw(sender, "help.node");
+        MessageUtil.sendRaw(sender, "help.stash");
+        MessageUtil.sendRaw(sender, "help.tpq");
+        MessageUtil.sendRaw(sender, "help.revives");
         if (sender.hasPermission("lifeline.admin")) {
-            MessageUtil.sendRaw(sender, "  <yellow>/lifeline reload</yellow> <dark_gray>-</dark_gray> <gray>Reload configuration</gray>");
-            MessageUtil.sendRaw(sender, "  <yellow>/lifeline resetrevives <player></yellow> <dark_gray>-</dark_gray> <gray>Reset player's revives</gray>");
+            MessageUtil.sendRaw(sender, "help.reload");
+            MessageUtil.sendRaw(sender, "help.resetrevives");
         }
     }
 
     private void displayRevives(CommandSender sender, Player target) {
         if (!pluginConfig.isReviveEnabled()) {
-            MessageUtil.sendPrefixed(sender, "<yellow>The revive system is currently <red><bold>disabled</bold></red> in config (downed-timer-seconds: 0).");
+            MessageUtil.sendPrefixed(sender, "revive.disabled-in-config");
             return;
         }
         int max = pluginConfig.getMaxRevives();
         if (max == 0) {
-            MessageUtil.sendPrefixed(sender, "<yellow>" + target.getName() + "</yellow> currently has <gold><bold>Infinite Revives</bold></gold> enabled.");
+            MessageUtil.sendPrefixed(sender, "revive.infinite-revives-info", MessageUtil.p("player", target.getName()));
         } else {
             int remaining = downedManager.getRemainingRevives(target.getUniqueId());
-            MessageUtil.sendPrefixed(sender, "<yellow>" + target.getName() + "</yellow> has <gold><bold>" + remaining + "/" + max + "</bold></gold> revives remaining.");
+            MessageUtil.sendPrefixed(sender, "revive.remaining-revives-info",
+                    MessageUtil.p("player", target.getName()),
+                    MessageUtil.p("remaining", String.valueOf(remaining)),
+                    MessageUtil.p("max", String.valueOf(max)));
         }
     }
 

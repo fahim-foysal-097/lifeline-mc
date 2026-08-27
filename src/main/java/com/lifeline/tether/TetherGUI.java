@@ -49,7 +49,7 @@ public class TetherGUI implements Listener, InventoryHolder {
      * Opens the Teleport Player GUI for the specified player.
      */
     public void open(Player player) {
-        Inventory inv = Bukkit.createInventory(this, 27, MessageUtil.parse("<gradient:#00FFA3:#00B8D9><bold>Teleport to Player</bold></gradient>"));
+        Inventory inv = Bukkit.createInventory(this, 27, MessageUtil.get("teleport.gui-title"));
 
         List<Player> targets = new ArrayList<>(Bukkit.getOnlinePlayers());
         targets.remove(player);
@@ -67,10 +67,8 @@ public class TetherGUI implements Listener, InventoryHolder {
         if (targets.isEmpty()) {
             ItemStack noPlayers = new ItemStack(Material.BARRIER);
             ItemMeta meta = noPlayers.getItemMeta();
-            meta.displayName(MessageUtil.parse("<red><bold>No Other Players Online</bold></red>"));
-            meta.lore(List.of(
-                    MessageUtil.parse("<gray>Wait for a teammate to join the server.</gray>")
-            ));
+            meta.displayName(MessageUtil.get("teleport.no-players-name"));
+            meta.lore(MessageUtil.getList("teleport.no-players-lore"));
             noPlayers.setItemMeta(meta);
             inv.setItem(13, noPlayers);
         } else {
@@ -99,46 +97,46 @@ public class TetherGUI implements Listener, InventoryHolder {
         boolean isSpectator = target.getGameMode() == org.bukkit.GameMode.SPECTATOR;
 
         if (isDowned) {
-            meta.displayName(MessageUtil.parse("<red><bold>" + target.getName() + " (Downed)</bold></red>"));
+            meta.displayName(MessageUtil.get("teleport.head-downed", MessageUtil.p("player", target.getName())));
         } else if (isSpectator) {
-            meta.displayName(MessageUtil.parse("<gray><bold>" + target.getName() + " (Spectator)</bold></gray>"));
+            meta.displayName(MessageUtil.get("teleport.head-spectator", MessageUtil.p("player", target.getName())));
         } else {
-            meta.displayName(MessageUtil.parse("<aqua><bold>" + target.getName() + "</bold></aqua>"));
+            meta.displayName(MessageUtil.get("teleport.head-normal", MessageUtil.p("player", target.getName())));
         }
-
-        List<Component> lore = new ArrayList<>();
-        lore.add(MessageUtil.parse("<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"));
 
         // Dimension
-        String dimensionName = "Overworld";
+        String dimensionName = MessageUtil.getRaw("waypoints.dim-overworld", "Overworld");
         World world = target.getWorld();
         if (world.getEnvironment() == World.Environment.NETHER) {
-            dimensionName = "The Nether";
+            dimensionName = MessageUtil.getRaw("waypoints.dim-nether", "The Nether");
         } else if (world.getEnvironment() == World.Environment.THE_END) {
-            dimensionName = "The End";
+            dimensionName = MessageUtil.getRaw("waypoints.dim-end", "The End");
         }
-        lore.add(MessageUtil.parse("<gray>Dimension: <white>" + dimensionName + "</white></gray>"));
 
         // Distance
+        String distanceStr;
         if (viewer.getWorld().equals(target.getWorld())) {
+            // Both in same world - distance() is safe
             int dist = (int) viewer.getLocation().distance(target.getLocation());
-            lore.add(MessageUtil.parse("<gray>Distance: <yellow>" + dist + " blocks</yellow></gray>"));
+            distanceStr = String.valueOf(dist) + " blocks";
         } else {
-            lore.add(MessageUtil.parse("<gray>Distance: <white>Different Dimension</white></gray>"));
+            distanceStr = MessageUtil.getRaw("teleport.head-lore-diff-dim", "Different Dimension");
         }
 
         // Health
         int health = (int) Math.ceil(target.getHealth());
-        lore.add(MessageUtil.parse("<gray>Health: <red>" + health + " HP</red></gray>"));
 
-        lore.add(MessageUtil.parse("<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"));
+        List<Component> lore = new ArrayList<>(MessageUtil.getList("teleport.head-lore",
+                MessageUtil.p("dim", dimensionName),
+                MessageUtil.p("dist", distanceStr),
+                MessageUtil.p("health", String.valueOf(health))));
 
         if (isDowned) {
-            lore.add(MessageUtil.parse("<red>✖ Cannot teleport to downed players.</red>"));
+            lore.add(MessageUtil.get("teleport.head-lore-downed-footer"));
         } else if (isSpectator) {
-            lore.add(MessageUtil.parse("<red>✖ Cannot teleport to Spectator mode players.</red>"));
+            lore.add(MessageUtil.get("teleport.head-lore-spectator-footer"));
         } else {
-            lore.add(MessageUtil.parse("<yellow>✦ Click</yellow> <gray>to send teleport request</gray>"));
+            lore.add(MessageUtil.get("teleport.head-lore-click-footer"));
         }
 
         meta.lore(lore);
@@ -177,13 +175,21 @@ public class TetherGUI implements Listener, InventoryHolder {
         String uuidStr = meta.getPersistentDataContainer().get(playerKey, PersistentDataType.STRING);
         if (uuidStr == null) return;
 
-        UUID targetUuid = UUID.fromString(uuidStr);
+        UUID targetUuid;
+        try {
+            targetUuid = UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            return;
+        }
+
         Player target = Bukkit.getPlayer(targetUuid);
 
         player.closeInventory();
 
         if (target == null || !target.isOnline()) {
-            MessageUtil.sendPrefixed(player, "<red>That player is no longer online.");
+            String offlineName = Bukkit.getOfflinePlayer(targetUuid).getName();
+            MessageUtil.sendPrefixed(player, "teleport.player-offline",
+                    MessageUtil.p("player", offlineName != null ? offlineName : uuidStr));
             return;
         }
 

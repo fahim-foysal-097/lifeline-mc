@@ -111,7 +111,7 @@ public class ReviveListener implements Listener {
         if (reviver.isSneaking()) {
             downedManager.startRevive(reviver, target);
         } else {
-            MessageUtil.sendActionBar(reviver, "<yellow>Hold <gold><bold>Sneak (Shift)</bold></gold> and right-click to revive <aqua>" + target.getName() + "</aqua>!</yellow>");
+            MessageUtil.sendActionBar(reviver, "revive.sneak-hint-actionbar", MessageUtil.p("player", target.getName()));
         }
     }
 
@@ -216,6 +216,32 @@ public class ReviveListener implements Listener {
     public void onMount(EntityMountEvent event) {
         if (event.getEntity() instanceof Player player && downedManager.isDowned(player.getUniqueId())) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onToggleSprint(PlayerToggleSprintEvent event) {
+        if (downedManager.isDowned(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onToggleFlight(PlayerToggleFlightEvent event) {
+        Player player = event.getPlayer();
+        if (downedManager.isDowned(player.getUniqueId()) &&
+            player.getGameMode() != org.bukkit.GameMode.SPECTATOR &&
+            player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onToggleGlide(org.bukkit.event.entity.EntityToggleGlideEvent event) {
+        if (event.getEntity() instanceof Player player && downedManager.isDowned(player.getUniqueId())) {
+            if (event.isGliding()) {
+                event.setCancelled(true);
+            }
         }
     }
 }

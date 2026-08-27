@@ -42,6 +42,7 @@ public class PluginConfig {
 
     // Waypoints
     private int waypointWarmupSeconds;
+    private int waypointMaxPages;
 
     // Tether (/tpq)
     private int tetherWarmupSeconds;
@@ -108,6 +109,8 @@ public class PluginConfig {
 
         // 8. Waypoint settings
         this.waypointWarmupSeconds = Math.max(0, config.getInt("waypoints.teleport-warmup-seconds", 3));
+        // Hard max is 2 pages (range 1..2)
+        this.waypointMaxPages = Math.max(1, Math.min(2, config.getInt("waypoints.max-pages", 2)));
 
         // 9. Tether settings
         this.tetherWarmupSeconds = Math.max(0, config.getInt("tether.teleport-warmup-seconds", 3));
@@ -205,6 +208,14 @@ public class PluginConfig {
 
     public int getWaypointWarmupSeconds() {
         return waypointWarmupSeconds;
+    }
+
+    public int getWaypointMaxPages() {
+        return waypointMaxPages;
+    }
+
+    public int getMaxWaypoints() {
+        return waypointMaxPages * 45;
     }
 
     public int getTetherWarmupSeconds() {

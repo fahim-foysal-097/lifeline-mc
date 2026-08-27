@@ -83,6 +83,11 @@ waypoints:
   # Setting this to 0 means INSTANT TELEPORTATION (no warm-up).
   teleport-warmup-seconds: 3
 
+  # Maximum number of waypoint pages in the GUI (hard max: 2 pages).
+  # Each page contains 45 waypoints (Page 1 = 45 waypoints, Page 2 = 90 waypoints).
+  # Valid range: 1 to 2. Default: 2
+  max-pages: 2
+
 
 # ------------------------------------------------------------------------------
 # Player-to-Player Teleport Request Settings (/tpq, /teleportgui)

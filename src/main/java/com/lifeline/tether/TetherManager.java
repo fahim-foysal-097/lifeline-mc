@@ -57,25 +57,25 @@ public class TetherManager implements Listener {
 
         // Edge case: Self-teleport
         if (senderUuid.equals(targetUuid)) {
-            MessageUtil.sendPrefixed(sender, "<red>You cannot send a teleport request to yourself.");
+            MessageUtil.sendPrefixed(sender, "teleport.self-target");
             return false;
         }
 
         // Edge case: Target is in Spectator mode
         if (target.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
-            MessageUtil.sendPrefixed(sender, "<red><yellow>" + target.getName() + "</yellow> is in Spectator mode and cannot receive teleport requests.");
+            MessageUtil.sendPrefixed(sender, "teleport.target-spectator", MessageUtil.p("player", target.getName()));
             return false;
         }
 
         // Edge case: Sender is downed
         if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(senderUuid)) {
-            MessageUtil.sendPrefixed(sender, "<red>You cannot send teleport requests while downed!");
+            MessageUtil.sendPrefixed(sender, "teleport.sender-downed");
             return false;
         }
 
         // Edge case: Target is downed
         if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(targetUuid)) {
-            MessageUtil.sendPrefixed(sender, "<red><yellow>" + target.getName() + "</yellow> is currently downed and cannot receive teleport requests.");
+            MessageUtil.sendPrefixed(sender, "teleport.target-downed", MessageUtil.p("player", target.getName()));
             return false;
         }
 
@@ -87,7 +87,7 @@ public class TetherManager implements Listener {
             Long cooldownEnd = cooldowns.get(senderUuid);
             if (cooldownEnd != null && System.currentTimeMillis() < cooldownEnd) {
                 long remaining = Math.max(1, (cooldownEnd - System.currentTimeMillis()) / 1000);
-                MessageUtil.sendPrefixed(sender, "<red>You must wait <gold>" + remaining + "s</gold> before sending another request.");
+                MessageUtil.sendPrefixed(sender, "teleport.cooldown", MessageUtil.p("seconds", String.valueOf(remaining)));
                 return false;
             }
         }
@@ -96,7 +96,7 @@ public class TetherManager implements Listener {
         TetherRequest existing = outgoingRequests.remove(senderUuid);
         if (existing != null) {
             removeRequest(existing);
-            MessageUtil.sendPrefixed(sender, "<gray>Cancelled previous pending request to <yellow>" + existing.targetName() + "</yellow>.</gray>");
+            MessageUtil.sendPrefixed(sender, "teleport.request-cancelled-previous", MessageUtil.p("player", existing.targetName()));
         }
 
         int timeoutSec = config.getTetherTimeoutSeconds();
@@ -108,14 +108,16 @@ public class TetherManager implements Listener {
         incomingRequests.computeIfAbsent(targetUuid, k -> new ConcurrentHashMap<>()).put(senderUuid, request);
 
         // Notify sender
-        MessageUtil.sendPrefixed(sender, "<yellow>Teleport request sent to <gold>" + target.getName() + "</gold>. Expires in <gold>" + timeoutSec + "s</gold>.</yellow>");
+        MessageUtil.sendPrefixed(sender, "teleport.request-sent-sender",
+                MessageUtil.unparsed("player", target.getName()),
+                MessageUtil.p("seconds", String.valueOf(timeoutSec)));
         if (config.isSoundEffectsEnabled()) {
             sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.2f);
         }
 
         // Notify target with interactive clickable components
-        MessageUtil.sendPrefixed(target, "<yellow><gold>" + sender.getName() + "</gold> requested to teleport to you!</yellow>");
-        MessageUtil.sendPrefixed(target, "<green><bold><click:run_command:'/tpq accept " + sender.getName() + "'><hover:show_text:'<green>Click to accept teleport request from " + sender.getName() + "</green>'>[✔ ACCEPT]</click></hover></bold></green>   <red><bold><click:run_command:'/tpq deny " + sender.getName() + "'><hover:show_text:'<red>Click to decline teleport request from " + sender.getName() + "</red>'>[✖ DECLINE]</click></hover></bold></red>");
+        MessageUtil.sendPrefixed(target, "teleport.request-received-target", MessageUtil.unparsed("player", sender.getName()));
+        MessageUtil.sendPrefixed(target, "teleport.request-received-buttons", MessageUtil.unparsed("player", sender.getName()));
 
         if (config.isSoundEffectsEnabled()) {
             target.playSound(target.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.4f);
@@ -141,13 +143,13 @@ public class TetherManager implements Listener {
         UUID targetUuid = target.getUniqueId();
 
         if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(targetUuid)) {
-            MessageUtil.sendPrefixed(target, "<red>You cannot accept teleport requests while downed!");
+            MessageUtil.sendPrefixed(target, "teleport.downed-blocked");
             return false;
         }
 
         Map<UUID, TetherRequest> requests = incomingRequests.get(targetUuid);
         if (requests == null || requests.isEmpty()) {
-            MessageUtil.sendPrefixed(target, "<red>You have no pending teleport requests.");
+            MessageUtil.sendPrefixed(target, "teleport.no-pending-requests");
             return false;
         }
 
@@ -155,7 +157,7 @@ public class TetherManager implements Listener {
         requests.values().removeIf(TetherRequest::isExpired);
         if (requests.isEmpty()) {
             incomingRequests.remove(targetUuid);
-            MessageUtil.sendPrefixed(target, "<red>You have no pending teleport requests (requests expired).");
+            MessageUtil.sendPrefixed(target, "teleport.no-pending-requests-expired");
             return false;
         }
 
@@ -168,7 +170,7 @@ public class TetherManager implements Listener {
                 }
             }
             if (matchingRequest == null) {
-                MessageUtil.sendPrefixed(target, "<red>No pending request found from '<yellow>" + senderNameOrNull + "</yellow>'.");
+                MessageUtil.sendPrefixed(target, "teleport.no-request-from-player", MessageUtil.p("player", senderNameOrNull));
                 return false;
             }
         } else {
@@ -184,7 +186,7 @@ public class TetherManager implements Listener {
         }
 
         if (matchingRequest == null || matchingRequest.isExpired()) {
-            MessageUtil.sendPrefixed(target, "<red>That teleport request has expired.");
+            MessageUtil.sendPrefixed(target, "teleport.request-expired-target");
             return false;
         }
 
@@ -193,16 +195,16 @@ public class TetherManager implements Listener {
 
         Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
         if (sender == null || !sender.isOnline()) {
-            MessageUtil.sendPrefixed(target, "<red>Player '<yellow>" + matchingRequest.senderName() + "</yellow>' is no longer online.");
+            MessageUtil.sendPrefixed(target, "teleport.player-offline", MessageUtil.p("player", matchingRequest.senderName()));
             return false;
         }
 
         if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(sender.getUniqueId())) {
-            MessageUtil.sendPrefixed(target, "<red><yellow>" + sender.getName() + "</yellow> is downed and cannot teleport right now.");
+            MessageUtil.sendPrefixed(target, "teleport.target-downed-accept", MessageUtil.p("player", sender.getName()));
             return false;
         }
 
-        MessageUtil.sendPrefixed(target, "<green>Accepted teleport request from <gold>" + sender.getName() + "</gold>.</green>");
+        MessageUtil.sendPrefixed(target, "teleport.accept-target", MessageUtil.p("player", sender.getName()));
         if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
             target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
         }
@@ -221,7 +223,7 @@ public class TetherManager implements Listener {
         UUID targetUuid = target.getUniqueId();
         Map<UUID, TetherRequest> requests = incomingRequests.get(targetUuid);
         if (requests == null || requests.isEmpty()) {
-            MessageUtil.sendPrefixed(target, "<red>You have no pending teleport requests.");
+            MessageUtil.sendPrefixed(target, "teleport.no-pending-requests");
             return false;
         }
 
@@ -229,7 +231,7 @@ public class TetherManager implements Listener {
         requests.values().removeIf(TetherRequest::isExpired);
         if (requests.isEmpty()) {
             incomingRequests.remove(targetUuid);
-            MessageUtil.sendPrefixed(target, "<red>You have no pending teleport requests.");
+            MessageUtil.sendPrefixed(target, "teleport.no-pending-requests");
             return false;
         }
 
@@ -242,7 +244,7 @@ public class TetherManager implements Listener {
                 }
             }
             if (matchingRequest == null) {
-                MessageUtil.sendPrefixed(target, "<red>No pending request found from '<yellow>" + senderNameOrNull + "</yellow>'.");
+                MessageUtil.sendPrefixed(target, "teleport.no-request-from-player", MessageUtil.p("player", senderNameOrNull));
                 return false;
             }
         } else {
@@ -256,17 +258,17 @@ public class TetherManager implements Listener {
         }
 
         if (matchingRequest == null) {
-            MessageUtil.sendPrefixed(target, "<red>No pending teleport requests.");
+            MessageUtil.sendPrefixed(target, "teleport.no-pending-requests");
             return false;
         }
 
         removeRequest(matchingRequest);
 
-        MessageUtil.sendPrefixed(target, "<red>Declined teleport request from <gold>" + matchingRequest.senderName() + "</gold>.</red>");
+        MessageUtil.sendPrefixed(target, "teleport.deny-target", MessageUtil.p("player", matchingRequest.senderName()));
 
         Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
         if (sender != null && sender.isOnline()) {
-            MessageUtil.sendPrefixed(sender, "<red><gold>" + target.getName() + "</gold> declined your teleport request.</red>");
+            MessageUtil.sendPrefixed(sender, "teleport.deny-sender", MessageUtil.p("player", target.getName()));
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.8f, 0.6f);
             }
@@ -283,7 +285,7 @@ public class TetherManager implements Listener {
 
         TetherRequest req = outgoingRequests.remove(sender.getUniqueId());
         if (req == null) {
-            MessageUtil.sendPrefixed(sender, "<red>You have no pending outgoing teleport requests.");
+            MessageUtil.sendPrefixed(sender, "teleport.no-pending-requests");
             return false;
         }
 
@@ -296,7 +298,7 @@ public class TetherManager implements Listener {
             }
         }
 
-        MessageUtil.sendPrefixed(sender, "<yellow>Cancelled your outgoing teleport request to <gold>" + req.targetName() + "</gold>.</yellow>");
+        MessageUtil.sendPrefixed(sender, "teleport.cancel-outgoing", MessageUtil.p("player", req.targetName()));
         return true;
     }
 
@@ -308,7 +310,7 @@ public class TetherManager implements Listener {
 
             Player sender = Bukkit.getPlayer(request.senderUuid());
             if (sender != null && sender.isOnline()) {
-                MessageUtil.sendPrefixed(sender, "<red>Your teleport request to <yellow>" + request.targetName() + "</yellow> expired.");
+                MessageUtil.sendPrefixed(sender, "teleport.request-expired-sender", MessageUtil.p("player", request.targetName()));
             }
         }
     }
@@ -348,8 +350,12 @@ public class TetherManager implements Listener {
 
         warmupStartLocations.put(senderUuid, sender.getLocation().clone());
 
-        MessageUtil.sendPrefixed(sender, "<yellow>Teleporting to <gold>" + target.getName() + "</gold> in <gold>" + warmupSeconds + " seconds</gold>. <red>Do not move!</red>");
-        MessageUtil.sendPrefixed(target, "<yellow><gold>" + sender.getName() + "</gold> is teleporting to you in <gold>" + warmupSeconds + " seconds</gold>...</yellow>");
+        MessageUtil.sendPrefixed(sender, "teleport.warmup-sender",
+                MessageUtil.p("player", target.getName()),
+                MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
+        MessageUtil.sendPrefixed(target, "teleport.warmup-target",
+                MessageUtil.p("player", sender.getName()),
+                MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
 
         if (config.isSoundEffectsEnabled()) {
             sender.playSound(sender.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 0.5f, 1.8f);
@@ -369,7 +375,7 @@ public class TetherManager implements Listener {
                 }
 
                 if (!target.isOnline() || target.isDead()) {
-                    cancelWarmup(sender, true, "<red>Teleport cancelled: <yellow>" + target.getName() + "</yellow> is no longer available.</red>");
+                    cancelWarmup(sender, true, "teleport.teleport-cancelled-target-unavailable", MessageUtil.p("player", target.getName()));
                     return;
                 }
 
@@ -380,7 +386,7 @@ public class TetherManager implements Listener {
                         return;
                     }
                     if (plugin.getDownedManager().isDowned(target.getUniqueId())) {
-                        cancelWarmup(sender, true, "<red>Teleport cancelled: <yellow>" + target.getName() + "</yellow> is downed!</red>");
+                        cancelWarmup(sender, true, "teleport.target-downed-warmup", MessageUtil.p("player", target.getName()));
                         return;
                     }
                 }
@@ -388,7 +394,7 @@ public class TetherManager implements Listener {
                 // Movement check
                 Location initial = warmupStartLocations.get(senderUuid);
                 if (initial == null || initial.getWorld() != sender.getWorld() || initial.distanceSquared(sender.getLocation()) > 0.05) {
-                    cancelWarmup(sender, true, "<red>Teleportation cancelled because you moved!</red>");
+                    cancelWarmup(sender, true, "teleport.teleport-cancelled-moved");
                     return;
                 }
 
@@ -396,7 +402,9 @@ public class TetherManager implements Listener {
                 int remainingSeconds = (int) Math.ceil((totalTicks - elapsed) / 20.0);
 
                 if (elapsed % 20 == 0 && remainingSeconds > 0) {
-                    MessageUtil.sendActionBar(sender, "<gold>Teleporting to <yellow>" + target.getName() + "</yellow> in <yellow>" + remainingSeconds + "s</yellow>... <gray>(Stay still)</gray>");
+                    MessageUtil.sendActionBar(sender, "teleport.warmup-actionbar",
+                            MessageUtil.p("player", target.getName()),
+                            MessageUtil.p("seconds", String.valueOf(remainingSeconds)));
                     if (config.isSoundEffectsEnabled()) {
                         sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.8f, 1.2f);
                     }
@@ -426,13 +434,13 @@ public class TetherManager implements Listener {
 
         Location dest = target.getLocation();
         if (dest.getWorld() == null) {
-            MessageUtil.sendPrefixed(sender, "<red>Target player is in an invalid world.");
+            MessageUtil.sendPrefixed(sender, "teleport.teleport-cancelled-invalid-world");
             return;
         }
 
         // Void safety check
         if (dest.getY() < dest.getWorld().getMinHeight()) {
-            MessageUtil.sendPrefixed(sender, "<red>Teleport cancelled: Destination is in the void!</red>");
+            MessageUtil.sendPrefixed(sender, "teleport.teleport-cancelled-void");
             return;
         }
 
@@ -444,33 +452,36 @@ public class TetherManager implements Listener {
         PluginConfig config = plugin.getPluginConfig();
 
         sender.teleportAsync(dest).thenAccept(success -> {
-            if (success) {
-                MessageUtil.sendPrefixed(sender, "<green>Teleported to <gold>" + target.getName() + "</gold>!");
-                MessageUtil.sendActionBar(sender, "<green>✔ Teleport Complete</green>");
-                MessageUtil.sendPrefixed(target, "<gold>" + sender.getName() + "</gold> <green>teleported to your location.</green>");
+            // teleportAsync completes on a background thread - schedule all Bukkit API work onto the main thread
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (success) {
+                    MessageUtil.sendPrefixed(sender, "teleport.teleport-success-sender", MessageUtil.p("player", target.getName()));
+                    MessageUtil.sendActionBar(sender, "teleport.teleport-success-actionbar");
+                    MessageUtil.sendPrefixed(target, "teleport.teleport-success-target", MessageUtil.p("player", sender.getName()));
 
-                if (config.isSoundEffectsEnabled()) {
-                    sender.playSound(sender.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                    target.playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                }
+                    if (config.isSoundEffectsEnabled()) {
+                        sender.playSound(sender.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        target.playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                    }
 
-                if (config.isParticlesEnabled()) {
-                    sender.getWorld().spawnParticle(Particle.REVERSE_PORTAL, sender.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
-                    target.getWorld().spawnParticle(Particle.PORTAL, target.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
-                }
+                    if (config.isParticlesEnabled()) {
+                        sender.getWorld().spawnParticle(Particle.REVERSE_PORTAL, sender.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                        target.getWorld().spawnParticle(Particle.PORTAL, target.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                    }
 
-                // Set cooldown
-                int cooldownSec = config.getTetherCooldownSeconds();
-                if (cooldownSec > 0) {
-                    cooldowns.put(sender.getUniqueId(), System.currentTimeMillis() + (cooldownSec * 1000L));
+                    // Set cooldown
+                    int cooldownSec = config.getTetherCooldownSeconds();
+                    if (cooldownSec > 0) {
+                        cooldowns.put(sender.getUniqueId(), System.currentTimeMillis() + (cooldownSec * 1000L));
+                    }
+                } else {
+                    MessageUtil.sendPrefixed(sender, "teleport.teleport-failed");
                 }
-            } else {
-                MessageUtil.sendPrefixed(sender, "<red>Failed to teleport to player.");
-            }
+            });
         });
     }
 
-    public void cancelWarmup(Player sender, boolean notify, String reason) {
+    public void cancelWarmup(Player sender, boolean notify, String reasonKey, net.kyori.adventure.text.minimessage.tag.resolver.TagResolver... resolvers) {
         if (sender == null) return;
         UUID uuid = sender.getUniqueId();
         BukkitTask task = activeWarmups.remove(uuid);
@@ -478,9 +489,9 @@ public class TetherManager implements Listener {
         if (task != null) {
             task.cancel();
             if (notify && sender.isOnline()) {
-                String msg = reason != null ? reason : "<red>Teleportation cancelled!</red>";
-                MessageUtil.sendPrefixed(sender, msg);
-                MessageUtil.sendActionBar(sender, "<red>✖ Teleport Cancelled</red>");
+                String key = reasonKey != null ? reasonKey : "teleport.teleport-cancelled-actionbar";
+                MessageUtil.sendPrefixed(sender, key, resolvers);
+                MessageUtil.sendActionBar(sender, "teleport.teleport-cancelled-actionbar");
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     sender.playSound(sender.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }
@@ -508,7 +519,7 @@ public class TetherManager implements Listener {
             Location from = event.getFrom();
             Location to = event.getTo();
             if (to != null && (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ())) {
-                cancelWarmup(player, true, "<red>Teleportation cancelled because you moved!</red>");
+                cancelWarmup(player, true, "teleport.teleport-cancelled-moved");
             }
         }
     }
@@ -517,7 +528,7 @@ public class TetherManager implements Listener {
     public void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
             if (activeWarmups.containsKey(player.getUniqueId())) {
-                cancelWarmup(player, true, "<red>Teleportation cancelled because you took damage!</red>");
+                cancelWarmup(player, true, "teleport.teleport-cancelled-damage");
             }
         }
     }
@@ -545,7 +556,7 @@ public class TetherManager implements Listener {
                 outgoingRequests.remove(req.senderUuid());
                 Player reqSender = Bukkit.getPlayer(req.senderUuid());
                 if (reqSender != null && reqSender.isOnline()) {
-                    MessageUtil.sendPrefixed(reqSender, "<red>Teleport request cancelled: <yellow>" + player.getName() + "</yellow> left the game.</red>");
+                    MessageUtil.sendPrefixed(reqSender, "teleport.cancel-target-left", MessageUtil.p("player", player.getName()));
                 }
             }
         }

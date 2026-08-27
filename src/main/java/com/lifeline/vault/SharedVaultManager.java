@@ -30,7 +30,7 @@ public class SharedVaultManager implements Listener, InventoryHolder {
     public SharedVaultManager(Lifeline plugin) {
         this.plugin = plugin;
         this.vaultFile = new File(plugin.getDataFolder(), "vault.yml");
-        this.vaultInventory = Bukkit.createInventory(this, 54, MessageUtil.parse("<gradient:#FFAA00:#FF5555><bold>Shared Co-op Vault</bold></gradient>"));
+        this.vaultInventory = Bukkit.createInventory(this, 54, MessageUtil.get("stash.title"));
         loadVault();
     }
 
@@ -44,7 +44,9 @@ public class SharedVaultManager implements Listener, InventoryHolder {
      */
     public void openVault(Player player) {
         player.openInventory(vaultInventory);
-        player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.8f, 1.0f);
+        if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+            player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.8f, 1.0f);
+        }
     }
 
     /**
@@ -96,7 +98,7 @@ public class SharedVaultManager implements Listener, InventoryHolder {
     public void onInventoryClose(InventoryCloseEvent event) {
         if (event.getInventory().getHolder() instanceof SharedVaultManager) {
             saveVault();
-            if (event.getPlayer() instanceof Player player) {
+            if (event.getPlayer() instanceof Player player && plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.BLOCK_CHEST_CLOSE, 0.8f, 1.0f);
             }
         }

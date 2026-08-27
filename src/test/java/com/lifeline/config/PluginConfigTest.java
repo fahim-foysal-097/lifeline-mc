@@ -141,4 +141,61 @@ public class PluginConfigTest {
         assertEquals(45, config.getTetherTimeoutSeconds());
         assertEquals(10, config.getTetherCooldownSeconds());
     }
+
+    @Test
+    public void testWaypointPaginationAndClamping() {
+        PluginConfig config = new PluginConfig(null);
+
+        // Default max-pages should be 2, max waypoints 90
+        YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new StringReader("waypoints:\n  max-pages: 2"));
+        config.load(defaultConfig);
+        assertEquals(2, config.getWaypointMaxPages());
+        assertEquals(90, config.getMaxWaypoints());
+
+        // 1 page should give 45 waypoints
+        YamlConfiguration singlePage = YamlConfiguration.loadConfiguration(new StringReader("waypoints:\n  max-pages: 1"));
+        config.load(singlePage);
+        assertEquals(1, config.getWaypointMaxPages());
+        assertEquals(45, config.getMaxWaypoints());
+
+        // Hard max is 2 (values > 2 clamped to 2)
+        YamlConfiguration overMax = YamlConfiguration.loadConfiguration(new StringReader("waypoints:\n  max-pages: 5"));
+        config.load(overMax);
+        assertEquals(2, config.getWaypointMaxPages());
+        assertEquals(90, config.getMaxWaypoints());
+
+        // Values < 1 clamped to 1
+        YamlConfiguration underMin = YamlConfiguration.loadConfiguration(new StringReader("waypoints:\n  max-pages: 0"));
+        config.load(underMin);
+        assertEquals(1, config.getWaypointMaxPages());
+        assertEquals(45, config.getMaxWaypoints());
+    }
+
+    @Test
+    public void testMessageUtilLoadingAndPlaceholders() {
+        String yaml = """
+                prefix: "<gradient:#00FFA3:#00B8D9>Lifeline</gradient> » "
+                waypoints:
+                  gui-title: "<bold>Waypoints (Page <page>/<max_pages>)</bold>"
+                  item-lore:
+                    - "Dimension: <dim>"
+                    - "Location: <x>, <y>, <z>"
+                """;
+        YamlConfiguration msgConfig = YamlConfiguration.loadConfiguration(new StringReader(yaml));
+        com.lifeline.util.MessageUtil.load(msgConfig);
+
+        assertEquals("<gradient:#00FFA3:#00B8D9>Lifeline</gradient> » ", com.lifeline.util.MessageUtil.getPrefix());
+
+        net.kyori.adventure.text.Component title = com.lifeline.util.MessageUtil.get("waypoints.gui-title",
+                com.lifeline.util.MessageUtil.p("page", "1"),
+                com.lifeline.util.MessageUtil.p("max_pages", "2"));
+        assertNotNull(title);
+
+        java.util.List<net.kyori.adventure.text.Component> lore = com.lifeline.util.MessageUtil.getList("waypoints.item-lore",
+                com.lifeline.util.MessageUtil.p("dim", "Overworld"),
+                com.lifeline.util.MessageUtil.p("x", "100"),
+                com.lifeline.util.MessageUtil.p("y", "64"),
+                com.lifeline.util.MessageUtil.p("z", "-200"));
+        assertEquals(2, lore.size());
+    }
 }

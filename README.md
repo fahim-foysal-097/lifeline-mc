@@ -15,7 +15,9 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 ### 📍 1. Shared Waypoint / Node System
 
 - Open with `/node` (aliases: `/nd`, `/wp`).
-- Displays up to 45 shared waypoints in a sleek 54-slot chest interface.
+- Displays up to **90 shared waypoints across multiple pages** (configurable via `waypoints.max-pages`, hard max: 2 pages / 45 waypoints per page).
+- **Interactive Multi-Page Navigation**:
+  - Click **`« Previous Page`** or **`Next Page »`** to browse pages with smooth page-turn sound cues.
 - **Dimension-Adaptive Icons**:
   - 🧭 **Compass**: Overworld
   - ⭐ **Nether Star**: The Nether
@@ -81,6 +83,14 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 
 ---
 
+### 🌐 5. 100% Translatable MiniMessage Localization
+
+- All chat messages, action bars, GUI titles, items, and lore are fully translatable in **`messages.yml`**.
+- Full support for **Adventure MiniMessage formatting**, hex color codes (`#00FFA3`), and color gradients (`<gradient:#00FFA3:#00B8D9>...</gradient>`).
+- Hot-reloadable in real-time via `/lifeline reload`.
+
+---
+
 ## 📜 Commands & Permissions
 
 | Command                           | Aliases            | Description                                 | Permission                               |
@@ -93,17 +103,53 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 | `/tpq deny [player]`              | -                  | Declines an incoming teleport request       | `lifeline.tpq`                           |
 | `/tpq cancel`                     | -                  | Cancels your outgoing teleport request      | `lifeline.tpq`                           |
 | `/lifeline revives [player]`      | `/ll revives`      | Checks remaining co-op revives              | `lifeline.use`                           |
-| `/lifeline reload`                | `/ll reload`       | Reloads plugin configuration                | `lifeline.admin`                         |
+| `/lifeline reload`                | `/ll reload`       | Reloads configuration and `messages.yml`    | `lifeline.admin`                         |
 | `/lifeline resetrevives <player>` | `/ll resetrevives` | Resets player revive counters               | `lifeline.admin`                         |
 
 ---
 
-## ⚙️ Data Storage
+## ⚙️ Configuration & Data Storage
 
-All data is stored cleanly inside the plugin's data folder (`plugins/Lifeline/`):
+All data is stored in the plugin's data folder (`plugins/Lifeline/`):
 
-- `waypoints.yml`: Stores all shared waypoints with coordinates, dimensions, and creator details.
-- `vault.yml`: Stores the full Bukkit serialized `ItemStack` array for the shared vault.
+| File            | Purpose                                                                                   |
+| :-------------- | :---------------------------------------------------------------------------------------- |
+| `config.yml`    | Core settings: revive timers, debuffs, warm-ups, sounds, particles, `waypoints.max-pages` |
+| `messages.yml`  | All user-facing strings: MiniMessage format, hex colors, gradient support                 |
+| `waypoints.yml` | Shared waypoint data (coordinates, dimensions, creator)                                   |
+| `vault.yml`     | Serialized inventory contents of the shared stash                                         |
+
+### Key `config.yml` Settings
+
+```yaml
+waypoints:
+  max-pages: 2 # 1 or 2 pages (hard max). Sets max waypoints to 45 or 90.
+  teleport-warmup-seconds: 3
+
+tether:
+  teleport-warmup-seconds: 3
+  request-timeout-seconds: 60
+  cooldown-seconds: 30
+
+downed-timer-seconds: 30 # 0 disables the revive system entirely
+```
+
+### Customizing `messages.yml`
+
+All messages support [Adventure MiniMessage](https://docs.advntr.dev/minimessage/format.html) tags:
+
+```yaml
+# Hex colors
+prefix: "<color:#00FFA3><bold>Lifeline</bold></color> <dark_gray>»</dark_gray> "
+
+# Gradients
+waypoints.gui-title: "<gradient:#00FFA3:#00B8D9><bold>Shared Waypoints</bold></gradient>"
+
+# Click events (used for accept/deny buttons)
+teleport.request-received-buttons: "<green><click:run_command:'/tpq accept <player>'>[✔ ACCEPT]</click></green>"
+```
+
+Run `/lifeline reload` to apply changes without restarting.
 
 ---
 

@@ -129,6 +129,11 @@ public class DownedManager {
             player.leaveVehicle();
         }
 
+        // Cancel Elytra gliding if gliding
+        if (player.isGliding()) {
+            player.setGliding(false);
+        }
+
         // Deduct a revive if finite revives are active
         int maxRevives = config.getMaxRevives();
         int left = 0;
@@ -158,8 +163,16 @@ public class DownedManager {
         }
 
         // Alert server and play knock-down audio/visuals
-        String livesInfo = maxRevives > 0 ? " <gray>(Revives remaining: <yellow>" + left + "</yellow>/<gold>" + maxRevives + "</gold>)</gray>" : "";
-        MessageUtil.broadcast("<red><bold>☠ DOWNED!</bold> <yellow>" + player.getName() + "</yellow> is bleeding out! Sneak and right-click to revive!</red>" + livesInfo);
+        String livesInfo = "";
+        if (maxRevives > 0) {
+            livesInfo = MessageUtil.getRaw("revive.downed-lives-info", " <gray>(Revives remaining: <yellow><remaining></yellow>/<gold><max></gold>)</gray>")
+                    .replace("<remaining>", String.valueOf(left))
+                    .replace("<max>", String.valueOf(maxRevives));
+        }
+
+        MessageUtil.broadcast("revive.downed-broadcast",
+                MessageUtil.p("player", player.getName()),
+                MessageUtil.p("lives", livesInfo));
 
         if (config.isSoundEffectsEnabled()) {
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1.0f, 0.5f);
@@ -197,12 +210,18 @@ public class DownedManager {
 
             // Display action bar countdown if not currently being revived
             if (state.getActiveReviverUuid() == null) {
-                String barLives = maxRevives > 0 ? " <gray>[Lives: <yellow>" + finalLeft + "</yellow>]</gray>" : "";
-                MessageUtil.sendActionBar(player, "<red><bold>☠ DOWNED ☠</bold> Bleeding out: <yellow><bold>" + remaining + "s</bold></yellow> | Wait for revive!</red>" + barLives);
+                String barLives = "";
+                if (maxRevives > 0) {
+                    barLives = MessageUtil.getRaw("revive.downed-actionbar-lives", " <gray>[Lives: <yellow><remaining></yellow>]</gray>")
+                            .replace("<remaining>", String.valueOf(finalLeft));
+                }
+                MessageUtil.sendActionBar(player, "revive.downed-actionbar",
+                        MessageUtil.p("seconds", String.valueOf(remaining)),
+                        MessageUtil.p("lives", barLives));
             }
 
             if (remaining <= 0) {
-                MessageUtil.broadcast("<red><yellow>" + player.getName() + "</yellow> bled out!</red>");
+                MessageUtil.broadcast("revive.bled-out-broadcast", MessageUtil.p("player", player.getName()));
                 killPlayerSafely(player);
             } else {
                 state.decrementSeconds();
@@ -222,7 +241,7 @@ public class DownedManager {
         }
 
         if (state.getActiveReviverUuid() != null) {
-            MessageUtil.sendPrefixed(reviver, "<yellow>" + downed.getName() + " is already being revived!");
+            MessageUtil.sendPrefixed(reviver, "revive.already-reviving", MessageUtil.p("player", downed.getName()));
             return;
         }
 
@@ -235,8 +254,8 @@ public class DownedManager {
         final int interval = 2;
         final double maxDistSquared = config.getReviveMaxDistance() * config.getReviveMaxDistance();
 
-        MessageUtil.sendPrefixed(reviver, "<green>Reviving <yellow>" + downed.getName() + "</yellow>... Hold sneak!</green>");
-        MessageUtil.sendPrefixed(downed, "<green><yellow>" + reviver.getName() + "</yellow> is reviving you!</green>");
+        MessageUtil.sendPrefixed(reviver, "revive.start-reviver", MessageUtil.p("player", downed.getName()));
+        MessageUtil.sendPrefixed(downed, "revive.start-downed", MessageUtil.p("player", reviver.getName()));
 
         BukkitTask reviveTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             // Validation checks
@@ -265,9 +284,12 @@ public class DownedManager {
             int percent = (int) ((currentTicks / (double) totalTicks) * 100);
             String progressBar = buildProgressBar(currentTicks, totalTicks, 15);
 
-            String barMessage = "<green><bold>Reviving:</bold> " + progressBar + " <yellow>" + percent + "%</yellow></green>";
-            MessageUtil.sendActionBar(reviver, barMessage);
-            MessageUtil.sendActionBar(downed, barMessage);
+            MessageUtil.sendActionBar(reviver, "revive.revive-progress-actionbar",
+                    MessageUtil.p("bar", progressBar),
+                    MessageUtil.p("percent", String.valueOf(percent)));
+            MessageUtil.sendActionBar(downed, "revive.revive-progress-actionbar",
+                    MessageUtil.p("bar", progressBar),
+                    MessageUtil.p("percent", String.valueOf(percent)));
 
             // Particles and sounds during revive
             if (config.isParticlesEnabled()) {
@@ -297,13 +319,13 @@ public class DownedManager {
 
         if (notify) {
             if (reviver != null && reviver.isOnline()) {
-                MessageUtil.sendActionBar(reviver, "<red>✖ Revive Interrupted (Keep sneaking & stay close)</red>");
+                MessageUtil.sendActionBar(reviver, "revive.revive-interrupted-reviver");
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     reviver.playSound(reviver.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.6f);
                 }
             }
             if (downed != null && downed.isOnline()) {
-                MessageUtil.sendActionBar(downed, "<red>✖ Revive Interrupted</red>");
+                MessageUtil.sendActionBar(downed, "revive.revive-interrupted-downed");
             }
         }
     }
@@ -357,12 +379,21 @@ public class DownedManager {
             downed.getWorld().spawnParticle(Particle.HEART, downed.getLocation().add(0, 1.5, 0), 8, 0.4, 0.4, 0.4, 0.1);
         }
 
-        MessageUtil.sendActionBar(reviver, "<green><bold>✔ Revive Successful!</bold></green>");
-        MessageUtil.sendActionBar(downed, "<green><bold>✔ You have been revived!</bold></green>");
+        MessageUtil.sendActionBar(reviver, "revive.revive-success-reviver-actionbar");
+        MessageUtil.sendActionBar(downed, "revive.revive-success-downed-actionbar");
 
         int maxRevives = config.getMaxRevives();
-        String remainingText = maxRevives > 0 ? " <gray>(Revives remaining: <yellow>" + getRemainingRevives(uuid) + "</yellow>/<gold>" + maxRevives + "</gold>)</gray>" : "";
-        MessageUtil.broadcast("<green><yellow>" + reviver.getName() + "</yellow> successfully revived <yellow>" + downed.getName() + "</yellow>!</green>" + remainingText);
+        String remainingText = "";
+        if (maxRevives > 0) {
+            remainingText = MessageUtil.getRaw("revive.downed-lives-info", " <gray>(Revives remaining: <yellow><remaining></yellow>/<gold><max></gold>)</gray>")
+                    .replace("<remaining>", String.valueOf(getRemainingRevives(uuid)))
+                    .replace("<max>", String.valueOf(maxRevives));
+        }
+
+        MessageUtil.broadcast("revive.revive-success-broadcast",
+                MessageUtil.p("reviver", reviver.getName()),
+                MessageUtil.p("downed", downed.getName()),
+                MessageUtil.p("lives", remainingText));
     }
 
     /**
