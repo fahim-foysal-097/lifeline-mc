@@ -327,16 +327,18 @@ public class WaypointManager implements Listener {
             return;
         }
 
-        if (waypoints.containsKey(input.toLowerCase(Locale.ROOT))) {
-            MessageUtil.sendPrefixed(player, "waypoints.already-exists", MessageUtil.p("name", input));
-            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            }
-            return;
-        }
-
-        // Run waypoint creation on primary thread
+        // All map-reads and writes must happen on the main thread (LinkedHashMap is not thread-safe).
+        // Run waypoint creation on the primary thread to avoid async race conditions.
         Bukkit.getScheduler().runTask(plugin, () -> {
+            // Re-check name uniqueness on the main thread (safe, synchronized on the main thread)
+            if (waypoints.containsKey(input.toLowerCase(Locale.ROOT))) {
+                MessageUtil.sendPrefixed(player, "waypoints.already-exists", MessageUtil.p("name", input));
+                if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                }
+                return;
+            }
+
             int maxWaypoints = plugin.getPluginConfig().getMaxWaypoints();
             int maxPages = plugin.getPluginConfig().getWaypointMaxPages();
             if (getAllWaypoints().size() >= maxWaypoints) {

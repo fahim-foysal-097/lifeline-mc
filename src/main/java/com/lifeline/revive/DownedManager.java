@@ -186,7 +186,7 @@ public class DownedManager {
         BukkitTask countdownTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (!player.isOnline() || player.isDead()) {
                 killPlayerSafely(player);
-                return;
+                return;  // task is now cancelled by killPlayerSafely; stop processing this tick
             }
 
             // Keep health at 1.0 and prevent burning/drowning during downed state

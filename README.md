@@ -96,6 +96,13 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 
 ---
 
+### 🔄 6. Seamless Auto-Configuration & Migration
+
+- When updating the plugin to a newer version, `ConfigUpdater` automatically detects and appends any newly introduced settings or translation keys to existing `config.yml` and `messages.yml` files.
+- **Zero Loss of Customization**: Server owner customizations (revive counts, warmup delays, custom prefix, custom translations) are strictly preserved while new features are seamlessly merged.
+
+---
+
 ## 📜 Commands & Permissions
 
 | Command                           | Aliases / Shortcuts      | Description                                 | Permission                               |

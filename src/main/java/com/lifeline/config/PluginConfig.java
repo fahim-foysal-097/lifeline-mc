@@ -57,11 +57,14 @@ public class PluginConfig {
     }
 
     /**
-     * Loads and validates all values from config.yml.
+     * Loads and validates all values from config.yml, automatically merging newly added keys.
      */
     public void load() {
-        plugin.reloadConfig();
-        load(plugin.getConfig());
+        if (plugin != null) {
+            com.lifeline.util.ConfigUpdater.update(plugin, "config.yml");
+            plugin.reloadConfig();
+            load(plugin.getConfig());
+        }
     }
 
     /**

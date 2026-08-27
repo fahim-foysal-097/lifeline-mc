@@ -15,8 +15,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.*;
 import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.player.*;
 
 /**
  * Listens for fatal damage, interaction/revive triggers, invulnerability, and death/respawn resets.
@@ -124,11 +124,6 @@ public class ReviveListener implements Listener {
         downedManager.resetRevives(player.getUniqueId());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
-        // Revive counter is already reset on PlayerDeathEvent.
-        // No additional reset needed here.
-    }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerQuit(PlayerQuitEvent event) {

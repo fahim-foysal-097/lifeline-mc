@@ -105,6 +105,9 @@ public class WaypointGUI implements Listener, InventoryHolder {
         ItemMeta addMeta = addButton.getItemMeta();
         addMeta.displayName(MessageUtil.get("waypoints.add-button-name"));
         addMeta.lore(MessageUtil.getList("waypoints.add-button-lore"));
+        // Store current page on the button's metadata BEFORE placing it in the inventory.
+        // Bukkit stores a copy of the ItemStack internally, so any mutation after inv.setItem() is ignored.
+        addMeta.getPersistentDataContainer().set(pageKey, PersistentDataType.INTEGER, safePage);
         addButton.setItemMeta(addMeta);
         inv.setItem(49, addButton);
 
@@ -118,10 +121,6 @@ public class WaypointGUI implements Listener, InventoryHolder {
             nextButton.setItemMeta(nextMeta);
             inv.setItem(53, nextButton);
         }
-
-        // Store current page on the Add Button metadata so event click knows the active page
-        addMeta.getPersistentDataContainer().set(pageKey, PersistentDataType.INTEGER, safePage);
-        addButton.setItemMeta(addMeta);
 
         player.openInventory(inv);
         if (plugin.getPluginConfig().isSoundEffectsEnabled()) {

@@ -33,26 +33,14 @@ public final class MessageUtil {
     }
 
     /**
-     * Initializes and loads messages.yml from the plugin data folder.
+     * Initializes, updates/merges, and loads messages.yml from the plugin data folder.
      */
     public static void load(Lifeline plugin) {
         if (plugin == null) return;
-
-        File file = new File(plugin.getDataFolder(), "messages.yml");
-        if (!file.exists()) {
-            plugin.saveResource("messages.yml", false);
+        YamlConfiguration config = ConfigUpdater.update(plugin, "messages.yml");
+        if (config != null) {
+            load(config);
         }
-
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-
-        // Load defaults from jar if present
-        InputStream defaultStream = plugin.getResource("messages.yml");
-        if (defaultStream != null) {
-            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultStream, StandardCharsets.UTF_8));
-            config.setDefaults(defaultConfig);
-        }
-
-        load(config);
     }
 
     /**
