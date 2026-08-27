@@ -12,9 +12,9 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 
 ## ✨ Features
 
-### 📍 1. Shared Waypoint System
+### 📍 1. Shared Waypoint / Node System
 
-- Open with `/waypoint` or `/wp`.
+- Open with `/node` (aliases: `/nd`, `/wp`).
 - Displays up to 45 shared waypoints in a sleek 54-slot chest interface.
 - **Dimension-Adaptive Icons**:
   - 🧭 **Compass**: Overworld
@@ -30,9 +30,9 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 
 ---
 
-### 📦 2. Shared 54-Slot Vault
+### 📦 2. Shared 54-Slot Stash / Safe
 
-- Open with `/vault` or `/svault`.
+- Open with `/stash` (aliases: `/st`, `/safe`).
 - Both players open the **exact same in-memory `Inventory` instance**, meaning items placed or moved by one player update in real-time for the other without desync or duplicate item glitches.
 - Full support for all item metadata: enchantments, custom lore, armor trims, potion effects, damaged tools, and shulker box contents.
 - **Auto-Saves** automatically to `vault.yml` whenever any player closes the chest and upon server shutdown (`onDisable`).
@@ -58,10 +58,13 @@ It seamlessly integrates three core co-op features into one lightweight, zero-bl
 
 ## 📜 Commands & Permissions
 
-| Command     | Aliases   | Description                          | Permission                          |
-| ----------- | --------- | ------------------------------------ | ----------------------------------- |
-| `/waypoint` | `/wp`     | Opens the shared waypoints GUI       | `lifeline.waypoint` (Default: true) |
-| `/vault`    | `/svault` | Opens the shared 54-slot co-op vault | `lifeline.vault` (Default: true)    |
+| Command                           | Aliases        | Description                                 | Permission                               |
+| :-------------------------------- | :------------- | :------------------------------------------ | :--------------------------------------- |
+| `/node`                           | `/nd`, `/wp`   | Opens the shared waypoints (nodes) GUI      | `lifeline.node` (or `lifeline.waypoint`) |
+| `/stash`                          | `/st`, `/safe` | Opens the shared 54-slot co-op stash / safe | `lifeline.stash` (or `lifeline.safe`)    |
+| `/lifeline revives [player]`      | `/ll`          | Checks remaining co-op revives              | `lifeline.revive`                        |
+| `/lifeline reload`                | `/ll`          | Reloads plugin configuration                | `lifeline.admin`                         |
+| `/lifeline resetrevives <player>` | `/ll`          | Resets player revive counters               | `lifeline.admin`                         |
 
 ---
 

@@ -10,11 +10,20 @@ permissions:
   lifeline.use:
     description: Allows using general Lifeline co-op features.
     default: true
+  lifeline.node:
+    description: Allows access to the shared waypoints (nodes) system.
+    default: true
   lifeline.waypoint:
-    description: Allows access to the shared waypoint system.
+    description: Legacy alias for lifeline.node.
+    default: true
+  lifeline.stash:
+    description: Allows access to the shared co-op stash / safe.
+    default: true
+  lifeline.safe:
+    description: Alias for lifeline.stash.
     default: true
   lifeline.vault:
-    description: Allows access to the shared vault.
+    description: Legacy alias for lifeline.stash.
     default: true
   lifeline.revive:
     description: Allows reviving downed teammates and checking own revives.

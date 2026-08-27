@@ -59,7 +59,10 @@ public final class Lifeline extends JavaPlugin {
         // Register Commands via modern Paper LifecycleEvents
         registerCommands();
 
-        getLogger().info("Lifeline v" + getPluginMeta().getVersion() + " has been successfully enabled!");
+        getLogger().info("==================================================");
+        getLogger().info("Lifeline v" + getPluginMeta().getVersion() + " initialization complete!");
+        getLogger().info("Co-op systems (Nodes, Stash, Revive) are online.");
+        getLogger().info("==================================================");
     }
 
     @Override
@@ -85,11 +88,11 @@ public final class Lifeline extends JavaPlugin {
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             final Commands commands = event.registrar();
 
-            // Register /waypoint and /wp
+            // Register /node with aliases /nd and /wp
             commands.register(
-                    "waypoint",
-                    "Opens the shared waypoints menu",
-                    List.of("wp"),
+                    "node",
+                    "Opens the shared waypoints (nodes) menu",
+                    List.of("nd", "wp"),
                     new BasicCommand() {
                         @Override
                         public void execute(CommandSourceStack stack, String[] args) {
@@ -99,7 +102,7 @@ public final class Lifeline extends JavaPlugin {
                                 return;
                             }
 
-                            if (!player.hasPermission("lifeline.waypoint")) {
+                            if (!hasNodePermission(player)) {
                                 MessageUtil.sendPrefixed(player, "<red>You do not have permission to use waypoints.");
                                 return;
                             }
@@ -114,16 +117,16 @@ public final class Lifeline extends JavaPlugin {
 
                         @Override
                         public boolean canUse(CommandSender sender) {
-                            return sender.hasPermission("lifeline.waypoint");
+                            return hasNodePermission(sender);
                         }
                     }
             );
 
-            // Register /vault and /svault
+            // Register /stash with aliases /st and /safe
             commands.register(
-                    "vault",
-                    "Opens the shared co-op vault",
-                    List.of("svault"),
+                    "stash",
+                    "Opens the shared co-op stash / safe",
+                    List.of("st", "safe"),
                     new BasicCommand() {
                         @Override
                         public void execute(CommandSourceStack stack, String[] args) {
@@ -133,13 +136,13 @@ public final class Lifeline extends JavaPlugin {
                                 return;
                             }
 
-                            if (!player.hasPermission("lifeline.vault")) {
-                                MessageUtil.sendPrefixed(player, "<red>You do not have permission to access the vault.");
+                            if (!hasStashPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "<red>You do not have permission to access the stash.");
                                 return;
                             }
 
                             if (downedManager.isDowned(player.getUniqueId())) {
-                                MessageUtil.sendPrefixed(player, "<red>You cannot access the vault while downed!");
+                                MessageUtil.sendPrefixed(player, "<red>You cannot access the stash while downed!");
                                 return;
                             }
 
@@ -148,7 +151,7 @@ public final class Lifeline extends JavaPlugin {
 
                         @Override
                         public boolean canUse(CommandSender sender) {
-                            return sender.hasPermission("lifeline.vault");
+                            return hasStashPermission(sender);
                         }
                     }
             );
@@ -259,10 +262,20 @@ public final class Lifeline extends JavaPlugin {
         });
     }
 
+    private boolean hasNodePermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.node") || sender.hasPermission("lifeline.waypoint");
+    }
+
+    private boolean hasStashPermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.stash")
+                || sender.hasPermission("lifeline.safe")
+                || sender.hasPermission("lifeline.vault");
+    }
+
     private void sendHelp(CommandSender sender) {
         MessageUtil.sendPrefixed(sender, "<gold><bold>Lifeline Commands</bold></gold>");
-        MessageUtil.sendRaw(sender, "  <yellow>/waypoint (or /wp)</yellow> <dark_gray>-</dark_gray> <gray>Open shared waypoints</gray>");
-        MessageUtil.sendRaw(sender, "  <yellow>/vault (or /svault)</yellow> <dark_gray>-</dark_gray> <gray>Open shared co-op vault</gray>");
+        MessageUtil.sendRaw(sender, "  <yellow>/node (or /nd, /wp)</yellow> <dark_gray>-</dark_gray> <gray>Open shared waypoints</gray>");
+        MessageUtil.sendRaw(sender, "  <yellow>/stash (or /st, /safe)</yellow> <dark_gray>-</dark_gray> <gray>Open shared co-op stash</gray>");
         MessageUtil.sendRaw(sender, "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>");
         if (sender.hasPermission("lifeline.admin")) {
             MessageUtil.sendRaw(sender, "  <yellow>/lifeline reload</yellow> <dark_gray>-</dark_gray> <gray>Reload configuration</gray>");
