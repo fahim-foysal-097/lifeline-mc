@@ -1,11 +1,27 @@
-# Lifeline
+<div align="center">
 
-A Paper plugin designed for 2-player co-op servers, adding shared waypoints, a shared stash, a revive mechanic, and direct player teleportation.
+# 💎 Lifeline
 
-Works on Paper 1.21+ (Java 21).
-Yeah, also works 26.2+
+**Essential Co-Op Survival Utilities for Paper Minecraft**
+
+_Shared Waypoints • Shared Stash • DBNO Revive Mechanics • Native Bedrock Forms_
+
+[![PaperMC](https://img.shields.io/badge/PaperMC-1.21%2B-1976D2?style=for-the-badge&logo=papermc&logoColor=white)](https://papermc.io)
+[![Java](https://img.shields.io/badge/Java-21%2B-007396?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Geyser](https://img.shields.io/badge/Geyser-Supported-38B5E6?style=for-the-badge&logo=geysermc&logoColor=white)](https://geysermc.org)
+[![License](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](#license)
 
 ---
+
+A lightweight, feature-rich Paper plugin designed for small co-op servers. Lifeline keeps team survival seamless with shared waypoints, team vaults, a downed/revive system, an action-bar proximity radar, and native Geyser UI support for Bedrock players.
+
+</div>
+
+---
+
+## Versions
+
+Works on Paper 1.21+ (Java 21). Works on 26.2+ too
 
 ## Features
 
