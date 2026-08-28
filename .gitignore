@@ -45,3 +45,6 @@ server/
 plugins/
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
+
+notes.txt
+/web/tailwindcss

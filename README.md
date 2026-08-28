@@ -173,5 +173,6 @@ Output jar: `build/libs/Lifeline-<version>.jar`
 
 ## Installation
 
-1. Drop the compiled `.jar` file into your server's `plugins/` directory.
-2. Start or restart the server.
+1. Download or compile `.jar` file from release or the website.
+2. Drop the `.jar` file into your server's `plugins/` directory.
+3. Start or restart the server.
