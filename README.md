@@ -2,89 +2,85 @@
 
 # 💎 Lifeline
 
-**Essential Co-Op Survival Utilities for Paper Minecraft**
+**Co-op mechanics for small Paper Minecraft servers.**
 
-_Shared Waypoints • Shared Stash • DBNO Revive Mechanics • Native Bedrock Forms_
+_Shared Waypoints • Shared Stash • DBNO Revives • Actionbar Radar • Native Bedrock Forms_
 
 [![PaperMC](https://img.shields.io/badge/PaperMC-1.21%2B-1976D2?style=for-the-badge&logo=papermc&logoColor=white)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21%2B-007396?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Geyser](https://img.shields.io/badge/Geyser-Supported-38B5E6?style=for-the-badge&logo=geysermc&logoColor=white)](https://geysermc.org)
 [![License](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](#license)
 
----
-
-A lightweight, feature-rich Paper plugin designed for small co-op servers. Lifeline keeps team survival seamless with shared waypoints, team vaults, a downed/revive system, an action-bar proximity radar, and native Geyser UI support for Bedrock players.
-
 </div>
 
 ---
 
-## Versions
+Lifeline adds essential team mechanics to small co-op servers: shared waypoints, a joint inventory, a downed/revive system, an actionbar radar, and native UI for Bedrock players joining through Geyser.
 
-Works on Paper 1.21+ (Java 21). Works on 26.2+ too
+Requires **Paper 1.21+** running **Java 21+**.
+
+Works on **26.2+** too.
+
+---
 
 ## Features
 
 ### Shared Waypoints (`/node`, `/wp`, `/waypoints`)
 
-- GUI-based waypoint system with multi-page support (up to 90 waypoints).
-- Dimension-based icons:
-  - Compass for the Overworld
-  - Nether Star for the Nether
-  - Eye of Ender for The End
-- **Left-click** to start a 3-second teleport warm-up (cancels on movement or damage).
+- Multi-page chest GUI supporting up to 90 shared waypoints.
+- Dimension-specific icons (Compass for Overworld, Nether Star for Nether, Eye of Ender for The End).
+- **Left-click** to start a 3-second teleport warm-up (aborts on movement or damage).
 - **Shift + Right-click** to delete a waypoint.
-- Click **`+ Add Waypoint`** to create a waypoint at your current location. Type the name in chat (or `cancel` to abort).
+- Click **`+ Add Waypoint`**, then type the name in chat (or type `cancel` to abort).
 
 ### Shared Stash (`/stash`, `/safe`)
 
-- A 54-slot chest inventory shared between players.
-- Synced live in memory so both players can interact at the same time without desyncs or dupe glitches.
-- Preserves all item metadata (enchants, lore, trims, shulker contents, damaged items).
-- Auto-saves to `vault.yml` whenever closed and during server shutdown.
+- A 54-slot chest inventory shared across players.
+- Live in-memory sync allows simultaneous access without dupe glitches or desyncs.
+- Retains all item metadata (enchants, lore, armor trims, container contents, damage values).
+- Saves to `vault.yml` on window close and server shutdown.
 
 ### Downed & Revive System
 
-- When a player takes fatal damage (except from the void or `/kill`), they enter a downed state at half a heart instead of dying immediately.
-- Downed players get debuffs (blindness, darkness, slowness) and a 30-second bleedout timer in the action bar with heartbeat audio.
-- To revive, teammate holds **Sneak (Shift)** and **Right-clicks** the downed player for 3 seconds.
-- Reviving clears debuffs, restores health, and grants brief resistance/regeneration.
-- If the bleedout timer expires or the player takes lethal damage while downed, normal death occurs (`PlayerDeathEvent`), keeping full compatibility with gravestone and death-chest plugins.
-- Configurable maximum revives (`max-revives: 0` for infinite) and master revive toggle (`revive-enabled`).
+- Taking fatal damage (excluding void or `/kill`) puts players into a Downed state at half a heart instead of instantly killing them.
+- Downed players receive Blindness, Darkness, and Slowness, alongside a 30-second actionbar bleedout timer with heartbeat audio.
+- Teammates hold **Sneak (Shift)** and **Right-click** the downed player for 3 seconds to revive.
+- Reviving clears debuffs, restores health, and gives brief Resistance and Regeneration.
+- If the timer runs out or the player takes lethal damage while downed, regular death occurs (`PlayerDeathEvent`). Compatible with grave and death-chest plugins.
+- Configurable max revives (`max-revives: 0` for infinite) and master toggle (`revive-enabled`).
 
 ### Player Teleportation (`/tpq`)
 
-- Open the teleport GUI with `/tpq` or request directly via `/tpq <player>`.
-- GUI shows teammates with their current dimension, distance in blocks, and health.
-- Interactive chat buttons for accepting or declining requests, with shorthand commands (`/tpq a`, `/tpq d`, `/tpq c`) for mobile / Bedrock players (Geyser / Pojav).
-- Configurable warm-up delay that aborts if you move or take damage.
+- Open the teleport menu with `/tpq` or send a direct request via `/tpq <player>`.
+- Displays teammate status, current dimension, distance in blocks, and remaining health.
+- Interactive chat confirmation buttons, plus shorthand commands (`/tpq a`, `/tpq d`, `/tpq c`) for mobile and Bedrock players.
+- Configurable warm-up delay that cancels on movement or damage.
 
-### Bedrock Native Forms (Geyser API Hook)
+### Native Bedrock Forms (Geyser API)
 
-- When Bedrock / Pocket Edition players join via [Geyser](https://geysermc.org/), Lifeline automatically renders native Bedrock Form UI windows instead of virtual chest inventories.
-- Native forms for browsing waypoints, modal forms for waypoint actions (teleport/delete), custom text-input forms for naming waypoints, and native button lists for `/tpq`.
-- Java Edition players continue to receive native chest GUIs seamlessly.
+- When Bedrock players join through Geyser, Lifeline automatically serves native Bedrock Form UI windows instead of virtual chest inventories.
+- Includes form-based waypoint browsing, action modals (teleport/delete), text inputs for naming waypoints, and clean button lists for `/tpq`.
+- Java players continue to receive normal chest GUIs.
 
 ### Teammate Actionbar Radar (`/coradar`)
 
-- Live actionbar HUD showing your nearby partner's live status, health, and a dynamic 8-directional arrow (`Partner: 24m ↗ | ❤ 8.5/10`).
-- Dynamically updates relative to your player's facing direction (`↑`, `↗` ...).
-- Only appears when your teammate is within nearby range (configurable, default 40m in the same dimension).
-- Toggleable per player via `/coradar` (aliases: `/teamradar`, `/lfradar`) or `/lifeline radar [on|off|toggle]`.
-- Player toggle preferences persist across disconnects and restarts in `radar-toggles.yml`.
-- Master toggle in `config.yml` under `radar.enabled`.
+- Actionbar HUD displaying your partner's current status, health, and a dynamic 8-directional arrow (`Partner: 24m ↗ | ❤ 8.5/10`).
+- Updates direction relative to where your character is facing (`↑`, `↗`, `➔`, etc.).
+- Displays only when your teammate is within range (default: 40 blocks in the same dimension).
+- Toggle per player using `/coradar` or `/lifeline radar [on|off|toggle]`.
+- Toggle states persist across relogs and restarts in `radar-toggles.yml`.
 
-### Localization & Config
+### Config & Localization
 
-- All messages, GUI titles, and action bar text are in `messages.yml` using [MiniMessage](https://docs.advntr.dev/minimessage/format.html) (supports hex colors and gradients).
-- Configuration updater automatically merges new keys on plugin updates without overwriting existing settings.
-- Reload on the fly with `/lifeline reload`.
+- All user messages, GUI titles, and actionbar alerts are managed in `messages.yml` using [MiniMessage](https://docs.advntr.dev/minimessage/format.html) (supports hex colors and gradients).
+- Automatic configuration updating merges missing keys on updates without resetting your changes.
+- Hot-reload settings anytime with `/lifeline reload`.
 
 ---
 
 ## Commands & Permissions
 
-| Command                             | Aliases / Shortcuts                               | Description                       | Permission        |
+| Command                             | Aliases                                           | Description                       | Permission        |
 | :---------------------------------- | :------------------------------------------------ | :-------------------------------- | :---------------- |
 | `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open waypoints GUI / Bedrock form | `lifeline.node`   |
 | `/stash`                            | `/st`, `/safe`                                    | Open shared stash                 | `lifeline.stash`  |
@@ -93,8 +89,8 @@ Works on Paper 1.21+ (Java 21). Works on 26.2+ too
 | `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request           | `lifeline.tpq`    |
 | `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport request             | `lifeline.tpq`    |
 | `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport request  | `lifeline.tpq`    |
-| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle teammate actionbar radar   | `lifeline.radar`  |
-| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Toggle or set teammate radar      | `lifeline.radar`  |
+| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar            | `lifeline.radar`  |
+| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state         | `lifeline.radar`  |
 | `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives           | `lifeline.revive` |
 | `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages   | `lifeline.admin`  |
 | `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters      | `lifeline.admin`  |
@@ -103,7 +99,7 @@ Works on Paper 1.21+ (Java 21). Works on 26.2+ too
 
 ## Configuration
 
-Files are located in `plugins/Lifeline/`:
+Files are stored in `plugins/Lifeline/`:
 
 - `config.yml` — Timers, warm-ups, debuffs, sounds, and max waypoint pages.
 - `messages.yml` — All user-facing text with MiniMessage formatting.
