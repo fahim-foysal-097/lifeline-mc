@@ -9,7 +9,7 @@ Yeah, also works 26.2+
 
 ## Features
 
-### Shared Waypoints (`/node`, `/wp`)
+### Shared Waypoints (`/node`, `/wp`, `/waypoints`)
 
 - GUI-based waypoint system with multi-page support (up to 90 waypoints).
 - Dimension-based icons:
@@ -34,6 +34,7 @@ Yeah, also works 26.2+
 - To revive, teammate holds **Sneak (Shift)** and **Right-clicks** the downed player for 3 seconds.
 - Reviving clears debuffs, restores health, and grants brief resistance/regeneration.
 - If the bleedout timer expires or the player takes lethal damage while downed, normal death occurs (`PlayerDeathEvent`), keeping full compatibility with gravestone and death-chest plugins.
+- Configurable maximum revives (`max-revives: 0` for infinite) and master revive toggle (`revive-enabled`).
 
 ### Player Teleportation (`/tpq`)
 
@@ -50,10 +51,11 @@ Yeah, also works 26.2+
 
 ### Teammate Actionbar Radar (`/coradar`)
 
-- Live actionbar HUD showing your nearby partner's live status, health, and a dynamic 8-directional arrow (`Partner: 140m ↗ | ❤ 8.5/10`).
+- Live actionbar HUD showing your nearby partner's live status, health, and a dynamic 8-directional arrow (`Partner: 24m ↗ | ❤ 8.5/10`).
 - Dynamically updates relative to your player's facing direction (`↑`, `↗` ...).
-- Only appears when your teammate is within nearby range (configurable, default 100m in the same dimension).
+- Only appears when your teammate is within nearby range (configurable, default 40m in the same dimension).
 - Toggleable per player via `/coradar` (aliases: `/teamradar`, `/lfradar`) or `/lifeline radar [on|off|toggle]`.
+- Player toggle preferences persist across disconnects and restarts in `radar-toggles.yml`.
 - Master toggle in `config.yml` under `radar.enabled`.
 
 ### Localization & Config
@@ -66,20 +68,20 @@ Yeah, also works 26.2+
 
 ## Commands & Permissions
 
-| Command                             | Aliases / Shortcuts      | Description                       | Permission        |
-| :---------------------------------- | :----------------------- | :-------------------------------- | :---------------- |
-| `/node`                             | `/nd`, `/wp`             | Open waypoints GUI / Bedrock form | `lifeline.node`   |
-| `/stash`                            | `/st`, `/safe`           | Open shared stash                 | `lifeline.stash`  |
-| `/tpq`                              | `/teleportgui`           | Open player teleport GUI / form   | `lifeline.tpq`    |
-| `/tpq <player>`                     | —                        | Send a teleport request           | `lifeline.tpq`    |
-| `/tpq accept [player]`              | `/tpq a`                 | Accept teleport request           | `lifeline.tpq`    |
-| `/tpq deny [player]`                | `/tpq d`, `/tpq decline` | Deny teleport request             | `lifeline.tpq`    |
-| `/tpq cancel`                       | `/tpq c`                 | Cancel outgoing teleport request  | `lifeline.tpq`    |
-| `/coradar`                          | `/teamradar`, `/lfradar` | Toggle teammate actionbar radar   | `lifeline.radar`  |
-| `/lifeline radar [on\|off\|toggle]` | `/ll radar`              | Toggle or set teammate radar      | `lifeline.radar`  |
-| `/lifeline revives [player]`        | `/ll revives`            | Check remaining revives           | `lifeline.revive` |
-| `/lifeline reload`                  | `/ll reload`             | Reload configuration & messages   | `lifeline.admin`  |
-| `/lifeline resetrevives <player>`   | `/ll resetrevives`       | Reset player revive counters      | `lifeline.admin`  |
+| Command                             | Aliases / Shortcuts                               | Description                       | Permission        |
+| :---------------------------------- | :------------------------------------------------ | :-------------------------------- | :---------------- |
+| `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open waypoints GUI / Bedrock form | `lifeline.node`   |
+| `/stash`                            | `/st`, `/safe`                                    | Open shared stash                 | `lifeline.stash`  |
+| `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form   | `lifeline.tpq`    |
+| `/tpq <player>`                     | —                                                 | Send a teleport request           | `lifeline.tpq`    |
+| `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request           | `lifeline.tpq`    |
+| `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport request             | `lifeline.tpq`    |
+| `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport request  | `lifeline.tpq`    |
+| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle teammate actionbar radar   | `lifeline.radar`  |
+| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Toggle or set teammate radar      | `lifeline.radar`  |
+| `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives           | `lifeline.revive` |
+| `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages   | `lifeline.admin`  |
+| `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters      | `lifeline.admin`  |
 
 ---
 
@@ -91,10 +93,19 @@ Files are located in `plugins/Lifeline/`:
 - `messages.yml` — All user-facing text with MiniMessage formatting.
 - `waypoints.yml` — Saved waypoint data.
 - `vault.yml` — Stored items for the shared stash.
+- `radar-toggles.yml` — Saved per-player radar toggle preferences.
 
 ### Example `config.yml`
 
 ```yaml
+max-revives: 0
+revive-enabled: true
+downed-timer-seconds: 30
+downed-invulnerable: true
+revive-channel-seconds: 3
+revive-max-distance: 4.0
+revive-health-restored: 6.0
+
 waypoints:
   max-pages: 2 # 1 or 2 pages (up to 45 or 90 waypoints)
   teleport-warmup-seconds: 3
@@ -104,7 +115,14 @@ tether:
   request-timeout-seconds: 60
   cooldown-seconds: 30
 
-downed-timer-seconds: 30
+bedrock-forms:
+  enabled: true
+
+radar:
+  enabled: true
+  enabled-by-default: true
+  max-distance: 40
+  update-interval-ticks: 10
 ```
 
 ### Customizing `messages.yml`
