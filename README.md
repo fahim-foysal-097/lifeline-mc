@@ -176,3 +176,7 @@ Output jar: `build/libs/Lifeline-<version>.jar`
 1. Download or compile `.jar` file from release or the website.
 2. Drop the `.jar` file into your server's `plugins/` directory.
 3. Start or restart the server.
+
+## Extras
+
+The `/docs` folder is the folder for gh-pages.

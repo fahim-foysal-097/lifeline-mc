@@ -47,4 +47,4 @@ plugins/
 !gradle/wrapper/gradle-wrapper.jar
 
 notes.txt
-/web/tailwindcss
+/docs/tailwindcss
