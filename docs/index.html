@@ -54,7 +54,7 @@
                     <span class="font-extrabold text-xl tracking-tight text-white flex items-center gap-2">
                         Lifeline
                         <span
-                            class="text-[10px] font-bold bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/30 px-2 py-0.5 rounded-full">v0.1.0</span>
+                            class="text-[10px] font-bold bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/30 px-2 py-0.5 rounded-full">v1.0.0</span>
                     </span>
                     <span class="text-xs text-slate-400 font-medium">Co-op Mod for Paper</span>
                 </div>
@@ -80,7 +80,7 @@
                 <a href="#download"
                     class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-indigo via-brand-violet to-brand-mint text-white font-bold hover:shadow-lg hover:shadow-brand-indigo/25 hover:scale-[1.02] active:scale-95 transition-all">
                     <i class="fa-solid fa-download"></i>
-                    <span>Download v0.1.0</span>
+                    <span>Download v1.0.0</span>
                 </a>
             </div>
         </div>
@@ -122,17 +122,17 @@
                 <span class="gradient-text">Paper Minecraft Servers</span>
             </h1>
             <p class="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 font-normal mb-10 leading-relaxed">
-                Empower small co-op survival servers with shared waypoints, synchronized vault stashes, DBNO
+                Empower co-op survival servers with shared and personal waypoints, synchronized team vaults & private stashes, DBNO
                 revives, actionbar radars, and native Bedrock forms.
             </p>
 
             <!-- Buttons -->
             <div id="download" class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-                <a href="https://github.com/fahim-foysal-097/lifeline-mc/releases/download/v0.1.0/Lifeline-0.1.0.jar"
+                <a href="https://github.com/fahim-foysal-097/lifeline-mc/releases/download/v1.0.0/Lifeline-1.0.0.jar"
                     target="_blank" download
                     class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-indigo via-brand-violet to-brand-mint text-white font-extrabold text-base flex items-center justify-center gap-3 shadow-xl shadow-brand-indigo/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                     <i class="fa-solid fa-circle-down text-lg"></i>
-                    <span>Download Jar (Lifeline-0.1.0.jar)</span>
+                    <span>Download Jar (Lifeline-1.0.0.jar)</span>
                 </a>
                 <button>
                     <i class="fa-solid fa-terminal text-brand-mint"></i>
@@ -213,7 +213,7 @@
                     <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Shared
                         Waypoints</h3>
                     <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
-                        Multi-page Chest GUI supporting up to 90 shared waypoints with dimension-specific icons
+                        Multi-page Chest GUI supporting up to 90 shared team waypoints with dimension-specific icons
                         (Compass, Nether Star, Ender Eye) & 3s teleport warmup.
                     </p>
                     <div
@@ -222,7 +222,24 @@
                     </div>
                 </div>
 
-                <!-- Feature 2 -->
+                <!-- Feature 2: Personal Waypoints -->
+                <div class="mc-glass-card group p-8 rounded-2xl">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-sky-500/20 group-hover:border-sky-500/40 group-hover:rotate-3 transition-all duration-300">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-sky-300 transition-colors">Personal
+                        Waypoints</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
+                        Private waypoint storage holding up to 27 personal waypoints per player. Includes dedicated 36-slot GUI, chat creation prompt, and Bedrock form support.
+                    </p>
+                    <div
+                        class="flex items-center gap-2 text-xs font-mono text-sky-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-sky-500/20 group-hover:border-sky-500/40 w-fit transition-colors">
+                        <span>/mywp</span> • <span>/pwaypoints</span> • <span>/lfnode</span>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
                 <div class="mc-glass-card group p-8 rounded-2xl">
                     <div
                         class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-cyan-500/20 group-hover:border-cyan-500/40 group-hover:rotate-3 transition-all duration-300">
@@ -240,7 +257,41 @@
                     </div>
                 </div>
 
-                <!-- Feature 3 -->
+                <!-- Feature 4: Personal Stash -->
+                <div class="mc-glass-card group p-8 rounded-2xl">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-purple-500/20 group-hover:border-purple-500/40 group-hover:rotate-3 transition-all duration-300">
+                        <i class="fa-solid fa-box-archive"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">Personal
+                        Stash</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
+                        Private storage vault per player with configurable 27 or 54 slots. Features automatic disk persistence and item downscaling protection.
+                    </p>
+                    <div
+                        class="flex items-center gap-2 text-xs font-mono text-purple-400 bg-purple-950/40 px-3 py-1.5 rounded-lg border border-purple-800/40 group-hover:border-purple-500/40 w-fit transition-colors">
+                        <span>/pstash</span> • <span>/stashp</span> • <span>/pst</span>
+                    </div>
+                </div>
+
+                <!-- Feature 5: Player Teleport Tether -->
+                <div class="mc-glass-card group p-8 rounded-2xl">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-indigo-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-violet-500/20 group-hover:border-violet-500/40 group-hover:rotate-3 transition-all duration-300">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Player
+                        Tether (/tpq)</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
+                        Interactive direct teleport requests with GUI selector, clickable chat buttons, request timeout timers, cooldowns, and void/combat checks.
+                    </p>
+                    <div
+                        class="flex items-center gap-2 text-xs font-mono text-indigo-400 bg-indigo-950/40 px-3 py-1.5 rounded-lg border border-indigo-800/40 group-hover:border-indigo-500/40 w-fit transition-colors">
+                        <span>/tpq</span> • <span>/tpq accept</span> • <span>/tpq deny</span>
+                    </div>
+                </div>
+
+                <!-- Feature 6 -->
                 <div class="mc-glass-card group p-8 rounded-2xl">
                     <div
                         class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-rose-500/20 group-hover:border-rose-500/40 group-hover:rotate-3 transition-all duration-300">
@@ -258,7 +309,7 @@
                     </div>
                 </div>
 
-                <!-- Feature 4 -->
+                <!-- Feature 7 -->
                 <div class="mc-glass-card group p-8 rounded-2xl">
                     <div
                         class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-indigo-500/20 group-hover:border-indigo-500/40 group-hover:rotate-3 transition-all duration-300">
@@ -276,38 +327,37 @@
                     </div>
                 </div>
 
-                <!-- Feature 5 -->
+                <!-- Feature 8 -->
                 <div class="mc-glass-card group p-8 rounded-2xl">
                     <div
-                        class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-purple-500/20 group-hover:border-purple-500/40 group-hover:rotate-3 transition-all duration-300">
+                        class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-amber-500/20 group-hover:border-amber-500/40 group-hover:rotate-3 transition-all duration-300">
                         <i class="fa-solid fa-gamepad"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">Native
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">Native
                         Bedrock Forms</h3>
                     <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
-                        Automatically serves Geyser Bedrock players native Bedrock Form UI windows instead of virtual
-                        chest GUIs for clean cross-play experience.
+                        Automatically serves Geyser Bedrock players native Bedrock Form UI windows for shared/personal waypoints and teleport requests.
                     </p>
                     <div
-                        class="flex items-center gap-2 text-xs font-mono text-purple-400 bg-purple-950/40 px-3 py-1.5 rounded-lg border border-purple-800/40 group-hover:border-purple-500/40 w-fit transition-colors">
+                        class="flex items-center gap-2 text-xs font-mono text-amber-400 bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-800/40 group-hover:border-amber-500/40 w-fit transition-colors">
                         <span>bedrock-forms.enabled</span>
                     </div>
                 </div>
 
-                <!-- Feature 6 -->
+                <!-- Feature 9 -->
                 <div class="mc-glass-card group p-8 rounded-2xl">
                     <div
-                        class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-amber-500/20 group-hover:border-amber-500/40 group-hover:rotate-3 transition-all duration-300">
+                        class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/40 group-hover:rotate-3 transition-all duration-300">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
                         MiniMessage & Localization</h3>
                     <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
                         All user text, GUI titles, and actionbar alerts are completely configurable in `messages.yml`
                         with MiniMessage hex gradients & tags.
                     </p>
                     <div
-                        class="flex items-center gap-2 text-xs font-mono text-amber-400 bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-800/40 group-hover:border-amber-500/40 w-fit transition-colors">
+                        class="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-800/40 group-hover:border-emerald-500/40 w-fit transition-colors">
                         <span>/lifeline reload</span>
                     </div>
                 </div>
@@ -443,6 +493,104 @@
                         class="mt-8 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500 font-mono">
                         <span>Command: <code class="text-rose-400">/ll revives</code></span>
                         <span>Compatible with grave & death-chest plugins</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Dual-Tier Storage Architecture -->
+                <div class="mc-glass-card group p-8 rounded-3xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <span
+                                class="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-semibold flex items-center gap-2 group-hover:border-purple-400/60 transition-colors">
+                                <i class="fa-solid fa-box-archive"></i> Storage System
+                            </span>
+                            <span class="text-xs font-mono text-slate-500">Shared + Personal</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                            Dual-Tier Storage Vaults</h3>
+                        <p
+                            class="text-slate-400 text-sm leading-relaxed mb-8 group-hover:text-slate-300 transition-colors">
+                            Access both collective team storage and private player stashes. Features in-memory live synchronization, full NBT/lore retention, and smart slot-preservation that prevents item loss if capacity is reconfigured.
+                        </p>
+
+                        <!-- Storage Display Visual Box -->
+                        <div
+                            class="bg-slate-950 p-6 rounded-2xl border border-slate-800/90 space-y-4 font-mono group-hover:border-purple-500/30 transition-colors">
+                            <div class="text-xs text-slate-500 uppercase tracking-wider mb-2 font-bold">Vault Tier Comparison</div>
+
+                            <div
+                                class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm">
+                                <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-vault text-cyan-400"></i> Shared Co-op Vault:</span>
+                                <span class="text-cyan-300 font-bold">54 Slots <span class="text-slate-500">(Team Access)</span></span>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm">
+                                <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-box text-purple-400"></i> Personal Stash:</span>
+                                <span class="text-purple-300 font-bold">27 or 54 Slots <span class="text-slate-500">(Private)</span></span>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm">
+                                <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Data Safety:</span>
+                                <span class="text-emerald-300 font-bold">Downscale Safe <span class="text-slate-500">(Zero Wipe)</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="mt-8 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500 font-mono">
+                        <span>Commands: <code class="text-purple-400">/stash</code> • <code class="text-purple-400">/pstash</code></span>
+                        <span>Config: <code class="text-purple-400">personal-stash.slots</code></span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Shared & Personal Waypoint Network -->
+                <div class="mc-glass-card group p-8 rounded-3xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <span
+                                class="px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-semibold flex items-center gap-2 group-hover:border-sky-400/60 transition-colors">
+                                <i class="fa-solid fa-location-crosshairs"></i> Navigation Matrix
+                            </span>
+                            <span class="text-xs font-mono text-slate-500">Fast Travel</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-sky-300 transition-colors">
+                            Dual Waypoint Network</h3>
+                        <p
+                            class="text-slate-400 text-sm leading-relaxed mb-8 group-hover:text-slate-300 transition-colors">
+                            Maintain up to 90 global team waypoints alongside 27 private personal nodes. Includes dimension-sensitive icons (Overworld, Nether, End), movement/damage cancellation, void safety checks, and Bedrock form support.
+                        </p>
+
+                        <!-- Waypoints Visual Box -->
+                        <div
+                            class="bg-slate-950 p-6 rounded-2xl border border-slate-800/90 space-y-4 font-mono group-hover:border-sky-500/30 transition-colors">
+                            <div class="text-xs text-slate-500 uppercase tracking-wider mb-2 font-bold">Waypoint Systems</div>
+
+                            <div
+                                class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm">
+                                <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-map text-emerald-400"></i> Shared Nodes:</span>
+                                <span class="text-emerald-300 font-bold">Up to 90 <span class="text-slate-500">(2 Pages)</span></span>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm">
+                                <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-location-dot text-sky-400"></i> Personal Nodes:</span>
+                                <span class="text-sky-300 font-bold">27 Waypoints <span class="text-slate-500">(Per-Player)</span></span>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm">
+                                <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400"></i> Teleport Warmup:</span>
+                                <span class="text-amber-300 font-bold">3s Configurable <span class="text-slate-500">(Anti-Combat)</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="mt-8 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500 font-mono">
+                        <span>Commands: <code class="text-sky-400">/node</code> • <code class="text-sky-400">/mywp</code></span>
+                        <span>GUI: <code class="text-sky-400">Java + Bedrock</code></span>
                     </div>
                 </div>
 
@@ -606,14 +754,14 @@
                         </thead>
                         <tbody id="cmd-table-body" class="divide-y divide-slate-800/60 font-mono">
 
-                            <!-- Command 1 -->
+                            <!-- Command 1: /node -->
                             <tr
                                 class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
                                 <td class="py-4 px-6 font-bold text-indigo-300 flex items-center gap-2">
                                     <span>/node</span>
                                     <button onclick="copyCommand('/node')"
                                         class="text-slate-500 hover:text-indigo-300 transition"><i
-                                            class="fa-regular fa-copy text-xs"></i></button>
+                                             class="fa-regular fa-copy text-xs"></i></button>
                                 </td>
                                 <td class="py-4 px-6 text-xs">
                                     <div class="flex flex-wrap gap-1">
@@ -629,18 +777,39 @@
                                             class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/waypoints</span>
                                     </div>
                                 </td>
-                                <td class="py-4 px-6 font-sans text-slate-300">Open waypoints GUI / Bedrock form</td>
+                                <td class="py-4 px-6 font-sans text-slate-300">Open shared team waypoints GUI / Bedrock form</td>
                                 <td class="py-4 px-6 text-xs text-amber-400">lifeline.node</td>
                             </tr>
 
-                            <!-- Command 2 -->
+                            <!-- Command 2: /mywp -->
+                            <tr
+                                class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
+                                <td class="py-4 px-6 font-bold text-sky-300 flex items-center gap-2">
+                                    <span>/mywp</span>
+                                    <button onclick="copyCommand('/mywp')"
+                                        class="text-slate-500 hover:text-sky-300 transition"><i
+                                             class="fa-regular fa-copy text-xs"></i></button>
+                                </td>
+                                <td class="py-4 px-6 text-xs">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/pwaypoints</span>
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/lfnode</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-sans text-slate-300">Open private personal waypoints menu (max 27)</td>
+                                <td class="py-4 px-6 text-xs text-amber-400">lifeline.mywp</td>
+                            </tr>
+
+                            <!-- Command 3: /stash -->
                             <tr
                                 class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
                                 <td class="py-4 px-6 font-bold text-indigo-300 flex items-center gap-2">
                                     <span>/stash</span>
                                     <button onclick="copyCommand('/stash')"
                                         class="text-slate-500 hover:text-indigo-300 transition"><i
-                                            class="fa-regular fa-copy text-xs"></i></button>
+                                             class="fa-regular fa-copy text-xs"></i></button>
                                 </td>
                                 <td class="py-4 px-6 text-xs">
                                     <div class="flex flex-wrap gap-1">
@@ -652,6 +821,29 @@
                                 </td>
                                 <td class="py-4 px-6 font-sans text-slate-300">Open 54-slot shared team stash vault</td>
                                 <td class="py-4 px-6 text-xs text-amber-400">lifeline.stash</td>
+                            </tr>
+
+                            <!-- Command 4: /pstash -->
+                            <tr
+                                class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
+                                <td class="py-4 px-6 font-bold text-purple-300 flex items-center gap-2">
+                                    <span>/pstash</span>
+                                    <button onclick="copyCommand('/pstash')"
+                                        class="text-slate-500 hover:text-purple-300 transition"><i
+                                             class="fa-regular fa-copy text-xs"></i></button>
+                                </td>
+                                <td class="py-4 px-6 text-xs">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/stashp</span>
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/pst</span>
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/mystash</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-sans text-slate-300">Open your private personal stash (27 or 54 slots)</td>
+                                <td class="py-4 px-6 text-xs text-amber-400">lifeline.pstash</td>
                             </tr>
 
                             <!-- Command 3 -->
@@ -937,7 +1129,16 @@
   <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span>
   <span class="text-indigo-400">enabled-by-default</span>: <span class="text-emerald-400">true</span>
   <span class="text-indigo-400">max-distance</span>: <span class="text-amber-400">40</span> <span class="text-slate-500"># Detection range in blocks</span>
-  <span class="text-indigo-400">update-interval-ticks</span>: <span class="text-amber-400">10</span> <span class="text-slate-500"># 10 ticks = 0.5s</span></code></pre>
+  <span class="text-indigo-400">update-interval-ticks</span>: <span class="text-amber-400">10</span> <span class="text-slate-500"># 10 ticks = 0.5s</span>
+
+<span class="text-slate-500"># --- Personal Stash (/pstash) ---</span>
+<span class="text-indigo-400">personal-stash</span>:
+  <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span>
+  <span class="text-indigo-400">slots</span>: <span class="text-amber-400">27</span> <span class="text-slate-500"># 27 or 54 slots (downscaling protected)</span>
+
+<span class="text-slate-500"># --- Personal Waypoints (/mywp) ---</span>
+<span class="text-indigo-400">personal-waypoints</span>:
+  <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span> <span class="text-slate-500"># Up to 27 waypoints per player</span></code></pre>
 
                 <!-- Tab 2: Messages YAML -->
                 <pre id="code-messages"
@@ -947,6 +1148,13 @@
 <span class="text-indigo-400">waypoints</span>:
   <span class="text-indigo-400">gui-title</span>: <span class="text-emerald-300">"&lt;gradient:#818CF8:#C084FC&gt;&lt;bold&gt;Shared Waypoints&lt;/bold&gt;&lt;/gradient&gt;"</span>
   <span class="text-indigo-400">warmup-started</span>: <span class="text-emerald-300">"&lt;gray&gt;Teleporting in &lt;yellow&gt;{seconds}s&lt;/yellow&gt;. Don't move!&lt;/gray&gt;"</span>
+
+<span class="text-indigo-400">personal-waypoints</span>:
+  <span class="text-indigo-400">gui-title</span>: <span class="text-emerald-300">"&lt;gradient:#38BDF8:#818CF8&gt;&lt;bold&gt;Personal Waypoints ({count}/{max})&lt;/bold&gt;&lt;/gradient&gt;"</span>
+  <span class="text-indigo-400">created-msg</span>: <span class="text-emerald-300">"&lt;green&gt;Created personal waypoint: &lt;aqua&gt;&lt;bold&gt;{name}&lt;/bold&gt;&lt;/aqua&gt;!&lt;/green&gt;"</span>
+
+<span class="text-indigo-400">personal-stash</span>:
+  <span class="text-indigo-400">title</span>: <span class="text-emerald-300">"&lt;gradient:#C084FC:#818CF8&gt;&lt;bold&gt;Personal Stash&lt;/bold&gt;&lt;/gradient&gt;"</span>
 
 <span class="text-indigo-400">teleport</span>:
   <span class="text-indigo-400">request-received-buttons</span>: <span class="text-emerald-300">"&lt;green&gt;&lt;click:run_command:'/tpq accept {player}'&gt;[✔ ACCEPT]&lt;/click&gt;&lt;/green&gt;"</span></code></pre>
@@ -970,7 +1178,7 @@
                     <h3 class="text-lg font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Download
                         Binary</h3>
                     <p class="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">Download <span
-                            class="text-indigo-300 font-mono">Lifeline-0.1.0.jar</span> compiled for Paper 1.21+.</p>
+                            class="text-indigo-300 font-mono">Lifeline-1.0.0.jar</span> compiled for Paper 1.21+.</p>
                 </div>
                 <div class="mc-glass-card group p-8 rounded-2xl relative">
                     <span
@@ -1004,7 +1212,7 @@
                         <i class="fa-solid fa-gem text-brand-mint text-xs"></i>
                     </div>
                 </div>
-                <span class="text-slate-300 font-bold">Lifeline Mod v0.1.0</span>
+                <span class="text-slate-300 font-bold">Lifeline Mod v1.0.0</span>
             </div>
             <div class="text-center md:text-right text-xs text-slate-500">
                 MIT License • PaperMC 1.21+
