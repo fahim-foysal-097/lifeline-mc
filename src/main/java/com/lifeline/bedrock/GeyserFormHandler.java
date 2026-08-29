@@ -137,6 +137,11 @@ final class GeyserFormHandler {
                             return;
                         }
 
+                        if (trimmed.contains(".")) {
+                            MessageUtil.sendPrefixed(player, "waypoints.name-invalid");
+                            return;
+                        }
+
                         if (manager.getWaypoint(trimmed) != null) {
                             MessageUtil.sendPrefixed(player, "waypoints.already-exists", MessageUtil.p("name", trimmed));
                             return;
@@ -285,6 +290,157 @@ final class GeyserFormHandler {
         });
 
         sendForm(player, builder.build());
+    }
+
+    static void openPersonalWaypointsForm(Player player, com.lifeline.waypoint.PersonalWaypointManager manager, Lifeline plugin) {
+        if (!isBedrockPlayer(player)) return;
+
+        List<Waypoint> waypoints = new ArrayList<>(manager.getWaypoints(player.getUniqueId()));
+
+        String title = MessageUtil.getRaw("bedrock.personal-waypoints-title", "Personal Waypoints");
+        String content = MessageUtil.getRaw("bedrock.personal-waypoints-content", "Select a personal waypoint or add a new one:");
+        String addBtnText = MessageUtil.getRaw("bedrock.personal-add-waypoint-btn", "+ Add New Personal Waypoint");
+
+        SimpleForm.Builder builder = SimpleForm.builder()
+                .title(title)
+                .content(content)
+                .button(addBtnText, FormImage.Type.PATH, "textures/ui/color_plus");
+
+        for (Waypoint wp : waypoints) {
+            String dim = getDimensionName(wp.getWorldName());
+            String btnLabel = wp.getName() + " [" + dim + "]\n(" + (int) wp.getX() + ", " + (int) wp.getY() + ", " + (int) wp.getZ() + ")";
+            String iconPath = getDimensionIconPath(wp.getWorldName());
+            builder.button(btnLabel, FormImage.Type.PATH, iconPath);
+        }
+
+        builder.validResultHandler(response -> {
+            int clickedId = response.clickedButtonId();
+            if (clickedId == 0) {
+                Bukkit.getScheduler().runTask(plugin, () -> openCreatePersonalWaypointForm(player, manager, plugin));
+            } else {
+                int wpIndex = clickedId - 1;
+                if (wpIndex >= 0 && wpIndex < waypoints.size()) {
+                    Waypoint wp = waypoints.get(wpIndex);
+                    Bukkit.getScheduler().runTask(plugin, () -> openPersonalWaypointDetailsForm(player, wp, manager, plugin));
+                }
+            }
+        });
+
+        sendForm(player, builder.build());
+    }
+
+    static void openCreatePersonalWaypointForm(Player player, com.lifeline.waypoint.PersonalWaypointManager manager, Lifeline plugin) {
+        if (!isBedrockPlayer(player)) return;
+
+        if (manager.getWaypoints(player.getUniqueId()).size() >= com.lifeline.waypoint.PersonalWaypointManager.MAX_PERSONAL_WAYPOINTS) {
+            MessageUtil.sendPrefixed(player, "personal-waypoints.capacity-reached",
+                    MessageUtil.p("max", String.valueOf(com.lifeline.waypoint.PersonalWaypointManager.MAX_PERSONAL_WAYPOINTS)));
+            return;
+        }
+
+        String title = MessageUtil.getRaw("bedrock.personal-create-title", "Create Personal Waypoint");
+        String nameLabel = MessageUtil.getRaw("bedrock.personal-create-name-label", "Waypoint Name");
+        String placeholder = MessageUtil.getRaw("bedrock.personal-create-name-placeholder", "Enter waypoint name...");
+
+        CustomForm form = CustomForm.builder()
+                .title(title)
+                .input(nameLabel, placeholder)
+                .validResultHandler(response -> {
+                    String input = response.asInput(0);
+                    if (input == null || input.trim().isEmpty()) {
+                        return;
+                    }
+                    String trimmed = input.trim();
+
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(player.getUniqueId())) {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-downed");
+                            return;
+                        }
+
+                        if (trimmed.equalsIgnoreCase("cancel")) {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-cancelled");
+                            return;
+                        }
+
+                        if (trimmed.length() < 2 || trimmed.length() > 24) {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.name-length-error");
+                            return;
+                        }
+
+                        if (trimmed.contains(".")) {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.name-invalid");
+                            return;
+                        }
+
+                        if (manager.getWaypoint(player.getUniqueId(), trimmed) != null) {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.already-exists", MessageUtil.p("name", trimmed));
+                            return;
+                        }
+
+                        if (manager.getWaypoints(player.getUniqueId()).size() >= com.lifeline.waypoint.PersonalWaypointManager.MAX_PERSONAL_WAYPOINTS) {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.capacity-reached",
+                                    MessageUtil.p("max", String.valueOf(com.lifeline.waypoint.PersonalWaypointManager.MAX_PERSONAL_WAYPOINTS)));
+                            return;
+                        }
+
+                        Waypoint newWaypoint = Waypoint.fromLocation(trimmed, player.getLocation(), player.getUniqueId(), player.getName());
+                        if (manager.addWaypoint(player.getUniqueId(), newWaypoint)) {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.created-msg",
+                                    MessageUtil.unparsed("name", trimmed));
+                        } else {
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.save-error");
+                        }
+                    });
+                })
+                .build();
+
+        sendForm(player, form);
+    }
+
+    static void openPersonalWaypointDetailsForm(Player player, Waypoint wp, com.lifeline.waypoint.PersonalWaypointManager manager, Lifeline plugin) {
+        if (!isBedrockPlayer(player)) return;
+
+        String dim = getDimensionName(wp.getWorldName());
+        int warmup = plugin.getPluginConfig().getWaypointWarmupSeconds();
+
+        String title = MessageUtil.getRaw("bedrock.personal-details-title", "Waypoint: <name>")
+                .replace("<name>", wp.getName());
+        String content = MessageUtil.getRaw("bedrock.personal-details-content", "Dimension: <dim>\nLocation: <x>, <y>, <z>")
+                .replace("<dim>", dim)
+                .replace("<x>", String.valueOf((int) wp.getX()))
+                .replace("<y>", String.valueOf((int) wp.getY()))
+                .replace("<z>", String.valueOf((int) wp.getZ()));
+
+        String teleportBtn = MessageUtil.getRaw("bedrock.personal-details-teleport-btn", "✦ Teleport (<seconds>s warm-up)")
+                .replace("<seconds>", String.valueOf(warmup));
+        String deleteBtn = MessageUtil.getRaw("bedrock.personal-details-delete-btn", "✖ Delete Waypoint");
+        String backBtn = MessageUtil.getRaw("bedrock.personal-details-back-btn", "« Back to Waypoints");
+
+        SimpleForm form = SimpleForm.builder()
+                .title(title)
+                .content(content)
+                .button(teleportBtn, FormImage.Type.PATH, "textures/ui/portalIcon")
+                .button(deleteBtn, FormImage.Type.PATH, "textures/ui/trash")
+                .button(backBtn, FormImage.Type.PATH, "textures/ui/arrow_left")
+                .validResultHandler(response -> {
+                    int clicked = response.clickedButtonId();
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (clicked == 0) {
+                            manager.startTeleportWarmup(player, wp);
+                        } else if (clicked == 1) {
+                            if (manager.deleteWaypoint(player.getUniqueId(), wp.getName())) {
+                                MessageUtil.sendPrefixed(player, "personal-waypoints.deleted", MessageUtil.p("name", wp.getName()));
+                            }
+                            openPersonalWaypointsForm(player, manager, plugin);
+                        } else if (clicked == 2) {
+                            openPersonalWaypointsForm(player, manager, plugin);
+                        }
+                    });
+                })
+                .build();
+
+        sendForm(player, form);
     }
 
     private static String getDimensionName(String worldName) {

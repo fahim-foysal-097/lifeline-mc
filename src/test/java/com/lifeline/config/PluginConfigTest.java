@@ -248,4 +248,54 @@ public class PluginConfigTest {
         assertEquals(5.0, config.getRadarMaxDistance()); // Clamped to min 5.0
         assertEquals(1, config.getRadarUpdateIntervalTicks()); // Clamped to min 1
     }
+
+    @Test
+    public void testPersonalStashAndWaypointsDefaults() {
+        PluginConfig config = new PluginConfig(null);
+        YamlConfiguration emptyConfig = new YamlConfiguration();
+        config.load(emptyConfig);
+
+        assertTrue(config.isPersonalStashEnabled());
+        assertEquals(27, config.getPersonalStashSlots());
+        assertTrue(config.isPersonalWaypointsEnabled());
+    }
+
+    @Test
+    public void testPersonalStashSlotsClamping() {
+        PluginConfig config = new PluginConfig(null);
+
+        // 54 slots allowed
+        YamlConfiguration config54 = YamlConfiguration.loadConfiguration(new StringReader("personal-stash:\n  slots: 54"));
+        config.load(config54);
+        assertEquals(54, config.getPersonalStashSlots());
+
+        // 27 slots allowed
+        YamlConfiguration config27 = YamlConfiguration.loadConfiguration(new StringReader("personal-stash:\n  slots: 27"));
+        config.load(config27);
+        assertEquals(27, config.getPersonalStashSlots());
+
+        // Any other number (e.g. 36 or 18) defaults to 27
+        YamlConfiguration configInvalid = YamlConfiguration.loadConfiguration(new StringReader("personal-stash:\n  slots: 36"));
+        config.load(configInvalid);
+        assertEquals(27, config.getPersonalStashSlots());
+    }
+
+    @Test
+    public void testPersonalFeaturesDisabledToggles() {
+        PluginConfig config = new PluginConfig(null);
+
+        String yaml = """
+                personal-stash:
+                  enabled: false
+                  slots: 54
+                personal-waypoints:
+                  enabled: false
+                """;
+        YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(new StringReader(yaml));
+        config.load(yamlConfig);
+
+        assertFalse(config.isPersonalStashEnabled());
+        assertEquals(54, config.getPersonalStashSlots());
+        assertFalse(config.isPersonalWaypointsEnabled());
+    }
 }

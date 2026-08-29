@@ -30,6 +30,36 @@ permissions:
   lifeline.vault:
     description: Legacy alias for lifeline.stash.
     default: true
+  lifeline.pstash:
+    description: Allows access to personal stash storage.
+    default: true
+  lifeline.personalstash:
+    description: Alias for lifeline.pstash.
+    default: true
+  lifeline.stashp:
+    description: Alias for lifeline.pstash.
+    default: true
+  lifeline.pst:
+    description: Alias for lifeline.pstash.
+    default: true
+  lifeline.mystash:
+    description: Alias for lifeline.pstash.
+    default: true
+  lifeline.mywp:
+    description: Allows access to personal waypoints.
+    default: true
+  lifeline.personalwaypoint:
+    description: Alias for lifeline.mywp.
+    default: true
+  lifeline.personalwaypoints:
+    description: Alias for lifeline.mywp.
+    default: true
+  lifeline.pwaypoints:
+    description: Alias for lifeline.mywp.
+    default: true
+  lifeline.lfnode:
+    description: Alias for lifeline.mywp.
+    default: true
   lifeline.tpq:
     description: Allows sending and accepting player-to-player teleport requests.
     default: true

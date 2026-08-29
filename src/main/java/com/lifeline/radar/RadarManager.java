@@ -193,6 +193,9 @@ public class RadarManager implements Listener {
         if (plugin.getWaypointManager() != null && plugin.getWaypointManager().isWarmingUp(uuid)) {
             return true;
         }
+        if (plugin.getPersonalWaypointManager() != null && plugin.getPersonalWaypointManager().isWarmingUp(uuid)) {
+            return true;
+        }
         if (plugin.getTetherManager() != null && plugin.getTetherManager().isWarmingUp(uuid)) {
             return true;
         }

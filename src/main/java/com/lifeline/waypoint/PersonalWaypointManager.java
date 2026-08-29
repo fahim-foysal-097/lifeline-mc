@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,13 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
- * Manages shared waypoints, persistence, teleport warm-ups, and chat creation prompts.
+ * Manages per-player personal waypoints (maximum 27 per player), persistence,
+ * teleport warm-ups, and chat creation prompts.
  */
-public class WaypointManager implements Listener {
+public class PersonalWaypointManager implements Listener {
+
+    public static final int MAX_PERSONAL_WAYPOINTS = 27;
 
     private final Lifeline plugin;
     private final File waypointsFile;
-    private final Map<String, Waypoint> waypoints = new LinkedHashMap<>();
+    private final Map<UUID, Map<String, Waypoint>> playerWaypoints = new ConcurrentHashMap<>();
 
     // Active teleport warmups: Player UUID -> WarmupTask
     private final Map<UUID, BukkitTask> activeWarmups = new ConcurrentHashMap<>();
@@ -43,39 +47,51 @@ public class WaypointManager implements Listener {
 
     public record PendingPrompt(Location location, long expiryTimeMillis) {}
 
-    public WaypointManager(Lifeline plugin) {
+    public PersonalWaypointManager(Lifeline plugin) {
         this.plugin = plugin;
-        this.waypointsFile = new File(plugin.getDataFolder(), "waypoints.yml");
+        this.waypointsFile = new File(plugin.getDataFolder(), "personal-waypoints.yml");
         loadWaypoints();
     }
 
     public synchronized void loadWaypoints() {
-        waypoints.clear();
+        playerWaypoints.clear();
         if (!waypointsFile.exists()) {
             return;
         }
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(waypointsFile);
-        if (config.isConfigurationSection("waypoints")) {
-            org.bukkit.configuration.ConfigurationSection section = config.getConfigurationSection("waypoints");
-            if (section != null) {
-                for (String key : section.getKeys(false)) {
-                    org.bukkit.configuration.ConfigurationSection entrySection = section.getConfigurationSection(key);
-                    if (entrySection == null) {
-                        plugin.getLogger().warning("Skipping corrupted shared waypoint entry '" + key + "'");
-                        continue;
-                    }
+        if (config.isConfigurationSection("players")) {
+            ConfigurationSection playersSection = config.getConfigurationSection("players");
+            if (playersSection != null) {
+                for (String uuidStr : playersSection.getKeys(false)) {
                     try {
-                        Map<String, Object> values = entrySection.getValues(false);
-                        Waypoint wp = Waypoint.deserialize(values);
-                        waypoints.put(wp.getName().toLowerCase(Locale.ROOT), wp);
-                    } catch (Exception ex) {
-                        plugin.getLogger().warning("Failed to deserialize shared waypoint '" + key + "': " + ex.getMessage());
+                        UUID uuid = UUID.fromString(uuidStr);
+                        ConfigurationSection wpSection = playersSection.getConfigurationSection(uuidStr + ".waypoints");
+                        if (wpSection != null) {
+                            Map<String, Waypoint> map = new LinkedHashMap<>();
+                            for (String wpKey : wpSection.getKeys(false)) {
+                                ConfigurationSection entrySection = wpSection.getConfigurationSection(wpKey);
+                                if (entrySection == null) {
+                                    plugin.getLogger().warning("Skipping corrupted personal waypoint entry '" + wpKey + "' for player " + uuidStr);
+                                    continue;
+                                }
+                                try {
+                                    Map<String, Object> values = entrySection.getValues(false);
+                                    Waypoint wp = Waypoint.deserialize(values);
+                                    map.put(wp.getName().toLowerCase(Locale.ROOT), wp);
+                                } catch (Exception ex) {
+                                    plugin.getLogger().warning("Failed to deserialize personal waypoint '" + wpKey + "' for player " + uuidStr + ": " + ex.getMessage());
+                                }
+                            }
+                            playerWaypoints.put(uuid, map);
+                        }
+                    } catch (IllegalArgumentException ignored) {
+                        // Skip malformed UUID key
                     }
                 }
             }
         }
-        plugin.getLogger().info("Loaded " + waypoints.size() + " shared waypoints.");
+        plugin.getLogger().info("Loaded Personal Waypoints for " + playerWaypoints.size() + " player(s).");
     }
 
     public synchronized void saveWaypoints() {
@@ -84,46 +100,61 @@ public class WaypointManager implements Listener {
         }
 
         YamlConfiguration config = new YamlConfiguration();
-        for (Map.Entry<String, Waypoint> entry : waypoints.entrySet()) {
-            // Use the lowercase map key as the YAML key so on-disk keys stay
-            // consistent with the in-memory lookup keys (which are always lowercase).
-            config.set("waypoints." + entry.getKey(), entry.getValue().serialize());
+        for (Map.Entry<UUID, Map<String, Waypoint>> entry : playerWaypoints.entrySet()) {
+            String uuidStr = entry.getKey().toString();
+            for (Map.Entry<String, Waypoint> wpEntry : entry.getValue().entrySet()) {
+                // Use the lowercase map key as the YAML key so on-disk keys stay
+                // consistent with the in-memory lookup keys (which are always lowercase).
+                config.set("players." + uuidStr + ".waypoints." + wpEntry.getKey(), wpEntry.getValue().serialize());
+            }
         }
 
         try {
             config.save(waypointsFile);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save waypoints.yml", e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to save personal-waypoints.yml", e);
         }
     }
 
-    public synchronized Collection<Waypoint> getAllWaypoints() {
-        return Collections.unmodifiableCollection(waypoints.values());
+    public synchronized Collection<Waypoint> getWaypoints(UUID uuid) {
+        if (uuid == null) return Collections.emptyList();
+        Map<String, Waypoint> map = playerWaypoints.get(uuid);
+        if (map == null) return Collections.emptyList();
+        return Collections.unmodifiableCollection(map.values());
     }
 
-    public synchronized Waypoint getWaypoint(String name) {
-        if (name == null) return null;
-        return waypoints.get(name.toLowerCase(Locale.ROOT));
+    public synchronized Waypoint getWaypoint(UUID uuid, String name) {
+        if (uuid == null || name == null) return null;
+        Map<String, Waypoint> map = playerWaypoints.get(uuid);
+        if (map == null) return null;
+        return map.get(name.toLowerCase(Locale.ROOT));
     }
 
     public boolean isWarmingUp(UUID uuid) {
         return uuid != null && activeWarmups.containsKey(uuid);
     }
 
-    public synchronized boolean addWaypoint(Waypoint waypoint) {
-        String key = waypoint.getName().toLowerCase(Locale.ROOT);
-        if (waypoints.containsKey(key)) {
+    public synchronized boolean addWaypoint(UUID uuid, Waypoint waypoint) {
+        if (uuid == null || waypoint == null) return false;
+        Map<String, Waypoint> map = playerWaypoints.computeIfAbsent(uuid, k -> new LinkedHashMap<>());
+        if (map.size() >= MAX_PERSONAL_WAYPOINTS) {
             return false;
         }
-        waypoints.put(key, waypoint);
+        String key = waypoint.getName().toLowerCase(Locale.ROOT);
+        if (map.containsKey(key)) {
+            return false;
+        }
+        map.put(key, waypoint);
         saveWaypoints();
         return true;
     }
 
-    public synchronized boolean deleteWaypoint(String name) {
-        if (name == null) return false;
+    public synchronized boolean deleteWaypoint(UUID uuid, String name) {
+        if (uuid == null || name == null) return false;
+        Map<String, Waypoint> map = playerWaypoints.get(uuid);
+        if (map == null) return false;
         String key = name.toLowerCase(Locale.ROOT);
-        if (waypoints.remove(key) != null) {
+        if (map.remove(key) != null) {
             saveWaypoints();
             return true;
         }
@@ -131,7 +162,7 @@ public class WaypointManager implements Listener {
     }
 
     /**
-     * Initiates a 15-second chat prompt for the player to name a new waypoint at their current location.
+     * Initiates a 15-second chat prompt for the player to name a new personal waypoint.
      */
     public void cancelPrompt(UUID uuid) {
         if (uuid != null) {
@@ -141,25 +172,24 @@ public class WaypointManager implements Listener {
 
     public void startAddWaypointPrompt(Player player) {
         player.closeInventory();
-        if (plugin.getPersonalWaypointManager() != null) {
-            plugin.getPersonalWaypointManager().cancelPrompt(player.getUniqueId());
+        if (plugin.getWaypointManager() != null) {
+            plugin.getWaypointManager().cancelPrompt(player.getUniqueId());
         }
         long expiry = System.currentTimeMillis() + (15 * 1000);
         pendingPrompts.put(player.getUniqueId(), new PendingPrompt(player.getLocation().clone(), expiry));
 
-        MessageUtil.sendPrefixed(player, "waypoints.prompt-start", MessageUtil.p("seconds", "15"));
-        MessageUtil.sendPrefixed(player, "waypoints.prompt-cancel-hint");
+        MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-start", MessageUtil.p("seconds", "15"));
+        MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-cancel-hint");
         if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
         }
 
-        // Schedule timeout expiration check
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             PendingPrompt prompt = pendingPrompts.get(player.getUniqueId());
             if (prompt != null && System.currentTimeMillis() >= prompt.expiryTimeMillis()) {
                 pendingPrompts.remove(player.getUniqueId());
                 if (player.isOnline()) {
-                    MessageUtil.sendPrefixed(player, "waypoints.prompt-timeout");
+                    MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-timeout");
                     if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
                     }
@@ -169,34 +199,32 @@ public class WaypointManager implements Listener {
     }
 
     /**
-     * Starts teleportation to a target waypoint. Warmup is configurable (0 = instant).
+     * Starts teleportation to a target personal waypoint.
      */
     public void startTeleportWarmup(Player player, Waypoint waypoint) {
         Location targetLoc = waypoint.toLocation();
         if (targetLoc == null || targetLoc.getWorld() == null) {
-            MessageUtil.sendPrefixed(player, "waypoints.world-not-loaded", MessageUtil.unparsed("world", waypoint.getWorldName()));
+            MessageUtil.sendPrefixed(player, "personal-waypoints.world-not-loaded", MessageUtil.unparsed("world", waypoint.getWorldName()));
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
             return;
         }
 
-        // Void safety check
         if (targetLoc.getY() < targetLoc.getWorld().getMinHeight()) {
             MessageUtil.sendPrefixed(player, "teleport.teleport-cancelled-void");
             return;
         }
 
         cancelWarmup(player, false);
-        if (plugin.getPersonalWaypointManager() != null) {
-            plugin.getPersonalWaypointManager().cancelWarmup(player, false);
+        if (plugin.getWaypointManager() != null) {
+            plugin.getWaypointManager().cancelWarmup(player, false);
         }
         if (plugin.getTetherManager() != null) {
             plugin.getTetherManager().cancelWarmup(player, false, null);
         }
         player.closeInventory();
 
-        // Eject vehicle
         if (player.isInsideVehicle()) {
             player.leaveVehicle();
         }
@@ -204,13 +232,12 @@ public class WaypointManager implements Listener {
         PluginConfig config = plugin.getPluginConfig();
         int warmupSeconds = config.getWaypointWarmupSeconds();
 
-        // 0 seconds = Instant teleportation
         if (warmupSeconds <= 0) {
             player.teleportAsync(targetLoc).thenAccept(success -> {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     if (success) {
-                        MessageUtil.sendPrefixed(player, "waypoints.teleport-success", MessageUtil.unparsed("name", waypoint.getName()));
-                        MessageUtil.sendActionBar(player, "waypoints.teleport-actionbar");
+                        MessageUtil.sendPrefixed(player, "personal-waypoints.teleport-success", MessageUtil.unparsed("name", waypoint.getName()));
+                        MessageUtil.sendActionBar(player, "personal-waypoints.teleport-actionbar");
                         if (config.isSoundEffectsEnabled()) {
                             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
                         }
@@ -218,7 +245,7 @@ public class WaypointManager implements Listener {
                             player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
                         }
                     } else {
-                        MessageUtil.sendPrefixed(player, "waypoints.teleport-failed");
+                        MessageUtil.sendPrefixed(player, "personal-waypoints.teleport-failed");
                     }
                 });
             });
@@ -228,7 +255,7 @@ public class WaypointManager implements Listener {
         UUID uuid = player.getUniqueId();
         warmupStartLocations.put(uuid, player.getLocation().clone());
 
-        MessageUtil.sendPrefixed(player, "waypoints.warmup-start",
+        MessageUtil.sendPrefixed(player, "personal-waypoints.warmup-start",
                 MessageUtil.unparsed("name", waypoint.getName()),
                 MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
         if (config.isSoundEffectsEnabled()) {
@@ -248,7 +275,6 @@ public class WaypointManager implements Listener {
                     return;
                 }
 
-                // Check movement
                 Location initial = warmupStartLocations.get(uuid);
                 if (initial == null) {
                     // Location already removed — warmup was cancelled externally; stop silently.
@@ -264,7 +290,7 @@ public class WaypointManager implements Listener {
                 int remainingSeconds = (int) Math.ceil((totalTicks - elapsed) / 20.0);
 
                 if (elapsed % 20 == 0 && remainingSeconds > 0) {
-                    MessageUtil.sendActionBar(player, "waypoints.warmup-actionbar", MessageUtil.p("seconds", String.valueOf(remainingSeconds)));
+                    MessageUtil.sendActionBar(player, "personal-waypoints.warmup-actionbar", MessageUtil.p("seconds", String.valueOf(remainingSeconds)));
                     if (config.isSoundEffectsEnabled()) {
                         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.8f, 1.2f);
                     }
@@ -275,7 +301,6 @@ public class WaypointManager implements Listener {
                 }
 
                 if (elapsed >= totalTicks) {
-                    // Only teleport if warmup hasn't been externally cancelled (e.g. by event listener)
                     if (activeWarmups.containsKey(uuid)) {
                         cancelWarmup(player, false);
                         player.teleportAsync(targetLoc).thenAccept(success -> {
@@ -284,8 +309,8 @@ public class WaypointManager implements Listener {
                                     return;
                                 }
                                 if (success) {
-                                    MessageUtil.sendPrefixed(player, "waypoints.teleport-success", MessageUtil.unparsed("name", waypoint.getName()));
-                                    MessageUtil.sendActionBar(player, "waypoints.teleport-actionbar");
+                                    MessageUtil.sendPrefixed(player, "personal-waypoints.teleport-success", MessageUtil.unparsed("name", waypoint.getName()));
+                                    MessageUtil.sendActionBar(player, "personal-waypoints.teleport-actionbar");
                                     if (config.isSoundEffectsEnabled()) {
                                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
                                     }
@@ -293,7 +318,7 @@ public class WaypointManager implements Listener {
                                         player.getWorld().spawnParticle(Particle.REVERSE_PORTAL, player.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
                                     }
                                 } else {
-                                    MessageUtil.sendPrefixed(player, "waypoints.teleport-failed");
+                                    MessageUtil.sendPrefixed(player, "personal-waypoints.teleport-failed");
                                 }
                             });
                         });
@@ -306,7 +331,7 @@ public class WaypointManager implements Listener {
     }
 
     public void cancelWarmup(Player player, boolean notify) {
-        cancelWarmup(player, notify, "waypoints.warmup-cancelled-moved");
+        cancelWarmup(player, notify, "personal-waypoints.warmup-cancelled-moved");
     }
 
     public void cancelWarmup(Player player, boolean notify, String reasonKey) {
@@ -319,9 +344,9 @@ public class WaypointManager implements Listener {
         if (task != null) {
             task.cancel();
             if (notify && player.isOnline()) {
-                String key = reasonKey != null ? reasonKey : "waypoints.warmup-cancelled-moved";
+                String key = reasonKey != null ? reasonKey : "personal-waypoints.warmup-cancelled-moved";
                 MessageUtil.sendPrefixed(player, key);
-                MessageUtil.sendActionBar(player, "waypoints.warmup-cancelled-actionbar");
+                MessageUtil.sendActionBar(player, "personal-waypoints.warmup-cancelled-actionbar");
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }
@@ -341,19 +366,19 @@ public class WaypointManager implements Listener {
         pendingPrompts.remove(player.getUniqueId());
 
         if (System.currentTimeMillis() > prompt.expiryTimeMillis()) {
-            MessageUtil.sendPrefixed(player, "waypoints.prompt-timeout");
+            MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-timeout");
             return;
         }
 
         if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(player.getUniqueId())) {
-            MessageUtil.sendPrefixed(player, "waypoints.prompt-downed");
+            MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-downed");
             return;
         }
 
         String input = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
 
         if (input.equalsIgnoreCase("cancel")) {
-            MessageUtil.sendPrefixed(player, "waypoints.prompt-cancelled");
+            MessageUtil.sendPrefixed(player, "personal-waypoints.prompt-cancelled");
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.8f);
             }
@@ -361,7 +386,7 @@ public class WaypointManager implements Listener {
         }
 
         if (input.length() < 2 || input.length() > 24) {
-            MessageUtil.sendPrefixed(player, "waypoints.name-length-error");
+            MessageUtil.sendPrefixed(player, "personal-waypoints.name-length-error");
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
@@ -369,32 +394,25 @@ public class WaypointManager implements Listener {
         }
 
         if (input.contains(".")) {
-            MessageUtil.sendPrefixed(player, "waypoints.name-invalid");
+            MessageUtil.sendPrefixed(player, "personal-waypoints.name-invalid");
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             }
             return;
         }
 
-        // IMPORTANT: AsyncChatEvent fires on a background thread. Do NOT access or mutate
-        // the waypoints map (or any other Bukkit state) directly here.
-        // All map mutations MUST be dispatched to the main thread via runTask() below.
         Bukkit.getScheduler().runTask(plugin, () -> {
-            // Re-check name uniqueness on the main thread (safe, synchronized on the main thread)
-            if (waypoints.containsKey(input.toLowerCase(Locale.ROOT))) {
-                MessageUtil.sendPrefixed(player, "waypoints.already-exists", MessageUtil.p("name", input));
+            if (getWaypoint(player.getUniqueId(), input) != null) {
+                MessageUtil.sendPrefixed(player, "personal-waypoints.already-exists", MessageUtil.p("name", input));
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }
                 return;
             }
 
-            int maxWaypoints = plugin.getPluginConfig().getMaxWaypoints();
-            int maxPages = plugin.getPluginConfig().getWaypointMaxPages();
-            if (getAllWaypoints().size() >= maxWaypoints) {
-                MessageUtil.sendPrefixed(player, "waypoints.capacity-reached",
-                        MessageUtil.p("max", String.valueOf(maxWaypoints)),
-                        MessageUtil.p("pages", String.valueOf(maxPages)));
+            if (getWaypoints(player.getUniqueId()).size() >= MAX_PERSONAL_WAYPOINTS) {
+                MessageUtil.sendPrefixed(player, "personal-waypoints.capacity-reached",
+                        MessageUtil.p("max", String.valueOf(MAX_PERSONAL_WAYPOINTS)));
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }
@@ -402,15 +420,14 @@ public class WaypointManager implements Listener {
             }
 
             Waypoint newWaypoint = Waypoint.fromLocation(input, prompt.location(), player.getUniqueId(), player.getName());
-            if (addWaypoint(newWaypoint)) {
-                MessageUtil.broadcast("waypoints.created-broadcast",
-                        MessageUtil.unparsed("player", player.getName()),
+            if (addWaypoint(player.getUniqueId(), newWaypoint)) {
+                MessageUtil.sendPrefixed(player, "personal-waypoints.created-msg",
                         MessageUtil.unparsed("name", input));
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
                 }
             } else {
-                MessageUtil.sendPrefixed(player, "waypoints.save-error");
+                MessageUtil.sendPrefixed(player, "personal-waypoints.save-error");
             }
         });
     }
@@ -422,7 +439,7 @@ public class WaypointManager implements Listener {
             Location from = event.getFrom();
             Location to = event.getTo();
             if (to != null && (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ())) {
-                cancelWarmup(player, true, "waypoints.warmup-cancelled-moved");
+                cancelWarmup(player, true, "personal-waypoints.warmup-cancelled-moved");
             }
         }
     }
@@ -431,7 +448,7 @@ public class WaypointManager implements Listener {
     public void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
             if (activeWarmups.containsKey(player.getUniqueId())) {
-                cancelWarmup(player, true, "waypoints.warmup-cancelled-damage");
+                cancelWarmup(player, true, "personal-waypoints.warmup-cancelled-damage");
             }
         }
     }

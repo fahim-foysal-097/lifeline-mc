@@ -38,6 +38,9 @@ public final class Lifeline extends JavaPlugin {
     private TetherManager tetherManager;
     private TetherGUI tetherGUI;
     private com.lifeline.radar.RadarManager radarManager;
+    private com.lifeline.vault.PersonalVaultManager personalVaultManager;
+    private com.lifeline.waypoint.PersonalWaypointManager personalWaypointManager;
+    private com.lifeline.waypoint.PersonalWaypointGUI personalWaypointGUI;
 
     @Override
     public void onEnable() {
@@ -57,6 +60,9 @@ public final class Lifeline extends JavaPlugin {
         this.tetherManager = new TetherManager(this);
         this.tetherGUI = new TetherGUI(this, this.tetherManager);
         this.radarManager = new com.lifeline.radar.RadarManager(this);
+        this.personalVaultManager = new com.lifeline.vault.PersonalVaultManager(this);
+        this.personalWaypointManager = new com.lifeline.waypoint.PersonalWaypointManager(this);
+        this.personalWaypointGUI = new com.lifeline.waypoint.PersonalWaypointGUI(this, this.personalWaypointManager);
 
         // Register Event Listeners
         PluginManager pm = getServer().getPluginManager();
@@ -67,6 +73,9 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.tetherManager, this);
         pm.registerEvents(this.tetherGUI, this);
         pm.registerEvents(this.radarManager, this);
+        pm.registerEvents(this.personalVaultManager, this);
+        pm.registerEvents(this.personalWaypointManager, this);
+        pm.registerEvents(this.personalWaypointGUI, this);
 
         registerCommands();
 
@@ -81,8 +90,16 @@ public final class Lifeline extends JavaPlugin {
             this.waypointManager.cleanup();
         }
 
+        if (this.personalWaypointManager != null) {
+            this.personalWaypointManager.cleanup();
+        }
+
         if (this.sharedVaultManager != null) {
             this.sharedVaultManager.cleanup();
+        }
+
+        if (this.personalVaultManager != null) {
+            this.personalVaultManager.cleanup();
         }
 
         if (this.downedManager != null) {
@@ -166,6 +183,82 @@ public final class Lifeline extends JavaPlugin {
                         @Override
                         public boolean canUse(CommandSender sender) {
                             return hasStashPermission(sender);
+                        }
+                    }
+            );
+
+            commands.register(
+                    "pstash",
+                    "Opens your personal stash",
+                    List.of("stashp", "pst", "mystash"),
+                    new BasicCommand() {
+                        @Override
+                        public void execute(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
+                                return;
+                            }
+
+                            if (!hasPersonalStashPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "personal-stash.no-permission");
+                                return;
+                            }
+
+                            if (!pluginConfig.isPersonalStashEnabled()) {
+                                MessageUtil.sendPrefixed(player, "personal-stash.globally-disabled");
+                                return;
+                            }
+
+                            if (downedManager.isDowned(player.getUniqueId())) {
+                                MessageUtil.sendPrefixed(player, "personal-stash.downed-blocked");
+                                return;
+                            }
+
+                            personalVaultManager.openStash(player);
+                        }
+
+                        @Override
+                        public boolean canUse(CommandSender sender) {
+                            return hasPersonalStashPermission(sender);
+                        }
+                    }
+            );
+
+            commands.register(
+                    "mywp",
+                    "Opens your personal waypoints menu",
+                    List.of("pwaypoints", "lfnode"),
+                    new BasicCommand() {
+                        @Override
+                        public void execute(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
+                                return;
+                            }
+
+                            if (!hasPersonalWaypointPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "personal-waypoints.no-permission");
+                                return;
+                            }
+
+                            if (!pluginConfig.isPersonalWaypointsEnabled()) {
+                                MessageUtil.sendPrefixed(player, "personal-waypoints.globally-disabled");
+                                return;
+                            }
+
+                            if (downedManager.isDowned(player.getUniqueId())) {
+                                MessageUtil.sendPrefixed(player, "personal-waypoints.downed-blocked");
+                                return;
+                            }
+
+                            personalWaypointGUI.open(player);
+                        }
+
+                        @Override
+                        public boolean canUse(CommandSender sender) {
+                            return hasPersonalWaypointPermission(sender);
                         }
                     }
             );
@@ -336,6 +429,8 @@ public final class Lifeline extends JavaPlugin {
                                     pluginConfig.load();
                                     MessageUtil.load(Lifeline.this);
                                     waypointManager.loadWaypoints();
+                                    personalWaypointManager.loadWaypoints();
+                                    personalVaultManager.loadStashes();
                                     radarManager.startTask();
                                     if (!pluginConfig.isReviveEnabled()) {
                                         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -463,6 +558,24 @@ public final class Lifeline extends JavaPlugin {
                 || sender.hasPermission("lifeline.vault");
     }
 
+    private boolean hasPersonalStashPermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.pstash")
+                || sender.hasPermission("lifeline.personalstash")
+                || sender.hasPermission("lifeline.stashp")
+                || sender.hasPermission("lifeline.pst")
+                || sender.hasPermission("lifeline.mystash")
+                || sender.hasPermission("lifeline.use");
+    }
+
+    private boolean hasPersonalWaypointPermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.mywp")
+                || sender.hasPermission("lifeline.personalwaypoint")
+                || sender.hasPermission("lifeline.personalwaypoints")
+                || sender.hasPermission("lifeline.pwaypoints")
+                || sender.hasPermission("lifeline.lfnode")
+                || sender.hasPermission("lifeline.use");
+    }
+
     private boolean hasTetherPermission(CommandSender sender) {
         return sender.hasPermission("lifeline.tpq") || sender.hasPermission("lifeline.tether");
     }
@@ -470,7 +583,9 @@ public final class Lifeline extends JavaPlugin {
     private void sendHelp(CommandSender sender) {
         MessageUtil.sendPrefixed(sender, "help.header");
         MessageUtil.sendRaw(sender, "help.node");
+        MessageUtil.sendRaw(sender, "help.mywp");
         MessageUtil.sendRaw(sender, "help.stash");
+        MessageUtil.sendRaw(sender, "help.pstash");
         MessageUtil.sendRaw(sender, "help.tpq");
         MessageUtil.sendRaw(sender, "help.radar");
         MessageUtil.sendRaw(sender, "help.revives");
@@ -531,5 +646,17 @@ public final class Lifeline extends JavaPlugin {
 
     public com.lifeline.radar.RadarManager getRadarManager() {
         return radarManager;
+    }
+
+    public com.lifeline.vault.PersonalVaultManager getPersonalVaultManager() {
+        return personalVaultManager;
+    }
+
+    public com.lifeline.waypoint.PersonalWaypointManager getPersonalWaypointManager() {
+        return personalWaypointManager;
+    }
+
+    public com.lifeline.waypoint.PersonalWaypointGUI getPersonalWaypointGUI() {
+        return personalWaypointGUI;
     }
 }

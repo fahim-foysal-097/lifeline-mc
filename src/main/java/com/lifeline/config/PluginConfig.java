@@ -59,6 +59,13 @@ public class PluginConfig {
     private double radarMaxDistance;
     private int radarUpdateIntervalTicks;
 
+    // Personal Stash
+    private boolean personalStashEnabled;
+    private int personalStashSlots;
+
+    // Personal Waypoints
+    private boolean personalWaypointsEnabled;
+
     public PluginConfig(Lifeline plugin) {
         this.plugin = plugin;
         if (plugin != null) {
@@ -141,6 +148,14 @@ public class PluginConfig {
         this.radarDefaultEnabled = config.getBoolean("radar.enabled-by-default", true);
         this.radarMaxDistance = Math.max(5.0, config.getDouble("radar.max-distance", 40.0));
         this.radarUpdateIntervalTicks = Math.max(1, config.getInt("radar.update-interval-ticks", 10));
+
+        // 12. Personal Stash
+        this.personalStashEnabled = config.getBoolean("personal-stash.enabled", true);
+        int rawStashSlots = config.getInt("personal-stash.slots", 27);
+        this.personalStashSlots = (rawStashSlots == 54) ? 54 : 27;
+
+        // 13. Personal Waypoints
+        this.personalWaypointsEnabled = config.getBoolean("personal-waypoints.enabled", true);
     }
 
     public int getMaxRevives() {
@@ -273,5 +288,17 @@ public class PluginConfig {
 
     public int getRadarUpdateIntervalTicks() {
         return radarUpdateIntervalTicks;
+    }
+
+    public boolean isPersonalStashEnabled() {
+        return personalStashEnabled;
+    }
+
+    public int getPersonalStashSlots() {
+        return personalStashSlots;
+    }
+
+    public boolean isPersonalWaypointsEnabled() {
+        return personalWaypointsEnabled;
     }
 }

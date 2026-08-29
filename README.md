@@ -4,7 +4,7 @@
 
 **Co-op mechanics for small Paper Minecraft servers.**
 
-_Shared Waypoints • Shared Stash • DBNO Revives • Actionbar Radar • Native Bedrock Forms_
+_Shared & Personal Waypoints • Shared & Personal Stash • DBNO Revives • Actionbar Radar • Native Bedrock Forms_
 
 [![PaperMC](https://img.shields.io/badge/PaperMC-1.21%2B-1976D2?style=for-the-badge&logo=papermc&logoColor=white)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21%2B-007396?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
@@ -15,7 +15,7 @@ _Shared Waypoints • Shared Stash • DBNO Revives • Actionbar Radar • Nati
 
 ---
 
-Lifeline adds essential team mechanics to small co-op servers: shared waypoints, a joint inventory, a downed/revive system, an actionbar radar, and native UI for Bedrock players joining through Geyser.
+Lifeline adds essential team mechanics to small co-op servers: shared and personal waypoints, shared and personal storage, a downed/revive system, an actionbar radar, and native UI for Bedrock players joining through Geyser.
 
 Requires **Paper 1.21+** running **Java 21+**.
 
@@ -33,12 +33,26 @@ Works on **26.2+** too.
 - **Shift + Right-click** to delete a waypoint.
 - Click **`+ Add Waypoint`**, then type the name in chat (or type `cancel` to abort).
 
+### Personal Waypoints (`/mywp`, `/pwaypoints`, `/lfnode`)
+
+- Private, per-player waypoints with an enforced maximum limit of 27 waypoints per player.
+- Dedicated chest GUI and native Bedrock Form integration.
+- Dimension-specific icons and configurable teleport warm-up.
+- **Left-click** to teleport, **Shift + Right-click** to delete, and click **`+ Add Personal Waypoint`** to create.
+- Saved per-player to `personal-waypoints.yml`.
+
 ### Shared Stash (`/stash`, `/safe`)
 
 - A 54-slot chest inventory shared across players.
 - Live in-memory sync allows simultaneous access without dupe glitches or desyncs.
 - Retains all item metadata (enchants, lore, armor trims, container contents, damage values).
 - Saves to `vault.yml` on window close and server shutdown.
+
+### Personal Stash (`/pstash`, `/stashp`, `/pst`, `/mystash`)
+
+- Private per-player storage inventory saved to `personal-stashes.yml`.
+- Configurable capacity: **27** (single chest) or **54** (double chest) slots (default: `27`).
+- Retains full item metadata and saves automatically upon closing the inventory or logging off.
 
 ### Downed & Revive System
 
@@ -80,20 +94,22 @@ Works on **26.2+** too.
 
 ## Commands & Permissions
 
-| Command                             | Aliases                                           | Description                       | Permission        |
-| :---------------------------------- | :------------------------------------------------ | :-------------------------------- | :---------------- |
-| `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open waypoints GUI / Bedrock form | `lifeline.node`   |
-| `/stash`                            | `/st`, `/safe`                                    | Open shared stash                 | `lifeline.stash`  |
-| `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form   | `lifeline.tpq`    |
-| `/tpq <player>`                     | —                                                 | Send a teleport request           | `lifeline.tpq`    |
-| `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request           | `lifeline.tpq`    |
-| `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport request             | `lifeline.tpq`    |
-| `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport request  | `lifeline.tpq`    |
-| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar            | `lifeline.radar`  |
-| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state         | `lifeline.radar`  |
-| `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives           | `lifeline.revive` |
-| `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages   | `lifeline.admin`  |
-| `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters      | `lifeline.admin`  |
+| Command                             | Aliases                                           | Description                            | Permission          |
+| :---------------------------------- | :------------------------------------------------ | :------------------------------------- | :------------------ |
+| `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open shared waypoints GUI / form       | `lifeline.node`     |
+| `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form     | `lifeline.mywp`     |
+| `/stash`                            | `/st`, `/safe`                                    | Open shared stash                      | `lifeline.stash`    |
+| `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                    | `lifeline.pstash`   |
+| `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form        | `lifeline.tpq`      |
+| `/tpq <player>`                     | —                                                 | Send a teleport request                | `lifeline.tpq`      |
+| `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request                | `lifeline.tpq`      |
+| `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport request                  | `lifeline.tpq`      |
+| `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport request       | `lifeline.tpq`      |
+| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar                 | `lifeline.radar`    |
+| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state              | `lifeline.radar`    |
+| `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives                | `lifeline.revive`   |
+| `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages        | `lifeline.admin`    |
+| `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters           | `lifeline.admin`    |
 
 ---
 
@@ -101,10 +117,12 @@ Works on **26.2+** too.
 
 Files are stored in `plugins/Lifeline/`:
 
-- `config.yml` — Timers, warm-ups, debuffs, sounds, and max waypoint pages.
+- `config.yml` — Timers, warm-ups, debuffs, sounds, and toggles.
 - `messages.yml` — All user-facing text with MiniMessage formatting.
-- `waypoints.yml` — Saved waypoint data.
+- `waypoints.yml` — Saved shared waypoint data.
+- `personal-waypoints.yml` — Saved per-player personal waypoint data.
 - `vault.yml` — Stored items for the shared stash.
+- `personal-stashes.yml` — Stored items for personal stashes.
 - `radar-toggles.yml` — Saved per-player radar toggle preferences.
 
 ### Example `config.yml`
@@ -121,6 +139,13 @@ revive-health-restored: 6.0
 waypoints:
   max-pages: 2 # 1 or 2 pages (up to 45 or 90 waypoints)
   teleport-warmup-seconds: 3
+
+personal-waypoints:
+  enabled: true
+
+personal-stash:
+  enabled: true
+  slots: 27 # 27 or 54 slots
 
 tether:
   teleport-warmup-seconds: 3

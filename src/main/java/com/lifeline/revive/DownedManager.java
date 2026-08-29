@@ -126,6 +126,9 @@ public class DownedManager {
         if (plugin.getWaypointManager() != null) {
             plugin.getWaypointManager().cancelWarmup(player, false);
         }
+        if (plugin.getPersonalWaypointManager() != null) {
+            plugin.getPersonalWaypointManager().cancelWarmup(player, false);
+        }
         if (plugin.getTetherManager() != null) {
             plugin.getTetherManager().cancelWarmup(player, false, null);
             plugin.getTetherManager().cancelOutgoingRequest(player);

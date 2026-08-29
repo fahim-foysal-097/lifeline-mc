@@ -357,6 +357,9 @@ public class TetherManager implements Listener {
         if (plugin.getWaypointManager() != null) {
             plugin.getWaypointManager().cancelWarmup(sender, false);
         }
+        if (plugin.getPersonalWaypointManager() != null) {
+            plugin.getPersonalWaypointManager().cancelWarmup(sender, false);
+        }
 
         PluginConfig config = plugin.getPluginConfig();
         int warmupSeconds = config.getTetherWarmupSeconds();

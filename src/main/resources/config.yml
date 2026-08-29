@@ -138,3 +138,25 @@ radar:
   # Update interval in server ticks (20 ticks = 1 second, 10 ticks = 0.5s).
   update-interval-ticks: 10
 
+
+# ------------------------------------------------------------------------------
+# Personal Stash Settings (/pstash, /stashp, /pst, /mystash)
+# ------------------------------------------------------------------------------
+# Per-player private storage inventory saved to personal-stashes.yml.
+personal-stash:
+  # Master toggle to enable/disable the personal stash feature.
+  enabled: true
+
+  # Number of slots for the personal stash inventory.
+  # Options: 27 (single chest) or 54 (double chest). Default: 27
+  slots: 27
+
+
+# ------------------------------------------------------------------------------
+# Personal Waypoints Settings (/mywp, /pwaypoints, /lfnode)
+# ------------------------------------------------------------------------------
+# Per-player private waypoints (max 27 per player) saved to personal-waypoints.yml.
+personal-waypoints:
+  # Master toggle to enable/disable the personal waypoints feature.
+  enabled: true
+

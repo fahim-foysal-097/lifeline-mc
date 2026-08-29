@@ -111,4 +111,49 @@ public final class GeyserHook {
             }
         }
     }
+
+    /**
+     * Opens the native Bedrock Personal Waypoints Form window for a player.
+     */
+    public static void openPersonalWaypointsForm(Player player, com.lifeline.waypoint.PersonalWaypointManager manager, Lifeline plugin) {
+        if (player == null || !isGeyserPresent()) return;
+        if (plugin != null && !plugin.getPluginConfig().isBedrockFormsEnabled()) return;
+        try {
+            GeyserFormHandler.openPersonalWaypointsForm(player, manager, plugin);
+        } catch (Throwable t) {
+            if (plugin != null) {
+                plugin.getLogger().warning("Failed to open Bedrock personal waypoints form: " + t.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Opens a CustomForm for entering the new personal waypoint name.
+     */
+    public static void openCreatePersonalWaypointForm(Player player, com.lifeline.waypoint.PersonalWaypointManager manager, Lifeline plugin) {
+        if (player == null || !isGeyserPresent()) return;
+        if (plugin != null && !plugin.getPluginConfig().isBedrockFormsEnabled()) return;
+        try {
+            GeyserFormHandler.openCreatePersonalWaypointForm(player, manager, plugin);
+        } catch (Throwable t) {
+            if (plugin != null) {
+                plugin.getLogger().warning("Failed to open Bedrock create personal waypoint form: " + t.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Opens a details form for a specific personal waypoint allowing Teleport or Delete.
+     */
+    public static void openPersonalWaypointDetailsForm(Player player, Waypoint wp, com.lifeline.waypoint.PersonalWaypointManager manager, Lifeline plugin) {
+        if (player == null || !isGeyserPresent()) return;
+        if (plugin != null && !plugin.getPluginConfig().isBedrockFormsEnabled()) return;
+        try {
+            GeyserFormHandler.openPersonalWaypointDetailsForm(player, wp, manager, plugin);
+        } catch (Throwable t) {
+            if (plugin != null) {
+                plugin.getLogger().warning("Failed to open Bedrock personal waypoint details form: " + t.getMessage());
+            }
+        }
+    }
 }
