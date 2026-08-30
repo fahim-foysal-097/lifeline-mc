@@ -48,3 +48,5 @@ plugins/
 
 notes.txt
 /docs/tailwindcss
+.directory
+icon.ico
