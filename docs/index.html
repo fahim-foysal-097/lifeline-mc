@@ -190,6 +190,123 @@
         </div>
     </header>
 
+    <!-- In-Game Photo Gallery Section (Using Swiper.js) -->
+    <section id="gallery" class="py-24 relative z-10 border-t border-slate-800/60 bg-slate-950/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span
+                    class="text-brand-mint text-xs font-bold tracking-widest uppercase bg-brand-mint/10 px-4 py-1.5 rounded-full border border-brand-mint/20">In-Game
+                    Visuals</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 tracking-tight">Photo Gallery</h2>
+                <p class="text-slate-400 mt-3 max-w-xl mx-auto text-sm sm:text-base">Explore screenshots of Lifeline
+                    GUIs, Bedrock Forms, and actionbar mechanics.</p>
+            </div>
+
+            <!-- Swiper Carousel Container -->
+            <div class="relative max-w-5xl mx-auto">
+                <div
+                    class="swiper gallery-swiper rounded-3xl border border-slate-800/80 bg-slate-950/80 shadow-2xl p-2">
+                    <div class="swiper-wrapper">
+
+                        <!-- Photo 1 -->
+                        <div class="swiper-slide">
+                            <div
+                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
+                                <img src="./assets/gallery/waypoints-gui.webp" alt="Shared Waypoints GUI"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
+                                    <span
+                                        class="text-xs font-mono text-brand-mint font-bold uppercase tracking-wider">Interface
+                                        Preview</span>
+                                    <h4 class="text-lg font-bold text-white">Shared Waypoints Chest GUI</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Photo 2 -->
+                        <div class="swiper-slide">
+                            <div
+                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
+                                <img src="./assets/gallery/shared-stash.webp" alt="Shared Team Stash Vault"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
+                                    <span
+                                        class="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider">Storage
+                                        System</span>
+                                    <h4 class="text-lg font-bold text-white">54-Slot Synchronized Team Vault</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Photo 3 -->
+                        <div class="swiper-slide">
+                            <div
+                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
+                                <img src="./assets/gallery/actionbar-radar.webp" alt="Actionbar Radar HUD"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
+                                    <span
+                                        class="text-xs font-mono text-brand-mint font-bold uppercase tracking-wider">HUD
+                                        Overview</span>
+                                    <h4 class="text-lg font-bold text-white">Actionbar Teammate Compass HUD</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Photo 4 -->
+                        <div class="swiper-slide">
+                            <div
+                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
+                                <img src="./assets/gallery/revive-action.webp" alt="Downed State Revive Action"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
+                                    <span
+                                        class="text-xs font-mono text-rose-400 font-bold uppercase tracking-wider">Co-op
+                                        Survival</span>
+                                    <h4 class="text-lg font-bold text-white">Downed Bleedout State & Revive Channel</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Photo 5 -->
+                        <div class="swiper-slide">
+                            <div
+                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
+                                <img src="./assets/gallery/bedrock-forms.webp" alt="Native Geyser Bedrock Forms"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
+                                    <span
+                                        class="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider">Cross-Play
+                                        UI</span>
+                                    <h4 class="text-lg font-bold text-white">Native Geyser Bedrock UI Forms</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Pagination Dots -->
+                    <div class="swiper-pagination !bottom-6"></div>
+                </div>
+
+                <!-- Custom Arrow Navigation Buttons -->
+                <button
+                    class="swiper-prev-btn absolute -left-5 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl mc-glass border border-slate-700/80 text-white flex items-center justify-center hover:bg-brand-indigo/30 hover:border-brand-indigo/60 hover:scale-110 active:scale-95 transition-all shadow-xl">
+                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                </button>
+                <button
+                    class="swiper-next-btn absolute -right-5 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl mc-glass border border-slate-700/80 text-white flex items-center justify-center hover:bg-brand-indigo/30 hover:border-brand-indigo/60 hover:scale-110 active:scale-95 transition-all shadow-xl">
+                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- Core Features Grid -->
     <section id="features" class="py-24 relative z-10 border-t border-slate-800/60 bg-slate-950/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -619,123 +736,6 @@
                     </div>
                 </div>
 
-            </div>
-        </div>
-    </section>
-
-    <!-- In-Game Photo Gallery Section (Using Swiper.js) -->
-    <section id="gallery" class="py-24 relative z-10 border-t border-slate-800/60 bg-slate-950/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <span
-                    class="text-brand-mint text-xs font-bold tracking-widest uppercase bg-brand-mint/10 px-4 py-1.5 rounded-full border border-brand-mint/20">In-Game
-                    Visuals</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 tracking-tight">Photo Gallery</h2>
-                <p class="text-slate-400 mt-3 max-w-xl mx-auto text-sm sm:text-base">Explore screenshots of Lifeline
-                    GUIs, Bedrock Forms, and actionbar mechanics.</p>
-            </div>
-
-            <!-- Swiper Carousel Container -->
-            <div class="relative max-w-5xl mx-auto">
-                <div
-                    class="swiper gallery-swiper rounded-3xl border border-slate-800/80 bg-slate-950/80 shadow-2xl p-2">
-                    <div class="swiper-wrapper">
-
-                        <!-- Photo 1 -->
-                        <div class="swiper-slide">
-                            <div
-                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
-                                <img src="./assets/gallery/waypoints-gui.webp" alt="Shared Waypoints GUI"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <div
-                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
-                                    <span
-                                        class="text-xs font-mono text-brand-mint font-bold uppercase tracking-wider">Interface
-                                        Preview</span>
-                                    <h4 class="text-lg font-bold text-white">Shared Waypoints Chest GUI</h4>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Photo 2 -->
-                        <div class="swiper-slide">
-                            <div
-                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
-                                <img src="./assets/gallery/shared-stash.webp" alt="Shared Team Stash Vault"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <div
-                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
-                                    <span
-                                        class="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider">Storage
-                                        System</span>
-                                    <h4 class="text-lg font-bold text-white">54-Slot Synchronized Team Vault</h4>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Photo 3 -->
-                        <div class="swiper-slide">
-                            <div
-                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
-                                <img src="./assets/gallery/actionbar-radar.webp" alt="Actionbar Radar HUD"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <div
-                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
-                                    <span
-                                        class="text-xs font-mono text-brand-mint font-bold uppercase tracking-wider">HUD
-                                        Overview</span>
-                                    <h4 class="text-lg font-bold text-white">Actionbar Teammate Compass HUD</h4>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Photo 4 -->
-                        <div class="swiper-slide">
-                            <div
-                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
-                                <img src="./assets/gallery/revive-action.webp" alt="Downed State Revive Action"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <div
-                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
-                                    <span
-                                        class="text-xs font-mono text-rose-400 font-bold uppercase tracking-wider">Co-op
-                                        Survival</span>
-                                    <h4 class="text-lg font-bold text-white">Downed Bleedout State & Revive Channel</h4>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Photo 5 -->
-                        <div class="swiper-slide">
-                            <div
-                                class="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 flex items-center justify-center group">
-                                <img src="./assets/gallery/bedrock-forms.webp" alt="Native Geyser Bedrock Forms"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <div
-                                    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90 p-6 flex flex-col justify-end">
-                                    <span
-                                        class="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider">Cross-Play
-                                        UI</span>
-                                    <h4 class="text-lg font-bold text-white">Native Geyser Bedrock UI Forms</h4>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Pagination Dots -->
-                    <div class="swiper-pagination !bottom-6"></div>
-                </div>
-
-                <!-- Custom Arrow Navigation Buttons -->
-                <button
-                    class="swiper-prev-btn absolute -left-5 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl mc-glass border border-slate-700/80 text-white flex items-center justify-center hover:bg-brand-indigo/30 hover:border-brand-indigo/60 hover:scale-110 active:scale-95 transition-all shadow-xl">
-                    <i class="fa-solid fa-chevron-left text-sm"></i>
-                </button>
-                <button
-                    class="swiper-next-btn absolute -right-5 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl mc-glass border border-slate-700/80 text-white flex items-center justify-center hover:bg-brand-indigo/30 hover:border-brand-indigo/60 hover:scale-110 active:scale-95 transition-all shadow-xl">
-                    <i class="fa-solid fa-chevron-right text-sm"></i>
-                </button>
             </div>
         </div>
     </section>
