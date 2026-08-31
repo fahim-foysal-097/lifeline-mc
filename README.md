@@ -6,6 +6,7 @@
 
 _Shared & Personal Waypoints • Shared & Personal Stash • DBNO Revives • Actionbar Radar • Native Bedrock Forms_
 
+[![Download](https://img.shields.io/badge/Download-1.21%2B-2E7D32?style=for-the-badge&logo=curseforge&logoColor=white)](https://hangar.papermc.io/Zero097/Lifeline)
 [![PaperMC](https://img.shields.io/badge/PaperMC-1.21%2B-1976D2?style=for-the-badge&logo=papermc&logoColor=white)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21%2B-007396?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Geyser](https://img.shields.io/badge/Geyser-Supported-38B5E6?style=for-the-badge&logo=geysermc&logoColor=white)](https://geysermc.org)
@@ -94,22 +95,22 @@ Works on **26.2+** too.
 
 ## Commands & Permissions
 
-| Command                             | Aliases                                           | Description                            | Permission          |
-| :---------------------------------- | :------------------------------------------------ | :------------------------------------- | :------------------ |
-| `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open shared waypoints GUI / form       | `lifeline.node`     |
-| `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form     | `lifeline.mywp`     |
-| `/stash`                            | `/st`, `/safe`                                    | Open shared stash                      | `lifeline.stash`    |
-| `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                    | `lifeline.pstash`   |
-| `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form        | `lifeline.tpq`      |
-| `/tpq <player>`                     | —                                                 | Send a teleport request                | `lifeline.tpq`      |
-| `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request                | `lifeline.tpq`      |
-| `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport request                  | `lifeline.tpq`      |
-| `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport request       | `lifeline.tpq`      |
-| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar                 | `lifeline.radar`    |
-| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state              | `lifeline.radar`    |
-| `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives                | `lifeline.revive`   |
-| `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages        | `lifeline.admin`    |
-| `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters           | `lifeline.admin`    |
+| Command                             | Aliases                                           | Description                        | Permission        |
+| :---------------------------------- | :------------------------------------------------ | :--------------------------------- | :---------------- |
+| `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open shared waypoints GUI / form   | `lifeline.node`   |
+| `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form | `lifeline.mywp`   |
+| `/stash`                            | `/st`, `/safe`                                    | Open shared stash                  | `lifeline.stash`  |
+| `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                | `lifeline.pstash` |
+| `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form    | `lifeline.tpq`    |
+| `/tpq <player>`                     | —                                                 | Send a teleport request            | `lifeline.tpq`    |
+| `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request            | `lifeline.tpq`    |
+| `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport request              | `lifeline.tpq`    |
+| `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport request   | `lifeline.tpq`    |
+| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar             | `lifeline.radar`  |
+| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state          | `lifeline.radar`  |
+| `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives            | `lifeline.revive` |
+| `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages    | `lifeline.admin`  |
+| `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters       | `lifeline.admin`  |
 
 ---
 
