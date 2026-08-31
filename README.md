@@ -6,7 +6,9 @@
 
 _Shared & Personal Waypoints • Shared & Personal Stash • DBNO Revives • Actionbar Radar • Native Bedrock Forms_
 
-[![Download](https://img.shields.io/badge/Download-1.21%2B-2E7D32?style=for-the-badge&logo=curseforge&logoColor=white)](https://hangar.papermc.io/Zero097/Lifeline)
+[![Lifeline](https://img.shields.io/hangar/dt/Lifeline?link=https%3A%2F%2Fhangar.papermc.io%2FZero097%2FLifeline&style=for-the-badge)](https://hangar.papermc.io/Zero097/Lifeline)
+[![CurseForge Downloads](https://img.shields.io/curseforge/dt/1673953?logo=curseforge&color=F16436&style=for-the-badge)](https://www.curseforge.com/minecraft/bukkit-plugins/life-line)
+
 [![PaperMC](https://img.shields.io/badge/PaperMC-1.21%2B-1976D2?style=for-the-badge&logo=papermc&logoColor=white)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21%2B-007396?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Geyser](https://img.shields.io/badge/Geyser-Supported-38B5E6?style=for-the-badge&logo=geysermc&logoColor=white)](https://geysermc.org)
