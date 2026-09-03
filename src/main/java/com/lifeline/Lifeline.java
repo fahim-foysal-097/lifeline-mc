@@ -41,6 +41,7 @@ public final class Lifeline extends JavaPlugin {
     private com.lifeline.vault.PersonalVaultManager personalVaultManager;
     private com.lifeline.waypoint.PersonalWaypointManager personalWaypointManager;
     private com.lifeline.waypoint.PersonalWaypointGUI personalWaypointGUI;
+    private com.lifeline.backup.BackupManager backupManager;
 
     @Override
     public void onEnable() {
@@ -63,6 +64,7 @@ public final class Lifeline extends JavaPlugin {
         this.personalVaultManager = new com.lifeline.vault.PersonalVaultManager(this);
         this.personalWaypointManager = new com.lifeline.waypoint.PersonalWaypointManager(this);
         this.personalWaypointGUI = new com.lifeline.waypoint.PersonalWaypointGUI(this, this.personalWaypointManager);
+        this.backupManager = new com.lifeline.backup.BackupManager(this);
 
         // Register Event Listeners
         PluginManager pm = getServer().getPluginManager();
@@ -76,6 +78,7 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.personalVaultManager, this);
         pm.registerEvents(this.personalWaypointManager, this);
         pm.registerEvents(this.personalWaypointGUI, this);
+        pm.registerEvents(this.backupManager, this);
         pm.registerEvents(new com.lifeline.util.UpdateListener(this), this);
 
         registerCommands();
@@ -120,6 +123,10 @@ public final class Lifeline extends JavaPlugin {
 
         if (this.radarManager != null) {
             this.radarManager.cleanup();
+        }
+
+        if (this.backupManager != null) {
+            this.backupManager.cleanup();
         }
 
         getLogger().info("Lifeline successfully disabled.");
@@ -452,6 +459,9 @@ public final class Lifeline extends JavaPlugin {
                                     if (personalVaultManager != null) {
                                         personalVaultManager.loadStashes();
                                     }
+                                    if (backupManager != null) {
+                                        backupManager.updateBakFiles();
+                                    }
                                     radarManager.startTask();
                                     if (!pluginConfig.isReviveEnabled()) {
                                         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -469,6 +479,17 @@ public final class Lifeline extends JavaPlugin {
                                     }
                                     saveAllStashesAndPlayers(true);
                                     MessageUtil.sendPrefixed(sender, "stash.saved");
+                                }
+                                case "backup" -> {
+                                    if (!sender.hasPermission("lifeline.admin")) {
+                                        MessageUtil.sendPrefixed(sender, "backup.no-permission");
+                                        return;
+                                    }
+                                    if (args.length > 1 && args[1].equalsIgnoreCase("list")) {
+                                        backupManager.handleListBackups(sender);
+                                    } else {
+                                        backupManager.handleManualBackup(sender);
+                                    }
                                 }
                                 case "update" -> {
                                     if (!sender.hasPermission("lifeline.admin")) {
@@ -555,6 +576,7 @@ public final class Lifeline extends JavaPlugin {
                             if (args.length <= 1) {
                                 List<String> list = new java.util.ArrayList<>(List.of("help", "radar", "revives"));
                                 if (stack.getSender().hasPermission("lifeline.admin")) {
+                                    list.add("backup");
                                     list.add("reload");
                                     list.add("resetrevives");
                                     list.add("save");
@@ -562,6 +584,12 @@ public final class Lifeline extends JavaPlugin {
                                 }
                                 String prefix = args.length == 0 ? "" : args[0].toLowerCase();
                                 return list.stream().filter(s -> s.startsWith(prefix)).toList();
+                            }
+                            if (args.length == 2 && args[0].equalsIgnoreCase("backup") && stack.getSender().hasPermission("lifeline.admin")) {
+                                String prefix = args[1].toLowerCase();
+                                return List.of("create", "list").stream()
+                                        .filter(s -> s.startsWith(prefix))
+                                        .toList();
                             }
                             if (args.length == 2 && args[0].equalsIgnoreCase("radar")) {
                                 String prefix = args[1].toLowerCase();
@@ -635,6 +663,7 @@ public final class Lifeline extends JavaPlugin {
         MessageUtil.sendRaw(sender, "help.revives");
         if (sender.hasPermission("lifeline.admin")) {
             MessageUtil.sendRaw(sender, "help.save");
+            MessageUtil.sendRaw(sender, "help.backup");
             MessageUtil.sendRaw(sender, "help.update");
             MessageUtil.sendRaw(sender, "help.reload");
             MessageUtil.sendRaw(sender, "help.resetrevives");
@@ -704,6 +733,10 @@ public final class Lifeline extends JavaPlugin {
 
     public com.lifeline.waypoint.PersonalWaypointGUI getPersonalWaypointGUI() {
         return personalWaypointGUI;
+    }
+
+    public com.lifeline.backup.BackupManager getBackupManager() {
+        return backupManager;
     }
 
     /**

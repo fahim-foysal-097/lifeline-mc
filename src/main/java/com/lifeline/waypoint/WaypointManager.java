@@ -51,11 +51,12 @@ public class WaypointManager implements Listener {
 
     public synchronized void loadWaypoints() {
         waypoints.clear();
-        if (!waypointsFile.exists()) {
+        File backupFile = new File(new File(plugin.getDataFolder(), "backup"), "waypoints.yml.bak");
+        if (!waypointsFile.exists() && !backupFile.exists()) {
             return;
         }
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(waypointsFile);
+        YamlConfiguration config = com.lifeline.util.SafeFileUtil.loadWithAutoRecovery(waypointsFile, backupFile, plugin.getLogger());
         if (config.isConfigurationSection("waypoints")) {
             org.bukkit.configuration.ConfigurationSection section = config.getConfigurationSection("waypoints");
             if (section != null) {
@@ -83,6 +84,10 @@ public class WaypointManager implements Listener {
             plugin.getDataFolder().mkdirs();
         }
 
+        // Maintain latest pre-save .bak copy in backup/
+        File backupFile = new File(new File(plugin.getDataFolder(), "backup"), "waypoints.yml.bak");
+        com.lifeline.util.SafeFileUtil.copyBackupAtomically(waypointsFile, backupFile);
+
         YamlConfiguration config = new YamlConfiguration();
         for (Map.Entry<String, Waypoint> entry : waypoints.entrySet()) {
             // Use the lowercase map key as the YAML key so on-disk keys stay
@@ -91,7 +96,7 @@ public class WaypointManager implements Listener {
         }
 
         try {
-            config.save(waypointsFile);
+            com.lifeline.util.SafeFileUtil.saveConfigurationAtomically(config, waypointsFile);
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save waypoints.yml", e);
         }

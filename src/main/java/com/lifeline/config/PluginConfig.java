@@ -66,6 +66,11 @@ public class PluginConfig {
     // Personal Waypoints
     private boolean personalWaypointsEnabled;
 
+    // Data Backup & Safety
+    private boolean backupEnabled;
+    private boolean backupSyncWithAutosave;
+    private int backupMaxBackups;
+
     // Update Checker
     private boolean updateCheckerEnabled;
 
@@ -160,7 +165,12 @@ public class PluginConfig {
         // 13. Personal Waypoints
         this.personalWaypointsEnabled = config.getBoolean("personal-waypoints.enabled", true);
 
-        // 14. Update Checker
+        // 14. Data Backup & Safety
+        this.backupEnabled = config.getBoolean("backup.enabled", true);
+        this.backupSyncWithAutosave = config.getBoolean("backup.sync-with-autosave", true);
+        this.backupMaxBackups = Math.max(1, config.getInt("backup.max-backups", 3));
+
+        // 15. Update Checker
         this.updateCheckerEnabled = config.getBoolean("update-checker", true);
     }
 
@@ -306,6 +316,18 @@ public class PluginConfig {
 
     public boolean isPersonalWaypointsEnabled() {
         return personalWaypointsEnabled;
+    }
+
+    public boolean isBackupEnabled() {
+        return backupEnabled;
+    }
+
+    public boolean isBackupSyncWithAutosave() {
+        return backupSyncWithAutosave;
+    }
+
+    public int getBackupMaxBackups() {
+        return backupMaxBackups;
     }
 
     public boolean isUpdateCheckerEnabled() {

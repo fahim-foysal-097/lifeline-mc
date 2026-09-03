@@ -298,4 +298,33 @@ public class PluginConfigTest {
         assertEquals(54, config.getPersonalStashSlots());
         assertFalse(config.isPersonalWaypointsEnabled());
     }
+
+    @Test
+    public void testBackupConfigDefaultsAndCustom() {
+        PluginConfig config = new PluginConfig(null);
+        YamlConfiguration emptyConfig = new YamlConfiguration();
+        config.load(emptyConfig);
+
+        assertTrue(config.isBackupEnabled());
+        assertTrue(config.isBackupSyncWithAutosave());
+        assertEquals(3, config.getBackupMaxBackups());
+
+        String customYaml = """
+                backup:
+                  enabled: false
+                  sync-with-autosave: false
+                  max-backups: 5
+                """;
+        YamlConfiguration customConfig = YamlConfiguration.loadConfiguration(new StringReader(customYaml));
+        config.load(customConfig);
+
+        assertFalse(config.isBackupEnabled());
+        assertFalse(config.isBackupSyncWithAutosave());
+        assertEquals(5, config.getBackupMaxBackups());
+
+        // Clamping: max-backups <= 0 clamped to 1
+        YamlConfiguration clampedConfig = YamlConfiguration.loadConfiguration(new StringReader("backup:\n  max-backups: -2"));
+        config.load(clampedConfig);
+        assertEquals(1, config.getBackupMaxBackups());
+    }
 }

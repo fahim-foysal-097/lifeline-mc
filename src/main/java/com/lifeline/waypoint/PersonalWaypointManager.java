@@ -55,11 +55,17 @@ public class PersonalWaypointManager implements Listener {
 
     public synchronized void loadWaypoints() {
         playerWaypoints.clear();
-        if (!waypointsFile.exists()) {
+        File backupDir = new File(plugin.getDataFolder(), "backup");
+        File backupFile = new File(backupDir, "personal-waypoints.yml.bak");
+        if (!backupFile.exists()) {
+            backupFile = new File(backupDir, "persnal-waypoint.yml.bak");
+        }
+
+        if (!waypointsFile.exists() && !backupFile.exists()) {
             return;
         }
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(waypointsFile);
+        YamlConfiguration config = com.lifeline.util.SafeFileUtil.loadWithAutoRecovery(waypointsFile, backupFile, plugin.getLogger());
         if (config.isConfigurationSection("players")) {
             ConfigurationSection playersSection = config.getConfigurationSection("players");
             if (playersSection != null) {
@@ -99,6 +105,12 @@ public class PersonalWaypointManager implements Listener {
             plugin.getDataFolder().mkdirs();
         }
 
+        // Maintain latest pre-save .bak copy in backup/
+        File backupDir = new File(plugin.getDataFolder(), "backup");
+        File backupFile = new File(backupDir, "personal-waypoints.yml.bak");
+        com.lifeline.util.SafeFileUtil.copyBackupAtomically(waypointsFile, backupFile);
+        com.lifeline.util.SafeFileUtil.copyBackupAtomically(waypointsFile, new File(backupDir, "persnal-waypoint.yml.bak"));
+
         YamlConfiguration config = new YamlConfiguration();
         for (Map.Entry<UUID, Map<String, Waypoint>> entry : playerWaypoints.entrySet()) {
             String uuidStr = entry.getKey().toString();
@@ -110,7 +122,7 @@ public class PersonalWaypointManager implements Listener {
         }
 
         try {
-            config.save(waypointsFile);
+            com.lifeline.util.SafeFileUtil.saveConfigurationAtomically(config, waypointsFile);
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save personal-waypoints.yml", e);
         }

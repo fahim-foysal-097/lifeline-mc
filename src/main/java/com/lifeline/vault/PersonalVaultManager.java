@@ -63,12 +63,13 @@ public class PersonalVaultManager implements Listener {
             savePersonalStashes(true);
             activeInventories.clear();
         }
-        if (!stashFile.exists()) {
+        File backupFile = new File(new File(plugin.getDataFolder(), "backup"), "personal-stashes.yml.bak");
+        if (!stashFile.exists() && !backupFile.exists()) {
             stashConfig = new YamlConfiguration();
             this.isDirty = false;
             return;
         }
-        stashConfig = YamlConfiguration.loadConfiguration(stashFile);
+        stashConfig = com.lifeline.util.SafeFileUtil.loadWithAutoRecovery(stashFile, backupFile, plugin.getLogger());
         this.isDirty = false;
         plugin.getLogger().info("Loaded Personal Stash configuration from disk.");
     }
@@ -211,8 +212,12 @@ public class PersonalVaultManager implements Listener {
             syncInventoryToConfig(entry.getKey(), entry.getValue());
         }
 
+        // Maintain latest pre-save .bak copy in backup/
+        File backupFile = new File(new File(plugin.getDataFolder(), "backup"), "personal-stashes.yml.bak");
+        com.lifeline.util.SafeFileUtil.copyBackupAtomically(stashFile, backupFile);
+
         try {
-            saveConfigurationAtomically(stashConfig, stashFile);
+            com.lifeline.util.SafeFileUtil.saveConfigurationAtomically(stashConfig, stashFile);
             this.isDirty = false;
             return true;
         } catch (IOException e) {
@@ -226,35 +231,6 @@ public class PersonalVaultManager implements Listener {
      */
     public synchronized void saveAll() {
         savePersonalStashes(true);
-    }
-
-    private void saveConfigurationAtomically(YamlConfiguration config, File targetFile) throws IOException {
-        File parentDir = targetFile.getParentFile();
-        if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
-        }
-        File tempFile = new File(parentDir, targetFile.getName() + ".tmp");
-        try {
-            config.save(tempFile);
-            try {
-                Files.move(
-                        tempFile.toPath(),
-                        targetFile.toPath(),
-                        StandardCopyOption.ATOMIC_MOVE,
-                        StandardCopyOption.REPLACE_EXISTING
-                );
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(
-                        tempFile.toPath(),
-                        targetFile.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING
-                );
-            }
-        } finally {
-            if (tempFile.exists()) {
-                tempFile.delete();
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

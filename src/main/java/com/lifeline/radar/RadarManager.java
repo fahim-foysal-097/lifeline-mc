@@ -75,7 +75,7 @@ public class RadarManager implements Listener {
         }
         toggleConfig.set(uuid.toString(), state);
         try {
-            toggleConfig.save(toggleFile);
+            com.lifeline.util.SafeFileUtil.saveConfigurationAtomically(toggleConfig, toggleFile);
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Failed to save radar-toggles.yml", e);
         }

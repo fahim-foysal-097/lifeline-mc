@@ -111,6 +111,7 @@ Works on **26.2+** too.
 | `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar             | `lifeline.radar`  |
 | `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state          | `lifeline.radar`  |
 | `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives            | `lifeline.revive` |
+| `/lifeline backup [create\|list]`   | `/ll backup`                                      | Create or list data backups        | `lifeline.admin`  |
 | `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages    | `lifeline.admin`  |
 | `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters       | `lifeline.admin`  |
 
@@ -127,6 +128,7 @@ Files are stored in `plugins/Lifeline/`:
 - `vault.yml` — Stored items for the shared stash.
 - `personal-stashes.yml` — Stored items for personal stashes.
 - `radar-toggles.yml` — Saved per-player radar toggle preferences.
+- `backup/` — Automatic rolling backups (`.bak` files and timestamped zip snapshots in `snapshots/`).
 
 ### Example `config.yml`
 

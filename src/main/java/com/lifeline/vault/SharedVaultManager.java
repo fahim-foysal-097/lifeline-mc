@@ -69,14 +69,16 @@ public class SharedVaultManager implements Listener, InventoryHolder {
 
     /**
      * Loads saved item stacks from vault.yml into the in-memory inventory.
+     * Automatically recovers from backup/vault.yml.bak if corrupted or truncated.
      */
     public synchronized void loadVault() {
-        if (!vaultFile.exists()) {
+        File backupFile = new File(new File(plugin.getDataFolder(), "backup"), "vault.yml.bak");
+        if (!vaultFile.exists() && !backupFile.exists()) {
             this.isDirty = false;
             return;
         }
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(vaultFile);
+        YamlConfiguration config = com.lifeline.util.SafeFileUtil.loadWithAutoRecovery(vaultFile, backupFile, plugin.getLogger());
         vaultInventory.clear();
 
         for (int i = 0; i < vaultInventory.getSize(); i++) {
@@ -92,7 +94,7 @@ public class SharedVaultManager implements Listener, InventoryHolder {
     }
 
     /**
-     * Saves the in-memory inventory contents directly to vault.yml atomically.
+     * Saves the in-memory inventory contents directly to vault.yml atomically with pre-save backup.
      *
      * @param force if true, writes to disk even if the inventory has not been marked dirty
      * @return true if saved to disk, false if skipped or failed
@@ -106,6 +108,10 @@ public class SharedVaultManager implements Listener, InventoryHolder {
             plugin.getDataFolder().mkdirs();
         }
 
+        // Maintain latest pre-save .bak copy in backup/
+        File backupFile = new File(new File(plugin.getDataFolder(), "backup"), "vault.yml.bak");
+        com.lifeline.util.SafeFileUtil.copyBackupAtomically(vaultFile, backupFile);
+
         YamlConfiguration config = new YamlConfiguration();
         for (int i = 0; i < vaultInventory.getSize(); i++) {
             ItemStack item = vaultInventory.getItem(i);
@@ -115,7 +121,7 @@ public class SharedVaultManager implements Listener, InventoryHolder {
         }
 
         try {
-            saveConfigurationAtomically(config, vaultFile);
+            com.lifeline.util.SafeFileUtil.saveConfigurationAtomically(config, vaultFile);
             this.isDirty = false;
             return true;
         } catch (IOException e) {
@@ -129,35 +135,6 @@ public class SharedVaultManager implements Listener, InventoryHolder {
      */
     public synchronized void saveVault() {
         saveVault(true);
-    }
-
-    private void saveConfigurationAtomically(YamlConfiguration config, File targetFile) throws IOException {
-        File parentDir = targetFile.getParentFile();
-        if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
-        }
-        File tempFile = new File(parentDir, targetFile.getName() + ".tmp");
-        try {
-            config.save(tempFile);
-            try {
-                Files.move(
-                        tempFile.toPath(),
-                        targetFile.toPath(),
-                        StandardCopyOption.ATOMIC_MOVE,
-                        StandardCopyOption.REPLACE_EXISTING
-                );
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(
-                        tempFile.toPath(),
-                        targetFile.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING
-                );
-            }
-        } finally {
-            if (tempFile.exists()) {
-                tempFile.delete();
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

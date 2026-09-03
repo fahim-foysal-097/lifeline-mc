@@ -210,9 +210,19 @@ help:
   radar: "  <yellow>/coradar (or /teamradar, /lfradar)</yellow> <dark_gray>-</dark_gray> <gray>Toggle teammate actionbar radar</gray>"
   revives: "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>"
   save: "  <yellow>/lifeline save</yellow> <dark_gray>-</dark_gray> <gray>Force-save all stashes to disk</gray>"
+  backup: "  <yellow>/lifeline backup [create|list]</yellow> <dark_gray>-</dark_gray> <gray>Create or list data backups</gray>"
   update: "  <yellow>/lifeline update</yellow> <dark_gray>-</dark_gray> <gray>Check GitHub for plugin updates</gray>"
   reload: "  <yellow>/lifeline reload</yellow> <dark_gray>-</dark_gray> <gray>Reload configuration</gray>"
   resetrevives: "  <yellow>/lifeline resetrevives <player></yellow> <dark_gray>-</dark_gray> <gray>Reset player's revives</gray>"
+
+backup:
+  created: "<green>Successfully created a new backup snapshot: <yellow><snapshot></yellow></green>"
+  failed: "<red>Failed to create backup snapshot. Check server logs.</red>"
+  no-permission: "<red>You do not have permission to manage backups.</red>"
+  list-header: "<gold><bold>Lifeline Backups (<count>/<max>):</bold></gold>"
+  list-item: "  <yellow>• <name></yellow> <dark_gray>(<size>, <date>)</dark_gray>"
+  no-backups: "<gray>No backup snapshots found in backup directory.</gray>"
+
 
 radar:
   enabled: "<green>Teammate Radar has been <bold>enabled</bold>.</green>"

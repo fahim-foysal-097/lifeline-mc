@@ -162,9 +162,28 @@ personal-waypoints:
 
 
 # ------------------------------------------------------------------------------
+# Automatic Data Backups & Safety
+# ------------------------------------------------------------------------------
+# Automatic rolling backups for vaults, stashes, and waypoints into the 'backup' folder.
+# All files are written atomically using temporary files and fsync to prevent corruption.
+backup:
+  # Master toggle for automatic backups
+  enabled: true
+
+  # Synchronize automatic backups with Paper's server autosave cycle (WorldSaveEvent).
+  # This guarantees stash/waypoint backups match player inventory saves, completely
+  # preventing item duplication or rollback desync.
+  sync-with-autosave: true
+
+  # Maximum number of rolling snapshot backups to retain (default: 3).
+  max-backups: 3
+
+
+# ------------------------------------------------------------------------------
 # Update Checker Settings
 # ------------------------------------------------------------------------------
 # Automatically check for new releases on GitHub (https://github.com/fahim-foysal-097/lifeline-mc)
 # on server startup and notify administrators upon join.
 update-checker: true
+
 
