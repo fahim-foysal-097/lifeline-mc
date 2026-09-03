@@ -426,11 +426,24 @@ public final class Lifeline extends JavaPlugin {
                                         MessageUtil.sendPrefixed(sender, "general.no-permission-reload");
                                         return;
                                     }
+                                    // Close any open stash GUIs before saving/reloading so players don't hold an orphaned view
+                                    for (Player p : Bukkit.getOnlinePlayers()) {
+                                        org.bukkit.inventory.Inventory top = p.getOpenInventory().getTopInventory();
+                                        if (top.getHolder() instanceof SharedVaultManager || top.getHolder() instanceof com.lifeline.vault.PersonalVaultHolder) {
+                                            p.closeInventory();
+                                        }
+                                    }
+                                    saveAllStashesAndPlayers(true);
                                     pluginConfig.load();
                                     MessageUtil.load(Lifeline.this);
                                     waypointManager.loadWaypoints();
                                     personalWaypointManager.loadWaypoints();
-                                    personalVaultManager.loadStashes();
+                                    if (sharedVaultManager != null) {
+                                        sharedVaultManager.loadVault();
+                                    }
+                                    if (personalVaultManager != null) {
+                                        personalVaultManager.loadStashes();
+                                    }
                                     radarManager.startTask();
                                     if (!pluginConfig.isReviveEnabled()) {
                                         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -440,6 +453,14 @@ public final class Lifeline extends JavaPlugin {
                                         }
                                     }
                                     MessageUtil.sendPrefixed(sender, "general.config-reloaded");
+                                }
+                                case "save" -> {
+                                    if (!sender.hasPermission("lifeline.admin")) {
+                                        MessageUtil.sendPrefixed(sender, "stash.no-permission-save");
+                                        return;
+                                    }
+                                    saveAllStashesAndPlayers(true);
+                                    MessageUtil.sendPrefixed(sender, "stash.saved");
                                 }
                                 case "radar" -> {
                                     if (!(sender instanceof Player player)) {
@@ -515,6 +536,7 @@ public final class Lifeline extends JavaPlugin {
                                 if (stack.getSender().hasPermission("lifeline.admin")) {
                                     list.add("reload");
                                     list.add("resetrevives");
+                                    list.add("save");
                                 }
                                 String prefix = args.length == 0 ? "" : args[0].toLowerCase();
                                 return list.stream().filter(s -> s.startsWith(prefix)).toList();
@@ -590,6 +612,7 @@ public final class Lifeline extends JavaPlugin {
         MessageUtil.sendRaw(sender, "help.radar");
         MessageUtil.sendRaw(sender, "help.revives");
         if (sender.hasPermission("lifeline.admin")) {
+            MessageUtil.sendRaw(sender, "help.save");
             MessageUtil.sendRaw(sender, "help.reload");
             MessageUtil.sendRaw(sender, "help.resetrevives");
         }
@@ -658,5 +681,42 @@ public final class Lifeline extends JavaPlugin {
 
     public com.lifeline.waypoint.PersonalWaypointGUI getPersonalWaypointGUI() {
         return personalWaypointGUI;
+    }
+
+    /**
+     * Flushes all shared and personal stash data to disk.
+     *
+     * @param force if true, writes to disk even if no changes were flagged dirty
+     */
+    public void saveAllStashes(boolean force) {
+        if (this.sharedVaultManager != null) {
+            this.sharedVaultManager.saveVault(force);
+        }
+        if (this.personalVaultManager != null) {
+            this.personalVaultManager.savePersonalStashes(force);
+        }
+    }
+
+    /**
+     * Flushes all stashes and ensures online players' inventory data are synchronized to disk.
+     *
+     * @param force if true, forces writing even if no in-memory stash changes were flagged dirty
+     */
+    public void saveAllStashesAndPlayers(boolean force) {
+        boolean dirty = force
+                || (sharedVaultManager != null && sharedVaultManager.isDirty())
+                || (personalVaultManager != null && personalVaultManager.isDirty());
+
+        if (!dirty) {
+            return;
+        }
+
+        // Save all online players' inventories to disk first so their state matches the stashes
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.saveData();
+        }
+
+        // Save stash inventories to disk
+        saveAllStashes(force);
     }
 }

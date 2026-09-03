@@ -9,20 +9,27 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.WorldSaveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
- * Manages per-player personal stashes and persistence to personal-stashes.yml.
+ * Manages per-player personal stashes, in-memory buffering, and safe persistence
+ * synchronized with Paper's autosave cycle to prevent item duplication.
  */
 public class PersonalVaultManager implements Listener {
 
@@ -31,10 +38,21 @@ public class PersonalVaultManager implements Listener {
     private YamlConfiguration stashConfig;
     private final Map<UUID, Inventory> activeInventories = new ConcurrentHashMap<>();
 
+    private volatile boolean isDirty = false;
+    private long lastSaveTick = -1;
+
     public PersonalVaultManager(Lifeline plugin) {
         this.plugin = plugin;
         this.stashFile = new File(plugin.getDataFolder(), "personal-stashes.yml");
         loadStashes();
+    }
+
+    public boolean isDirty() {
+        return isDirty;
+    }
+
+    public void markDirty() {
+        this.isDirty = true;
     }
 
     /**
@@ -42,14 +60,16 @@ public class PersonalVaultManager implements Listener {
      */
     public synchronized void loadStashes() {
         if (stashConfig != null && !activeInventories.isEmpty()) {
-            saveAll();
+            savePersonalStashes(true);
             activeInventories.clear();
         }
         if (!stashFile.exists()) {
             stashConfig = new YamlConfiguration();
+            this.isDirty = false;
             return;
         }
         stashConfig = YamlConfiguration.loadConfiguration(stashFile);
+        this.isDirty = false;
         plugin.getLogger().info("Loaded Personal Stash configuration from disk.");
     }
 
@@ -64,9 +84,9 @@ public class PersonalVaultManager implements Listener {
             return existing;
         }
 
-        // Slot size changed: persist the old inventory before creating a new one
+        // Slot size changed: buffer old inventory into config before creating new one
         if (existing != null) {
-            saveStash(uuid, existing);
+            syncInventoryToConfig(uuid, existing);
         }
 
         Inventory inv = Bukkit.createInventory(
@@ -114,14 +134,10 @@ public class PersonalVaultManager implements Listener {
     }
 
     /**
-     * Saves a specific player's stash inventory to disk while preserving
-     * any items in higher slots if the config slots were reduced.
+     * Synchronizes a player's in-memory inventory into the YAML configuration model
+     * without triggering disk writes. Preserves higher slot items if slot capacity was reduced.
      */
-    public synchronized void saveStash(UUID uuid, Inventory inventory) {
-        if (!plugin.getDataFolder().exists()) {
-            plugin.getDataFolder().mkdirs();
-        }
-
+    public synchronized void syncInventoryToConfig(UUID uuid, Inventory inventory) {
         if (stashConfig == null) {
             stashConfig = new YamlConfiguration();
         }
@@ -129,7 +145,7 @@ public class PersonalVaultManager implements Listener {
         String pathPrefix = "stashes." + uuid.toString() + ".items";
 
         // Preserve any existing items in slots >= inventory.getSize()
-        java.util.Map<Integer, ItemStack> preservedItems = new java.util.HashMap<>();
+        Map<Integer, ItemStack> preservedItems = new java.util.HashMap<>();
         if (stashConfig.isConfigurationSection(pathPrefix)) {
             org.bukkit.configuration.ConfigurationSection section = stashConfig.getConfigurationSection(pathPrefix);
             if (section != null) {
@@ -157,21 +173,32 @@ public class PersonalVaultManager implements Listener {
             }
         }
 
-        for (java.util.Map.Entry<Integer, ItemStack> entry : preservedItems.entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : preservedItems.entrySet()) {
             stashConfig.set(pathPrefix + "." + entry.getKey(), entry.getValue());
         }
 
-        try {
-            stashConfig.save(stashFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save personal-stashes.yml for " + uuid, e);
-        }
+        this.isDirty = true;
     }
 
     /**
-     * Saves all active cached inventories to disk.
+     * Saves a specific player's stash inventory to disk.
      */
-    public synchronized void saveAll() {
+    public synchronized void saveStash(UUID uuid, Inventory inventory) {
+        syncInventoryToConfig(uuid, inventory);
+        savePersonalStashes(true);
+    }
+
+    /**
+     * Flushes all active personal stashes to personal-stashes.yml atomically.
+     *
+     * @param force if true, writes to disk even if no changes are marked dirty
+     * @return true if saved to disk, false if skipped or failed
+     */
+    public synchronized boolean savePersonalStashes(boolean force) {
+        if (!force && !isDirty) {
+            return false;
+        }
+
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
         }
@@ -181,31 +208,112 @@ public class PersonalVaultManager implements Listener {
         }
 
         for (Map.Entry<UUID, Inventory> entry : activeInventories.entrySet()) {
-            saveStash(entry.getKey(), entry.getValue());
+            syncInventoryToConfig(entry.getKey(), entry.getValue());
+        }
+
+        try {
+            saveConfigurationAtomically(stashConfig, stashFile);
+            this.isDirty = false;
+            return true;
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to save personal-stashes.yml", e);
+            return false;
+        }
+    }
+
+    /**
+     * Legacy alias for savePersonalStashes(true).
+     */
+    public synchronized void saveAll() {
+        savePersonalStashes(true);
+    }
+
+    private void saveConfigurationAtomically(YamlConfiguration config, File targetFile) throws IOException {
+        File parentDir = targetFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        File tempFile = new File(parentDir, targetFile.getName() + ".tmp");
+        try {
+            config.save(tempFile);
+            try {
+                Files.move(
+                        tempFile.toPath(),
+                        targetFile.toPath(),
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING
+                );
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(
+                        tempFile.toPath(),
+                        targetFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING
+                );
+            }
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getInventory().getHolder() instanceof PersonalVaultHolder) {
+            this.isDirty = true;
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof PersonalVaultHolder) {
+            this.isDirty = true;
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryClose(InventoryCloseEvent event) {
         if (event.getInventory().getHolder() instanceof PersonalVaultHolder holder) {
-            saveStash(holder.getOwnerUuid(), event.getInventory());
+            syncInventoryToConfig(holder.getOwnerUuid(), event.getInventory());
             if (event.getPlayer() instanceof Player player && plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.BLOCK_CHEST_CLOSE, 0.8f, 1.0f);
             }
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         Inventory inv = activeInventories.remove(uuid);
         if (inv != null) {
-            saveStash(uuid, inv);
+            syncInventoryToConfig(uuid, inv);
+        }
+
+        // If any stash was modified, sync all online players and stashes to disk
+        // to prevent desynchronization if a crash occurs after player quit.
+        if (isDirty || (plugin.getSharedVaultManager() != null && plugin.getSharedVaultManager().isDirty())) {
+            plugin.saveAllStashesAndPlayers(false);
+        }
+    }
+
+    /**
+     * Synchronizes in-memory personal stashes with Paper's autosave cycle.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWorldSave(WorldSaveEvent event) {
+        long currentTick = Bukkit.getCurrentTick();
+        if (currentTick == lastSaveTick) {
+            return;
+        }
+        lastSaveTick = currentTick;
+
+        if (isDirty) {
+            savePersonalStashes(false);
         }
     }
 
     public void cleanup() {
-        saveAll();
+        savePersonalStashes(true);
         activeInventories.clear();
     }
 }

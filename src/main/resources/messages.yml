@@ -64,8 +64,10 @@ waypoints:
 
 stash:
   no-permission: "<red>You do not have permission to access the stash."
+  no-permission-save: "<red>You do not have permission to save stash data."
   downed-blocked: "<red>You cannot access the stash while downed!"
   title: "<gradient:#00FFA3:#00B8D9><bold>Shared Stash</bold></gradient>"
+  saved: "<green>All shared and personal stash data has been successfully saved to disk."
 
 teleport:
   no-permission: "<red>You do not have permission to use player teleportation."
@@ -207,6 +209,7 @@ help:
   tpq: "  <yellow>/tpq (or /teleportgui)</yellow> <dark_gray>-</dark_gray> <gray>Open player teleport GUI / request</gray>"
   radar: "  <yellow>/coradar (or /teamradar, /lfradar)</yellow> <dark_gray>-</dark_gray> <gray>Toggle teammate actionbar radar</gray>"
   revives: "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>"
+  save: "  <yellow>/lifeline save</yellow> <dark_gray>-</dark_gray> <gray>Force-save all stashes to disk</gray>"
   reload: "  <yellow>/lifeline reload</yellow> <dark_gray>-</dark_gray> <gray>Reload configuration</gray>"
   resetrevives: "  <yellow>/lifeline resetrevives <player></yellow> <dark_gray>-</dark_gray> <gray>Reset player's revives</gray>"
 
