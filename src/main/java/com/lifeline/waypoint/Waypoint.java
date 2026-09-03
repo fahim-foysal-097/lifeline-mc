@@ -125,11 +125,20 @@ public class Waypoint {
      * Deserializes waypoint from Map.
      */
     public static Waypoint deserialize(Map<String, Object> map) {
+        if (map == null) {
+            throw new IllegalArgumentException("Waypoint data map cannot be null");
+        }
         String name = (String) map.get("name");
         String worldName = (String) map.get("world");
-        double x = ((Number) map.get("x")).doubleValue();
-        double y = ((Number) map.get("y")).doubleValue();
-        double z = ((Number) map.get("z")).doubleValue();
+        Object xObj = map.get("x");
+        Object yObj = map.get("y");
+        Object zObj = map.get("z");
+        if (name == null || worldName == null || !(xObj instanceof Number) || !(yObj instanceof Number) || !(zObj instanceof Number)) {
+            throw new IllegalArgumentException("Waypoint entry missing required fields (name, world, x, y, z)");
+        }
+        double x = ((Number) xObj).doubleValue();
+        double y = ((Number) yObj).doubleValue();
+        double z = ((Number) zObj).doubleValue();
         float yaw = ((Number) map.getOrDefault("yaw", 0.0)).floatValue();
         float pitch = ((Number) map.getOrDefault("pitch", 0.0)).floatValue();
         String uuidStr = (String) map.get("creatorUuid");

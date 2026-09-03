@@ -41,4 +41,18 @@ public class WaypointTest {
         assertEquals(wp.getCreatorName(), deserialized.getCreatorName());
         assertEquals(wp.getCreatedAt(), deserialized.getCreatedAt());
     }
+
+    @Test
+    public void testDeserializationInvalidDataThrows() {
+        assertThrows(IllegalArgumentException.class, () -> Waypoint.deserialize(null));
+
+        Map<String, Object> missingX = Map.of("name", "Test", "world", "world", "y", 64.0, "z", 10.0);
+        assertThrows(IllegalArgumentException.class, () -> Waypoint.deserialize(missingX));
+
+        Map<String, Object> missingName = Map.of("world", "world", "x", 0.0, "y", 64.0, "z", 10.0);
+        assertThrows(IllegalArgumentException.class, () -> Waypoint.deserialize(missingName));
+
+        Map<String, Object> invalidNumber = Map.of("name", "Test", "world", "world", "x", "not_a_number", "y", 64.0, "z", 10.0);
+        assertThrows(IllegalArgumentException.class, () -> Waypoint.deserialize(invalidNumber));
+    }
 }

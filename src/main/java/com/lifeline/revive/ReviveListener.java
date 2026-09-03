@@ -111,7 +111,7 @@ public class ReviveListener implements Listener {
         if (reviver.isSneaking()) {
             downedManager.startRevive(reviver, target);
         } else {
-            MessageUtil.sendActionBar(reviver, "revive.sneak-hint-actionbar", MessageUtil.p("player", target.getName()));
+            MessageUtil.sendActionBar(reviver, "revive.sneak-hint-actionbar", MessageUtil.unparsed("player", target.getName()));
         }
     }
 

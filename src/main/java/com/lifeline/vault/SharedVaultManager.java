@@ -35,7 +35,6 @@ public class SharedVaultManager implements Listener, InventoryHolder {
     private final Inventory vaultInventory;
 
     private volatile boolean isDirty = false;
-    private long lastSaveTick = -1;
 
     public SharedVaultManager(Lifeline plugin) {
         this.plugin = plugin;
@@ -154,26 +153,9 @@ public class SharedVaultManager implements Listener, InventoryHolder {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryClose(InventoryCloseEvent event) {
         if (event.getInventory().getHolder() instanceof SharedVaultManager) {
-            this.isDirty = true;
             if (event.getPlayer() instanceof Player player && plugin.getPluginConfig().isSoundEffectsEnabled()) {
                 player.playSound(player.getLocation(), Sound.BLOCK_CHEST_CLOSE, 0.8f, 1.0f);
             }
-        }
-    }
-
-    /**
-     * Synchronizes in-memory shared stash with Paper's autosave cycle.
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onWorldSave(WorldSaveEvent event) {
-        long currentTick = Bukkit.getCurrentTick();
-        if (currentTick == lastSaveTick) {
-            return;
-        }
-        lastSaveTick = currentTick;
-
-        if (isDirty) {
-            saveVault(false);
         }
     }
 

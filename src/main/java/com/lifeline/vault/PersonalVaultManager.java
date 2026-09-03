@@ -39,7 +39,6 @@ public class PersonalVaultManager implements Listener {
     private final Map<UUID, Inventory> activeInventories = new ConcurrentHashMap<>();
 
     private volatile boolean isDirty = false;
-    private long lastSaveTick = -1;
 
     public PersonalVaultManager(Lifeline plugin) {
         this.plugin = plugin;
@@ -269,22 +268,6 @@ public class PersonalVaultManager implements Listener {
         // to prevent desynchronization if a crash occurs after player quit.
         if (isDirty || (plugin.getSharedVaultManager() != null && plugin.getSharedVaultManager().isDirty())) {
             plugin.saveAllStashesAndPlayers(false);
-        }
-    }
-
-    /**
-     * Synchronizes in-memory personal stashes with Paper's autosave cycle.
-     */
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onWorldSave(WorldSaveEvent event) {
-        long currentTick = Bukkit.getCurrentTick();
-        if (currentTick == lastSaveTick) {
-            return;
-        }
-        lastSaveTick = currentTick;
-
-        if (isDirty) {
-            savePersonalStashes(false);
         }
     }
 

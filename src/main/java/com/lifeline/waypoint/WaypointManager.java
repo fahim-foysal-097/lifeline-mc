@@ -360,7 +360,9 @@ public class WaypointManager implements Listener {
         if (input.equalsIgnoreCase("cancel")) {
             MessageUtil.sendPrefixed(player, "waypoints.prompt-cancelled");
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.8f);
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline()) player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.8f);
+                });
             }
             return;
         }
@@ -368,7 +370,9 @@ public class WaypointManager implements Listener {
         if (input.length() < 2 || input.length() > 24) {
             MessageUtil.sendPrefixed(player, "waypoints.name-length-error");
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline()) player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                });
             }
             return;
         }
@@ -376,7 +380,9 @@ public class WaypointManager implements Listener {
         if (input.contains(".")) {
             MessageUtil.sendPrefixed(player, "waypoints.name-invalid");
             if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline()) player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                });
             }
             return;
         }

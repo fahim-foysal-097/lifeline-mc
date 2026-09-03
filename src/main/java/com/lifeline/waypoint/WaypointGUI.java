@@ -42,11 +42,13 @@ public class WaypointGUI implements Listener, InventoryHolder {
 
     // Sentinel inventory returned by the InventoryHolder contract.
     // Each GUI open creates a fresh inventory; this sentinel is never shown to players.
-    private final org.bukkit.inventory.Inventory holderSentinel =
-            Bukkit.createInventory(null, 9);
+    private org.bukkit.inventory.Inventory holderSentinel;
 
     @Override
     public org.bukkit.inventory.Inventory getInventory() {
+        if (holderSentinel == null && Bukkit.getServer() != null) {
+            holderSentinel = Bukkit.createInventory(null, 9);
+        }
         return holderSentinel;
     }
 
@@ -266,7 +268,7 @@ public class WaypointGUI implements Listener, InventoryHolder {
         // Delete
         if (event.getClick() == ClickType.SHIFT_RIGHT) {
             if (manager.deleteWaypoint(wpName)) {
-                MessageUtil.sendPrefixed(player, "waypoints.deleted", MessageUtil.p("name", wpName));
+                MessageUtil.sendPrefixed(player, "waypoints.deleted", MessageUtil.unparsed("name", wpName));
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     player.playSound(player.getLocation(), Sound.BLOCK_LAVA_EXTINGUISH, 1.0f, 1.2f);
                 }

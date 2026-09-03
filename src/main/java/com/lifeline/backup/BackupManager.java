@@ -94,10 +94,6 @@ public class BackupManager implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onWorldSave(WorldSaveEvent event) {
-        if (!plugin.getPluginConfig().isBackupEnabled() || !plugin.getPluginConfig().isBackupSyncWithAutosave()) {
-            return;
-        }
-
         long currentTick = Bukkit.getCurrentTick();
         if (currentTick == lastAutosaveTick) {
             return;
@@ -109,7 +105,12 @@ public class BackupManager implements Listener {
                 || (plugin.getPersonalVaultManager() != null && plugin.getPersonalVaultManager().isDirty());
 
         if (dirty) {
-            performBackup(false);
+            if (plugin.getPluginConfig().isBackupEnabled() && plugin.getPluginConfig().isBackupSyncWithAutosave()) {
+                performBackup(false);
+            } else {
+                plugin.saveAllStashesAndPlayers(false);
+                updateBakFiles();
+            }
         }
     }
 
@@ -156,6 +157,9 @@ public class BackupManager implements Listener {
 
         String timestamp = DATE_FORMAT.format(new Date());
         File zipFile = new File(snapshotsDir, "backup-" + timestamp + ".zip");
+        if (zipFile.exists()) {
+            zipFile = new File(snapshotsDir, "backup-" + timestamp + "-" + (System.currentTimeMillis() % 1000) + ".zip");
+        }
         File tempZip = new File(snapshotsDir, zipFile.getName() + ".tmp." + System.nanoTime());
 
         try {
@@ -298,8 +302,13 @@ public class BackupManager implements Listener {
         // Ensure final backup on shutdown if dirty
         boolean dirty = (plugin.getSharedVaultManager() != null && plugin.getSharedVaultManager().isDirty())
                 || (plugin.getPersonalVaultManager() != null && plugin.getPersonalVaultManager().isDirty());
-        if (dirty && plugin.getPluginConfig().isBackupEnabled()) {
-            performBackup(true);
+        if (dirty) {
+            if (plugin.getPluginConfig().isBackupEnabled()) {
+                performBackup(true);
+            } else {
+                plugin.saveAllStashesAndPlayers(true);
+                updateBakFiles();
+            }
         } else {
             updateBakFiles();
         }

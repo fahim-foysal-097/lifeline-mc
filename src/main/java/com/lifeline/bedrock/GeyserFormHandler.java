@@ -143,7 +143,7 @@ final class GeyserFormHandler {
                         }
 
                         if (manager.getWaypoint(trimmed) != null) {
-                            MessageUtil.sendPrefixed(player, "waypoints.already-exists", MessageUtil.p("name", trimmed));
+                            MessageUtil.sendPrefixed(player, "waypoints.already-exists", MessageUtil.unparsed("name", trimmed));
                             return;
                         }
 
@@ -204,7 +204,7 @@ final class GeyserFormHandler {
                         } else if (clicked == 1) {
                             // Delete
                             if (manager.deleteWaypoint(wp.getName())) {
-                                MessageUtil.sendPrefixed(player, "waypoints.deleted", MessageUtil.p("name", wp.getName()));
+                                MessageUtil.sendPrefixed(player, "waypoints.deleted", MessageUtil.unparsed("name", wp.getName()));
                             }
                             openWaypointsForm(player, manager, plugin);
                         } else if (clicked == 2) {
@@ -284,7 +284,7 @@ final class GeyserFormHandler {
                     // Player left after the form was opened
                     String name = Bukkit.getOfflinePlayer(targetUuid).getName();
                     MessageUtil.sendPrefixed(player, "teleport.player-offline",
-                            MessageUtil.p("player", name != null ? name : targetUuid.toString()));
+                            MessageUtil.unparsed("player", name != null ? name : targetUuid.toString()));
                 }
             });
         });
@@ -374,7 +374,7 @@ final class GeyserFormHandler {
                         }
 
                         if (manager.getWaypoint(player.getUniqueId(), trimmed) != null) {
-                            MessageUtil.sendPrefixed(player, "personal-waypoints.already-exists", MessageUtil.p("name", trimmed));
+                            MessageUtil.sendPrefixed(player, "personal-waypoints.already-exists", MessageUtil.unparsed("name", trimmed));
                             return;
                         }
 
@@ -430,7 +430,7 @@ final class GeyserFormHandler {
                             manager.startTeleportWarmup(player, wp);
                         } else if (clicked == 1) {
                             if (manager.deleteWaypoint(player.getUniqueId(), wp.getName())) {
-                                MessageUtil.sendPrefixed(player, "personal-waypoints.deleted", MessageUtil.p("name", wp.getName()));
+                                MessageUtil.sendPrefixed(player, "personal-waypoints.deleted", MessageUtil.unparsed("name", wp.getName()));
                             }
                             openPersonalWaypointsForm(player, manager, plugin);
                         } else if (clicked == 2) {

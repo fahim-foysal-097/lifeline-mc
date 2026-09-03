@@ -35,11 +35,11 @@ public final class SafeFileUtil {
         try {
             config.save(tempFile);
 
-            // Guarantee that file content is flushed to physical media before rename
-            try (FileOutputStream fos = new FileOutputStream(tempFile, true)) {
-                fos.getFD().sync();
-            } catch (SyncFailedException ignored) {
-                // Some virtual filesystems may not support sync
+            // Guarantee that file content and metadata are flushed to physical media before rename
+            try (java.nio.channels.FileChannel channel = java.nio.channels.FileChannel.open(tempFile.toPath(), StandardOpenOption.WRITE)) {
+                channel.force(true);
+            } catch (Exception ignored) {
+                // Some virtual or network filesystems may not support sync/force
             }
 
             try {
@@ -88,8 +88,8 @@ public final class SafeFileUtil {
         try {
             Files.copy(sourceFile.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            try (FileOutputStream fos = new FileOutputStream(tempFile, true)) {
-                fos.getFD().sync();
+            try (java.nio.channels.FileChannel channel = java.nio.channels.FileChannel.open(tempFile.toPath(), StandardOpenOption.WRITE)) {
+                channel.force(true);
             } catch (Exception ignored) {
             }
 

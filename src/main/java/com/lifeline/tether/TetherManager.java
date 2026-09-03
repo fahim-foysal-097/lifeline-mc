@@ -123,9 +123,10 @@ public class TetherManager implements Listener {
         MessageUtil.sendPrefixed(target, "teleport.request-received-target", MessageUtil.unparsed("player", sender.getName()));
 
         // Pre-substitute player name into raw button template so <click:run_command:'/tpq accept <player>'> has the actual name
+        String escapedSender = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().escapeTags(sender.getName()).replace("'", "\\'");
         String rawButtons = MessageUtil.getRaw("teleport.request-received-buttons",
                 "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept teleport request from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>   <red><bold><click:run_command:'/tpq deny <player>'><hover:show_text:'<red>Click to decline teleport request from <player></red>'>[✖ DECLINE]</click></hover></bold></red>")
-                .replace("<player>", sender.getName());
+                .replace("<player>", escapedSender);
         MessageUtil.sendPrefixed(target, rawButtons);
 
         if (config.isSoundEffectsEnabled()) {
@@ -506,6 +507,10 @@ public class TetherManager implements Listener {
         });
     }
 
+    public void cancelWarmup(Player sender, boolean notify) {
+        cancelWarmup(sender, notify, null);
+    }
+
     public void cancelWarmup(Player sender, boolean notify, String reasonKey, net.kyori.adventure.text.minimessage.tag.resolver.TagResolver... resolvers) {
         if (sender == null) return;
         UUID uuid = sender.getUniqueId();
@@ -575,6 +580,9 @@ public class TetherManager implements Listener {
             Map<UUID, TetherRequest> targetMap = incomingRequests.get(outgoing.targetUuid());
             if (targetMap != null) {
                 targetMap.remove(uuid);
+                if (targetMap.isEmpty()) {
+                    incomingRequests.remove(outgoing.targetUuid());
+                }
             }
         }
 
@@ -585,7 +593,7 @@ public class TetherManager implements Listener {
                 outgoingRequests.remove(req.senderUuid());
                 Player reqSender = Bukkit.getPlayer(req.senderUuid());
                 if (reqSender != null && reqSender.isOnline()) {
-                    MessageUtil.sendPrefixed(reqSender, "teleport.cancel-target-left", MessageUtil.p("player", player.getName()));
+                    MessageUtil.sendPrefixed(reqSender, "teleport.cancel-target-left", MessageUtil.unparsed("player", player.getName()));
                 }
             }
         }

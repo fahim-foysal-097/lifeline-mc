@@ -120,7 +120,9 @@ public class DownedManager {
         }
 
         DownedState state = new DownedState(uuid, timerSeconds);
-        downedPlayers.put(uuid, state);
+        if (downedPlayers.putIfAbsent(uuid, state) != null) {
+            return;
+        }
 
         // Cancel any active waypoint or tether teleport warmup
         if (plugin.getWaypointManager() != null) {
@@ -199,6 +201,9 @@ public class DownedManager {
         // before the first tick fires, preventing a race where cancelAllTasks() finds null.
         final int finalLeft = left;
         BukkitTask countdownTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (!isDowned(uuid)) {
+                return;
+            }
             if (!player.isOnline() || player.isDead()) {
                 killPlayerSafely(player);
                 return;  // task is cancelled via cancelAllTasks(); stop processing this tick
@@ -236,8 +241,9 @@ public class DownedManager {
             }
 
             if (remaining <= 0) {
-                MessageUtil.broadcast("revive.bled-out-broadcast", MessageUtil.p("player", player.getName()));
+                MessageUtil.broadcast("revive.bled-out-broadcast", MessageUtil.unparsed("player", player.getName()));
                 killPlayerSafely(player);
+                return;
             } else {
                 state.decrementSeconds();
             }
@@ -463,11 +469,12 @@ public class DownedManager {
     }
 
     public void cleanupAll() {
-        for (UUID uuid : downedPlayers.keySet()) {
-            DownedState state = downedPlayers.get(uuid);
+        for (UUID uuid : new java.util.ArrayList<>(downedPlayers.keySet())) {
+            DownedState state = downedPlayers.remove(uuid);
             if (state != null) {
                 state.cancelAllTasks();
             }
+            resetRevives(uuid);
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
                 p.removePotionEffect(PotionEffectType.DARKNESS);

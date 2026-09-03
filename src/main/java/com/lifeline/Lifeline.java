@@ -97,6 +97,16 @@ public final class Lifeline extends JavaPlugin {
     public void onDisable() {
         getLogger().info("Shutting down Lifeline and persisting all active co-op data...");
 
+        // Close any open GUIs so player inventories and stash buffers are synchronized
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.closeInventory();
+        }
+
+        // Perform final backup and persist stashes while dirty state is still intact
+        if (this.backupManager != null) {
+            this.backupManager.cleanup();
+        }
+
         if (this.waypointManager != null) {
             this.waypointManager.cleanup();
         }
@@ -123,10 +133,6 @@ public final class Lifeline extends JavaPlugin {
 
         if (this.radarManager != null) {
             this.radarManager.cleanup();
-        }
-
-        if (this.backupManager != null) {
-            this.backupManager.cleanup();
         }
 
         getLogger().info("Lifeline successfully disabled.");
@@ -441,10 +447,14 @@ public final class Lifeline extends JavaPlugin {
                                         MessageUtil.sendPrefixed(sender, "general.no-permission-reload");
                                         return;
                                     }
-                                    // Close any open stash GUIs before saving/reloading so players don't hold an orphaned view
+                                    // Close any open Lifeline GUIs before saving/reloading so players don't hold an orphaned view
                                     for (Player p : Bukkit.getOnlinePlayers()) {
                                         org.bukkit.inventory.Inventory top = p.getOpenInventory().getTopInventory();
-                                        if (top.getHolder() instanceof SharedVaultManager || top.getHolder() instanceof com.lifeline.vault.PersonalVaultHolder) {
+                                        if (top.getHolder() instanceof SharedVaultManager
+                                                || top.getHolder() instanceof com.lifeline.vault.PersonalVaultHolder
+                                                || top.getHolder() instanceof com.lifeline.waypoint.WaypointGUI
+                                                || top.getHolder() instanceof com.lifeline.waypoint.PersonalWaypointGUI
+                                                || top.getHolder() instanceof com.lifeline.tether.TetherGUI) {
                                             p.closeInventory();
                                         }
                                     }
@@ -535,7 +545,7 @@ public final class Lifeline extends JavaPlugin {
                                         }
                                         Player target = Bukkit.getPlayer(args[1]);
                                         if (target == null) {
-                                            MessageUtil.sendPrefixed(sender, "revive.player-not-found", MessageUtil.p("player", args[1]));
+                                            MessageUtil.sendPrefixed(sender, "revive.player-not-found", MessageUtil.unparsed("player", args[1]));
                                             return;
                                         }
                                         displayRevives(sender, target);
@@ -558,13 +568,13 @@ public final class Lifeline extends JavaPlugin {
                                     }
                                     Player target = Bukkit.getPlayer(args[1]);
                                     if (target == null) {
-                                        MessageUtil.sendPrefixed(sender, "revive.player-not-found", MessageUtil.p("player", args[1]));
+                                        MessageUtil.sendPrefixed(sender, "revive.player-not-found", MessageUtil.unparsed("player", args[1]));
                                         return;
                                     }
                                     downedManager.resetRevives(target.getUniqueId());
                                     int max = pluginConfig.getMaxRevives();
                                     String countStr = max == 0 ? "Infinite" : String.valueOf(max);
-                                    MessageUtil.sendPrefixed(sender, "revive.reset-revives-sender", MessageUtil.p("player", target.getName()), MessageUtil.p("count", countStr));
+                                    MessageUtil.sendPrefixed(sender, "revive.reset-revives-sender", MessageUtil.unparsed("player", target.getName()), MessageUtil.p("count", countStr));
                                     MessageUtil.sendPrefixed(target, "revive.reset-revives-target", MessageUtil.p("count", countStr));
                                 }
                                 default -> sendHelp(sender);
@@ -677,11 +687,11 @@ public final class Lifeline extends JavaPlugin {
         }
         int max = pluginConfig.getMaxRevives();
         if (max == 0) {
-            MessageUtil.sendPrefixed(sender, "revive.infinite-revives-info", MessageUtil.p("player", target.getName()));
+            MessageUtil.sendPrefixed(sender, "revive.infinite-revives-info", MessageUtil.unparsed("player", target.getName()));
         } else {
             int remaining = downedManager.getRemainingRevives(target.getUniqueId());
             MessageUtil.sendPrefixed(sender, "revive.remaining-revives-info",
-                    MessageUtil.p("player", target.getName()),
+                    MessageUtil.unparsed("player", target.getName()),
                     MessageUtil.p("remaining", String.valueOf(remaining)),
                     MessageUtil.p("max", String.valueOf(max)));
         }
@@ -759,6 +769,11 @@ public final class Lifeline extends JavaPlugin {
      * @param force if true, forces writing even if no in-memory stash changes were flagged dirty
      */
     public void saveAllStashesAndPlayers(boolean force) {
+        if (!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(this, () -> saveAllStashesAndPlayers(force));
+            return;
+        }
+
         boolean dirty = force
                 || (sharedVaultManager != null && sharedVaultManager.isDirty())
                 || (personalVaultManager != null && personalVaultManager.isDirty());

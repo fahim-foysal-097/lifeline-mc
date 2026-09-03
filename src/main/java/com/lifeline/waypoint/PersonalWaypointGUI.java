@@ -38,10 +38,13 @@ public class PersonalWaypointGUI implements Listener, InventoryHolder {
         this.waypointKey = new NamespacedKey(plugin, "personal_waypoint_name");
     }
 
-    private final Inventory holderSentinel = Bukkit.createInventory(null, 9);
+    private Inventory holderSentinel;
 
     @Override
     public Inventory getInventory() {
+        if (holderSentinel == null && Bukkit.getServer() != null) {
+            holderSentinel = Bukkit.createInventory(null, 9);
+        }
         return holderSentinel;
     }
 
@@ -185,7 +188,7 @@ public class PersonalWaypointGUI implements Listener, InventoryHolder {
         // Delete
         if (event.getClick() == ClickType.SHIFT_RIGHT) {
             if (manager.deleteWaypoint(player.getUniqueId(), wpName)) {
-                MessageUtil.sendPrefixed(player, "personal-waypoints.deleted", MessageUtil.p("name", wpName));
+                MessageUtil.sendPrefixed(player, "personal-waypoints.deleted", MessageUtil.unparsed("name", wpName));
                 if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
                     player.playSound(player.getLocation(), Sound.BLOCK_LAVA_EXTINGUISH, 1.0f, 1.2f);
                 }

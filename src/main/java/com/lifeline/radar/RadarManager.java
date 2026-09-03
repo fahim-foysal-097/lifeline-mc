@@ -314,8 +314,11 @@ public class RadarManager implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        // No-op: playerToggles is already populated from disk in loadToggles().
-        // This handler is intentionally blank but kept for future join-time logic.
+        UUID uuid = event.getPlayer().getUniqueId();
+        String key = uuid.toString();
+        if (toggleConfig != null && toggleConfig.contains(key)) {
+            playerToggles.put(uuid, toggleConfig.getBoolean(key));
+        }
     }
 
     @EventHandler

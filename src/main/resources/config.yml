@@ -20,8 +20,8 @@ revive-enabled: true
 
 # Bleed-out countdown timer in seconds for downed players.
 # - Range: 0 to 60 seconds (values above 60 will be capped at 60).
-# - Setting this to 0 means the player bleeds out INSTANTLY (no chance to be revived by teammates).
-#   The revive system remains enabled — use revive-enabled: false to disable it entirely.
+# - Setting this to 0 disables the downed state entirely (players die immediately on fatal damage).
+#   To keep the downed state active, set this to 1 or higher (default: 30).
 downed-timer-seconds: 30
 
 # Whether downed players are completely invincible to all damage during the bleed-out timer.

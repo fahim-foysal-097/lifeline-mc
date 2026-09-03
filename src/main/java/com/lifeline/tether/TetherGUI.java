@@ -42,10 +42,13 @@ public class TetherGUI implements Listener, InventoryHolder {
 
     // Sentinel inventory returned by the InventoryHolder contract.
     // Each GUI open creates a fresh inventory; this sentinel is never shown to players.
-    private final Inventory holderSentinel = Bukkit.createInventory(null, 9);
+    private Inventory holderSentinel;
 
     @Override
     public Inventory getInventory() {
+        if (holderSentinel == null && Bukkit.getServer() != null) {
+            holderSentinel = Bukkit.createInventory(null, 9);
+        }
         return holderSentinel;
     }
 
@@ -198,7 +201,7 @@ public class TetherGUI implements Listener, InventoryHolder {
         if (target == null || !target.isOnline()) {
             String offlineName = Bukkit.getOfflinePlayer(targetUuid).getName();
             MessageUtil.sendPrefixed(player, "teleport.player-offline",
-                    MessageUtil.p("player", offlineName != null ? offlineName : uuidStr));
+                    MessageUtil.unparsed("player", offlineName != null ? offlineName : uuidStr));
             return;
         }
 
