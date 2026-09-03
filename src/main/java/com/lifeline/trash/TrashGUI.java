@@ -91,6 +91,13 @@ public class TrashGUI implements Listener {
             return;
         }
 
+        // Close and cancel if player is downed
+        if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(player.getUniqueId())) {
+            event.setCancelled(true);
+            player.closeInventory();
+            return;
+        }
+
         // Prevent double click collection pulling items out of control bar
         if (event.getClick() == ClickType.DOUBLE_CLICK) {
             event.setCancelled(true);
@@ -102,12 +109,13 @@ public class TrashGUI implements Listener {
             ItemStack clicked = event.getCurrentItem();
             if (clicked != null && !clicked.getType().isAir()) {
                 event.setCancelled(true);
-                int remaining = addItemToDisposalSlots(event.getInventory(), clicked);
+                ItemStack toAdd = clicked.clone();
+                int remaining = addItemToDisposalSlots(event.getInventory(), toAdd);
                 if (remaining <= 0) {
-                    event.setCurrentItem(null);
-                } else {
+                    event.getClickedInventory().setItem(event.getSlot(), null);
+                } else if (remaining != clicked.getAmount()) {
                     clicked.setAmount(remaining);
-                    event.setCurrentItem(clicked);
+                    event.getClickedInventory().setItem(event.getSlot(), clicked);
                 }
             }
             return;
@@ -131,6 +139,14 @@ public class TrashGUI implements Listener {
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         if (event.getInventory().getHolder() instanceof TrashHolder) {
+            if (event.getWhoClicked() instanceof Player player
+                    && plugin.getDownedManager() != null
+                    && plugin.getDownedManager().isDowned(player.getUniqueId())) {
+                event.setCancelled(true);
+                player.closeInventory();
+                return;
+            }
+
             // Cancel drag if any target slot is in the bottom control bar (18-26)
             for (int rawSlot : event.getRawSlots()) {
                 if (rawSlot >= DISPOSAL_SLOTS_COUNT && rawSlot < 27) {
@@ -172,15 +188,21 @@ public class TrashGUI implements Listener {
                     }
                 }
 
-                MessageUtil.sendPrefixed(player, "trash.cancelled");
-                if (plugin.getPluginConfig().isTrashSoundEffectsEnabled()) {
-                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.8f, 1.0f);
+                if (player.isOnline()) {
+                    MessageUtil.sendPrefixed(player, "trash.cancelled");
+                    if (plugin.getPluginConfig().isTrashSoundEffectsEnabled()) {
+                        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.8f, 1.0f);
+                    }
                 }
             }
         }
     }
 
     private void handleConfirm(Player player, Inventory inv, TrashHolder holder) {
+        if (holder.isConfirmed()) {
+            return;
+        }
+
         int totalCount = 0;
         List<Integer> slotsToClear = new ArrayList<>();
 
@@ -228,6 +250,7 @@ public class TrashGUI implements Listener {
                 if (canAdd > 0) {
                     int add = Math.min(canAdd, remaining);
                     current.setAmount(current.getAmount() + add);
+                    inv.setItem(i, current);
                     remaining -= add;
                     if (remaining <= 0) {
                         return 0;

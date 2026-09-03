@@ -149,6 +149,9 @@ public class DownedManager {
             player.setGliding(false);
         }
 
+        // Close any open inventory so downed players cannot interact with containers or GUIs
+        player.closeInventory();
+
         // Deduct a revive if finite revives are active
         int maxRevives = config.getMaxRevives();
         int left = 0;

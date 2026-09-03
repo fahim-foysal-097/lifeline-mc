@@ -461,6 +461,11 @@ public final class Lifeline extends JavaPlugin {
                         }
 
                         @Override
+                        public Collection<String> suggest(CommandSourceStack stack, String[] args) {
+                            return List.of();
+                        }
+
+                        @Override
                         public boolean canUse(CommandSender sender) {
                             return hasTrashPermission(sender);
                         }
