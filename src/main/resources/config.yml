@@ -12,7 +12,7 @@
 #
 # Setting this to 0 means INFINITE REVIVES (players will always enter downed state).
 # Example: If set to 3, player can be revived 3 times. On the 4th fatal damage, they die completely.
-max-revives: 0
+max-revives: 3
 
 # Master toggle for the entire revive / downed system.
 # When set to false, players die instantly on fatal damage regardless of other settings.
@@ -60,7 +60,7 @@ downed-effects:
 revive-buffs:
   regeneration:
     enabled: true
-    duration-seconds: 4
+    duration-seconds: 3
     amplifier: 1
   resistance:
     enabled: true
@@ -68,7 +68,7 @@ revive-buffs:
     amplifier: 0
   fire-resistance:
     enabled: true
-    duration-seconds: 10
+    duration-seconds: 8
     amplifier: 0
 
 
