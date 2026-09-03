@@ -206,6 +206,7 @@ help:
   mywp: "  <yellow>/mywp (or /pwaypoints, /lfnode)</yellow> <dark_gray>-</dark_gray> <gray>Open personal waypoints</gray>"
   stash: "  <yellow>/stash (or /st, /safe)</yellow> <dark_gray>-</dark_gray> <gray>Open shared co-op stash</gray>"
   pstash: "  <yellow>/pstash (or /stashp, /pst, /mystash)</yellow> <dark_gray>-</dark_gray> <gray>Open personal stash</gray>"
+  trash: "  <yellow>/lltrash (or /trash, /dispose)</yellow> <dark_gray>-</dark_gray> <gray>Open quick trash GUI</gray>"
   tpq: "  <yellow>/tpq (or /teleportgui)</yellow> <dark_gray>-</dark_gray> <gray>Open player teleport GUI / request</gray>"
   radar: "  <yellow>/coradar (or /teamradar, /lfradar)</yellow> <dark_gray>-</dark_gray> <gray>Toggle teammate actionbar radar</gray>"
   revives: "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>"
@@ -272,4 +273,27 @@ update:
   ahead-player-header: "<yellow><bold>★ Lifeline Development Build</bold></yellow>"
   ahead-player-info: "<yellow>You are running <gold><bold>v<current></bold></gold>, which is ahead of the latest GitHub release <dark_gray>(<gray>v<latest></gray>)</dark_gray>.</yellow>"
   check-failed: "<red>✖ Could not check for updates from GitHub. Check server logs or try again later.</red>"
+
+trash:
+  title: "<gradient:#FF5555:#FFAA00><bold>Quick Trash</bold></gradient>"
+  confirm-button-name: "<red><bold>[ Confirm ]</bold></red>"
+  confirm-button-lore:
+    - "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+    - "<gray>Click to <red><bold>permanently delete</bold></red>"
+    - "<gray>all items placed in the trash bin.</gray>"
+    - ""
+    - "<red><bold>⚠ WARNING:</bold> <gray>Cannot be undone!</gray>"
+  info-button-name: "<yellow><bold>Trash Can Guide</bold></yellow>"
+  info-button-lore:
+    - "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+    - "<gray>• Place unwanted items in the slots above.</gray>"
+    - "<gray>• Click <red><bold>[ Confirm ]</bold></red> to destroy them.</gray>"
+    - "<gray>• Close this menu to retrieve your items safely.</gray>"
+  disposed: "<green>Successfully disposed of <yellow><count></yellow> items!</green>"
+  empty: "<yellow>The trash bin is empty! Place items inside first.</yellow>"
+  cancelled: "<yellow>Disposal cancelled. Your items have been safely returned.</yellow>"
+  no-permission: "<red>You do not have permission to use the trash bin.</red>"
+  downed-blocked: "<red>You cannot access the trash bin while downed!</red>"
+  globally-disabled: "<red>Quick trash is disabled on this server.</red>"
+
 

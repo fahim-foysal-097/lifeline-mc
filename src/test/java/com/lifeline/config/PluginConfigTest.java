@@ -327,4 +327,36 @@ public class PluginConfigTest {
         config.load(clampedConfig);
         assertEquals(1, config.getBackupMaxBackups());
     }
+
+    @Test
+    public void testTrashConfigDefaultsAndCustom() {
+        PluginConfig config = new PluginConfig(null);
+        YamlConfiguration emptyConfig = new YamlConfiguration();
+        config.load(emptyConfig);
+
+        assertTrue(config.isTrashEnabled());
+        assertTrue(config.isTrashSoundEffectsEnabled());
+
+        String customYaml = """
+                sound-effects: true
+                trash:
+                  enabled: false
+                  sound-effects: false
+                """;
+        YamlConfiguration customConfig = YamlConfiguration.loadConfiguration(new StringReader(customYaml));
+        config.load(customConfig);
+
+        assertFalse(config.isTrashEnabled());
+        assertFalse(config.isTrashSoundEffectsEnabled());
+
+        String soundDisabledMaster = """
+                sound-effects: false
+                trash:
+                  enabled: true
+                  sound-effects: true
+                """;
+        config.load(YamlConfiguration.loadConfiguration(new StringReader(soundDisabledMaster)));
+        assertTrue(config.isTrashEnabled());
+        assertFalse(config.isTrashSoundEffectsEnabled());
+    }
 }

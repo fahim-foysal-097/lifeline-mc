@@ -57,6 +57,13 @@ Works on **26.2+** too.
 - Configurable capacity: **27** (single chest) or **54** (double chest) slots (default: `27`).
 - Retains full item metadata and saves automatically upon closing the inventory or logging off.
 
+### Quick Trash (`/lltrash`, `/trash`, `/dispose`)
+
+- A GUI for quick and safe item disposal.
+- Drop junk into slots 0–17 and click **`[ Confirm ]`** (slot 22) to permanently delete them.
+- **Safety Guarantee**: If the player closes the window or disconnects without confirming, all items are safely returned to their inventory (or dropped at their feet if full).
+- Fully configurable sound effects and master toggle (`trash.enabled`).
+
 ### Downed & Revive System
 
 - Taking fatal damage (excluding void or `/kill`) puts players into a Downed state at half a heart instead of instantly killing them.
@@ -103,6 +110,7 @@ Works on **26.2+** too.
 | `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form | `lifeline.mywp`   |
 | `/stash`                            | `/st`, `/safe`                                    | Open shared stash                  | `lifeline.stash`  |
 | `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                | `lifeline.pstash` |
+| `/lltrash`                          | `/trash`, `/dispose`                              | Open quick trash disposal GUI      | `lifeline.trash`  |
 | `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form    | `lifeline.tpq`    |
 | `/tpq <player>`                     | —                                                 | Send a teleport request            | `lifeline.tpq`    |
 | `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request            | `lifeline.tpq`    |
@@ -165,6 +173,10 @@ radar:
   enabled-by-default: true
   max-distance: 40
   update-interval-ticks: 10
+
+trash:
+  enabled: true
+  sound-effects: true
 ```
 
 ### Customizing `messages.yml`

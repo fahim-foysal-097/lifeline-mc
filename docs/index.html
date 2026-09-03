@@ -470,18 +470,18 @@
                 <!-- Feature 9 -->
                 <div class="mc-glass-card group p-8 rounded-2xl">
                     <div
-                        class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/40 group-hover:rotate-3 transition-all duration-300">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-rose-500/20 group-hover:border-rose-500/40 group-hover:rotate-3 transition-all duration-300">
+                        <i class="fa-solid fa-trash-can"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
-                        MiniMessage & Localization</h3>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-rose-300 transition-colors">
+                        Quick Trash</h3>
                     <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
-                        All user text, GUI titles, and actionbar alerts are completely configurable in `messages.yml`
-                        with MiniMessage hex gradients & tags.
+                        A dedicated 27-slot chest GUI to safely dispose of unwanted junk items with an interactive
+                        [Confirm] button and automatic safety return on close.
                     </p>
                     <div
-                        class="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-800/40 group-hover:border-emerald-500/40 w-fit transition-colors">
-                        <span>/lifeline reload</span>
+                        class="flex items-center gap-2 text-xs font-mono text-rose-400 bg-rose-950/40 px-3 py-1.5 rounded-lg border border-rose-800/40 group-hover:border-rose-500/40 w-fit transition-colors">
+                        <span>/lltrash</span>
                     </div>
                 </div>
 
@@ -870,6 +870,28 @@
                                 <td class="py-4 px-6 text-xs text-amber-400">lifeline.pstash</td>
                             </tr>
 
+                            <!-- Command: /lltrash -->
+                            <tr
+                                class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
+                                <td class="py-4 px-6 font-bold text-rose-300 flex items-center gap-2">
+                                    <span>/lltrash</span>
+                                    <button onclick="copyCommand('/lltrash')"
+                                        class="text-slate-500 hover:text-rose-300 transition"><i
+                                            class="fa-regular fa-copy text-xs"></i></button>
+                                </td>
+                                <td class="py-4 px-6 text-xs">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/trash</span>
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/dispose</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-sans text-slate-300">Open 27-slot quick trash disposal GUI
+                                </td>
+                                <td class="py-4 px-6 text-xs text-amber-400">lifeline.trash</td>
+                            </tr>
+
                             <!-- Command 3 -->
                             <tr
                                 class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
@@ -1162,7 +1184,12 @@
 
 <span class="text-slate-500"># --- Personal Waypoints (/mywp) ---</span>
 <span class="text-indigo-400">personal-waypoints</span>:
-  <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span> <span class="text-slate-500"># Up to 27 waypoints per player</span></code></pre>
+  <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span> <span class="text-slate-500"># Up to 27 waypoints per player</span>
+
+<span class="text-slate-500"># --- Quick Trash (/lltrash) ---</span>
+<span class="text-indigo-400">trash</span>:
+  <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span> <span class="text-slate-500"># 27-slot safe disposal GUI</span>
+  <span class="text-indigo-400">sound-effects</span>: <span class="text-emerald-400">true</span></code></pre>
 
                 <!-- Tab 2: Messages YAML -->
                 <pre id="code-messages"

@@ -42,6 +42,7 @@ public final class Lifeline extends JavaPlugin {
     private com.lifeline.waypoint.PersonalWaypointManager personalWaypointManager;
     private com.lifeline.waypoint.PersonalWaypointGUI personalWaypointGUI;
     private com.lifeline.backup.BackupManager backupManager;
+    private com.lifeline.trash.TrashGUI trashGUI;
 
     @Override
     public void onEnable() {
@@ -65,6 +66,7 @@ public final class Lifeline extends JavaPlugin {
         this.personalWaypointManager = new com.lifeline.waypoint.PersonalWaypointManager(this);
         this.personalWaypointGUI = new com.lifeline.waypoint.PersonalWaypointGUI(this, this.personalWaypointManager);
         this.backupManager = new com.lifeline.backup.BackupManager(this);
+        this.trashGUI = new com.lifeline.trash.TrashGUI(this);
 
         // Register Event Listeners
         PluginManager pm = getServer().getPluginManager();
@@ -79,6 +81,7 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.personalWaypointManager, this);
         pm.registerEvents(this.personalWaypointGUI, this);
         pm.registerEvents(this.backupManager, this);
+        pm.registerEvents(this.trashGUI, this);
         pm.registerEvents(new com.lifeline.util.UpdateListener(this), this);
 
         registerCommands();
@@ -427,6 +430,44 @@ public final class Lifeline extends JavaPlugin {
             );
 
             commands.register(
+                    "lltrash",
+                    "Opens the quick trash GUI to dispose of unwanted items",
+                    List.of("trash", "dispose"),
+                    new BasicCommand() {
+                        @Override
+                        public void execute(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
+                                return;
+                            }
+
+                            if (!hasTrashPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "trash.no-permission");
+                                return;
+                            }
+
+                            if (!pluginConfig.isTrashEnabled()) {
+                                MessageUtil.sendPrefixed(player, "trash.globally-disabled");
+                                return;
+                            }
+
+                            if (downedManager.isDowned(player.getUniqueId())) {
+                                MessageUtil.sendPrefixed(player, "trash.downed-blocked");
+                                return;
+                            }
+
+                            trashGUI.open(player);
+                        }
+
+                        @Override
+                        public boolean canUse(CommandSender sender) {
+                            return hasTrashPermission(sender);
+                        }
+                    }
+            );
+
+            commands.register(
                     "lifeline",
                     "Lifeline plugin administration and management commands",
                     List.of("ll"),
@@ -454,7 +495,8 @@ public final class Lifeline extends JavaPlugin {
                                                 || top.getHolder() instanceof com.lifeline.vault.PersonalVaultHolder
                                                 || top.getHolder() instanceof com.lifeline.waypoint.WaypointGUI
                                                 || top.getHolder() instanceof com.lifeline.waypoint.PersonalWaypointGUI
-                                                || top.getHolder() instanceof com.lifeline.tether.TetherGUI) {
+                                                || top.getHolder() instanceof com.lifeline.tether.TetherGUI
+                                                || top.getHolder() instanceof com.lifeline.trash.TrashHolder) {
                                             p.closeInventory();
                                         }
                                     }
@@ -662,12 +704,17 @@ public final class Lifeline extends JavaPlugin {
         return sender.hasPermission("lifeline.tpq") || sender.hasPermission("lifeline.tether");
     }
 
+    private boolean hasTrashPermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.trash") || sender.hasPermission("lifeline.use");
+    }
+
     private void sendHelp(CommandSender sender) {
         MessageUtil.sendPrefixed(sender, "help.header");
         MessageUtil.sendRaw(sender, "help.node");
         MessageUtil.sendRaw(sender, "help.mywp");
         MessageUtil.sendRaw(sender, "help.stash");
         MessageUtil.sendRaw(sender, "help.pstash");
+        MessageUtil.sendRaw(sender, "help.trash");
         MessageUtil.sendRaw(sender, "help.tpq");
         MessageUtil.sendRaw(sender, "help.radar");
         MessageUtil.sendRaw(sender, "help.revives");
@@ -747,6 +794,10 @@ public final class Lifeline extends JavaPlugin {
 
     public com.lifeline.backup.BackupManager getBackupManager() {
         return backupManager;
+    }
+
+    public com.lifeline.trash.TrashGUI getTrashGUI() {
+        return trashGUI;
     }
 
     /**

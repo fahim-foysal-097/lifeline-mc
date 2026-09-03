@@ -74,6 +74,10 @@ public class PluginConfig {
     // Update Checker
     private boolean updateCheckerEnabled;
 
+    // Quick Trash
+    private boolean trashEnabled;
+    private boolean trashSoundEffectsEnabled;
+
     public PluginConfig(Lifeline plugin) {
         this.plugin = plugin;
         if (plugin != null) {
@@ -172,6 +176,10 @@ public class PluginConfig {
 
         // 15. Update Checker
         this.updateCheckerEnabled = config.getBoolean("update-checker", true);
+
+        // 16. Quick Trash
+        this.trashEnabled = config.getBoolean("trash.enabled", true);
+        this.trashSoundEffectsEnabled = config.getBoolean("trash.sound-effects", true);
     }
 
     public int getMaxRevives() {
@@ -332,5 +340,13 @@ public class PluginConfig {
 
     public boolean isUpdateCheckerEnabled() {
         return updateCheckerEnabled;
+    }
+
+    public boolean isTrashEnabled() {
+        return trashEnabled;
+    }
+
+    public boolean isTrashSoundEffectsEnabled() {
+        return trashSoundEffectsEnabled && soundEffectsEnabled;
     }
 }

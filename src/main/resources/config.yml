@@ -187,3 +187,16 @@ backup:
 update-checker: true
 
 
+# ------------------------------------------------------------------------------
+# Quick Trash Settings (/lltrash, /trash, /dispose)
+# ------------------------------------------------------------------------------
+# 27-slot disposal GUI allowing players to safely trash unwanted items upon confirmation.
+trash:
+  # Master toggle to enable/disable the quick trash feature.
+  enabled: true
+
+  # Whether sound effects play when opening trash and disposing of items.
+  sound-effects: true
+
+
+
