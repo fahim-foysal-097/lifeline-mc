@@ -57,7 +57,7 @@ Works on **26.2+** too.
 - Configurable capacity: **27** (single chest) or **54** (double chest) slots (default: `27`).
 - Retains full item metadata and saves automatically upon closing the inventory or logging off.
 
-### Quick Trash (`/lltrash`, `/trash`, `/dispose`)
+### Quick Trash (`/lltrash`, `/lft`, `/lftrash`, `/llt`)
 
 - A GUI for quick and safe item disposal.
 - Drop junk into slots 0–17 and click **`[ Confirm ]`** (slot 22) to permanently delete them.
@@ -110,7 +110,7 @@ Works on **26.2+** too.
 | `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form | `lifeline.mywp`   |
 | `/stash`                            | `/st`, `/safe`                                    | Open shared stash                  | `lifeline.stash`  |
 | `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                | `lifeline.pstash` |
-| `/lltrash`                          | `/trash`, `/dispose`                              | Open quick trash disposal GUI      | `lifeline.trash`  |
+| `/lltrash`                          | `/lft`, `/lftrash`, `/llt`                        | Open quick trash disposal GUI      | `lifeline.trash`  |
 | `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form    | `lifeline.tpq`    |
 | `/tpq <player>`                     | —                                                 | Send a teleport request            | `lifeline.tpq`    |
 | `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request            | `lifeline.tpq`    |

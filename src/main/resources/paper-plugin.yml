@@ -75,6 +75,9 @@ permissions:
   lifeline.trash:
     description: Allows access to the quick trash disposal GUI.
     default: true
+  lifeline.lft:
+    description: Alias for lifeline.trash.
+    default: true
   lifeline.admin:
     description: Allows reloading configuration and managing other players' revives.
     default: op

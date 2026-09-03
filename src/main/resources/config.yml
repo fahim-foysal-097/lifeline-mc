@@ -188,7 +188,7 @@ update-checker: true
 
 
 # ------------------------------------------------------------------------------
-# Quick Trash Settings (/lltrash, /trash, /dispose)
+# Quick Trash Settings (/lltrash, /lft, /lftrash)
 # ------------------------------------------------------------------------------
 # 27-slot disposal GUI allowing players to safely trash unwanted items upon confirmation.
 trash:

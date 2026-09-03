@@ -206,7 +206,7 @@ help:
   mywp: "  <yellow>/mywp (or /pwaypoints, /lfnode)</yellow> <dark_gray>-</dark_gray> <gray>Open personal waypoints</gray>"
   stash: "  <yellow>/stash (or /st, /safe)</yellow> <dark_gray>-</dark_gray> <gray>Open shared co-op stash</gray>"
   pstash: "  <yellow>/pstash (or /stashp, /pst, /mystash)</yellow> <dark_gray>-</dark_gray> <gray>Open personal stash</gray>"
-  trash: "  <yellow>/lltrash (or /trash, /dispose)</yellow> <dark_gray>-</dark_gray> <gray>Open quick trash GUI</gray>"
+  trash: "  <yellow>/lltrash (or /lft, /lftrash)</yellow> <dark_gray>-</dark_gray> <gray>Open quick trash GUI</gray>"
   tpq: "  <yellow>/tpq (or /teleportgui)</yellow> <dark_gray>-</dark_gray> <gray>Open player teleport GUI / request</gray>"
   radar: "  <yellow>/coradar (or /teamradar, /lfradar)</yellow> <dark_gray>-</dark_gray> <gray>Toggle teammate actionbar radar</gray>"
   revives: "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>"

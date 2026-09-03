@@ -5,7 +5,7 @@
 
     <groupId>com.lifeline</groupId>
     <artifactId>Lifeline</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>Lifeline</name>

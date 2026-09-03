@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.lifeline"
-version = "1.0.0"
+version = "1.0.1"
 description = "2-Player Co-op Plugin for Paper: Shared Waypoints, Shared Vault, tp and Downed/Revive System"
 
 java {

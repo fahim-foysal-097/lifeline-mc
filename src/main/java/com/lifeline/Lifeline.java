@@ -432,7 +432,7 @@ public final class Lifeline extends JavaPlugin {
             commands.register(
                     "lltrash",
                     "Opens the quick trash GUI to dispose of unwanted items",
-                    List.of("trash", "dispose"),
+                    List.of("lft", "lftrash", "llt"),
                     new BasicCommand() {
                         @Override
                         public void execute(CommandSourceStack stack, String[] args) {
@@ -710,7 +710,9 @@ public final class Lifeline extends JavaPlugin {
     }
 
     private boolean hasTrashPermission(CommandSender sender) {
-        return sender.hasPermission("lifeline.trash") || sender.hasPermission("lifeline.use");
+        return sender.hasPermission("lifeline.trash")
+                || sender.hasPermission("lifeline.lft")
+                || sender.hasPermission("lifeline.use");
     }
 
     private void sendHelp(CommandSender sender) {
