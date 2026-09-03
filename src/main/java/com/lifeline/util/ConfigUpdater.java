@@ -51,15 +51,22 @@ public final class ConfigUpdater {
             YamlConfiguration currentConfig = YamlConfiguration.loadConfiguration(file);
 
             List<String> addedKeys = new ArrayList<>();
-            mergeSections(defaultConfig, currentConfig, "", addedKeys);
+            int[] commentsAdded = new int[1];
 
-            if (!addedKeys.isEmpty()) {
+            if (currentConfig.options().getHeader().isEmpty() && !defaultConfig.options().getHeader().isEmpty()) {
+                currentConfig.options().setHeader(defaultConfig.options().getHeader());
+                commentsAdded[0]++;
+            }
+
+            mergeSections(defaultConfig, currentConfig, "", addedKeys, commentsAdded);
+
+            if (!addedKeys.isEmpty() || commentsAdded[0] > 0) {
                 currentConfig.options().copyDefaults(true);
                 currentConfig.setDefaults(defaultConfig);
                 currentConfig.save(file);
 
                 plugin.getLogger().info("Updated " + resourcePath + " with " + addedKeys.size()
-                        + " new setting(s) from latest update: " + String.join(", ", addedKeys));
+                        + " new setting(s) and comments from latest update.");
             }
 
             return currentConfig;
@@ -78,11 +85,14 @@ public final class ConfigUpdater {
         if (defaultConfig == null || targetConfig == null) {
             return addedKeys;
         }
-        mergeSections(defaultConfig, targetConfig, "", addedKeys);
+        if (targetConfig.options().getHeader().isEmpty() && !defaultConfig.options().getHeader().isEmpty()) {
+            targetConfig.options().setHeader(defaultConfig.options().getHeader());
+        }
+        mergeSections(defaultConfig, targetConfig, "", addedKeys, new int[1]);
         return addedKeys;
     }
 
-    private static void mergeSections(ConfigurationSection defaultSection, ConfigurationSection targetSection, String currentPath, List<String> addedKeys) {
+    private static void mergeSections(ConfigurationSection defaultSection, ConfigurationSection targetSection, String currentPath, List<String> addedKeys, int[] commentsAdded) {
         for (String key : defaultSection.getKeys(false)) {
             String fullPath = currentPath.isEmpty() ? key : currentPath + "." + key;
 
@@ -97,7 +107,7 @@ public final class ConfigUpdater {
                         childTarget = targetSection.getConfigurationSection(key);
                     }
                     if (childTarget != null) {
-                        mergeSections(childDefault, childTarget, fullPath, addedKeys);
+                        mergeSections(childDefault, childTarget, fullPath, addedKeys, commentsAdded);
                     }
                 }
             } else {
@@ -105,6 +115,26 @@ public final class ConfigUpdater {
                     Object defaultValue = defaultSection.get(key);
                     targetSection.set(key, defaultValue);
                     addedKeys.add(fullPath);
+                }
+            }
+
+            // Copy block comments if target is missing them
+            List<String> comments = defaultSection.getComments(key);
+            if (comments != null && !comments.isEmpty()) {
+                List<String> targetComments = targetSection.getComments(key);
+                if (targetComments == null || targetComments.isEmpty()) {
+                    targetSection.setComments(key, comments);
+                    commentsAdded[0]++;
+                }
+            }
+
+            // Copy inline comments if target is missing them
+            List<String> inlineComments = defaultSection.getInlineComments(key);
+            if (inlineComments != null && !inlineComments.isEmpty()) {
+                List<String> targetInlineComments = targetSection.getInlineComments(key);
+                if (targetInlineComments == null || targetInlineComments.isEmpty()) {
+                    targetSection.setInlineComments(key, inlineComments);
+                    commentsAdded[0]++;
                 }
             }
         }

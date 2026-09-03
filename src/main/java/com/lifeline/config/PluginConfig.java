@@ -66,6 +66,9 @@ public class PluginConfig {
     // Personal Waypoints
     private boolean personalWaypointsEnabled;
 
+    // Update Checker
+    private boolean updateCheckerEnabled;
+
     public PluginConfig(Lifeline plugin) {
         this.plugin = plugin;
         if (plugin != null) {
@@ -156,6 +159,9 @@ public class PluginConfig {
 
         // 13. Personal Waypoints
         this.personalWaypointsEnabled = config.getBoolean("personal-waypoints.enabled", true);
+
+        // 14. Update Checker
+        this.updateCheckerEnabled = config.getBoolean("update-checker", true);
     }
 
     public int getMaxRevives() {
@@ -300,5 +306,9 @@ public class PluginConfig {
 
     public boolean isPersonalWaypointsEnabled() {
         return personalWaypointsEnabled;
+    }
+
+    public boolean isUpdateCheckerEnabled() {
+        return updateCheckerEnabled;
     }
 }

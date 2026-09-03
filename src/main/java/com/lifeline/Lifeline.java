@@ -76,8 +76,16 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.personalVaultManager, this);
         pm.registerEvents(this.personalWaypointManager, this);
         pm.registerEvents(this.personalWaypointGUI, this);
+        pm.registerEvents(new com.lifeline.util.UpdateListener(this), this);
 
         registerCommands();
+
+        if (this.pluginConfig.isUpdateCheckerEnabled()) {
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                com.lifeline.util.UpdateChecker.checkForUpdates(getPluginMeta().getVersion())
+                        .thenAccept(result -> com.lifeline.util.UpdateChecker.notifyConsole(this, result));
+            }, 40L);
+        }
 
         getLogger().info("Lifeline v" + getPluginMeta().getVersion() + " loaded.");
     }
@@ -462,6 +470,19 @@ public final class Lifeline extends JavaPlugin {
                                     saveAllStashesAndPlayers(true);
                                     MessageUtil.sendPrefixed(sender, "stash.saved");
                                 }
+                                case "update" -> {
+                                    if (!sender.hasPermission("lifeline.admin")) {
+                                        MessageUtil.sendPrefixed(sender, "general.no-permission");
+                                        return;
+                                    }
+                                    MessageUtil.sendPrefixed(sender, "update.checking");
+                                    com.lifeline.util.UpdateChecker.checkForUpdates(getPluginMeta().getVersion())
+                                            .thenAccept(result -> {
+                                                Bukkit.getScheduler().runTask(Lifeline.this, () -> {
+                                                    com.lifeline.util.UpdateChecker.notifySender(Lifeline.this, sender, result);
+                                                });
+                                            });
+                                }
                                 case "radar" -> {
                                     if (!(sender instanceof Player player)) {
                                         MessageUtil.sendPrefixed(sender, "general.player-only");
@@ -537,6 +558,7 @@ public final class Lifeline extends JavaPlugin {
                                     list.add("reload");
                                     list.add("resetrevives");
                                     list.add("save");
+                                    list.add("update");
                                 }
                                 String prefix = args.length == 0 ? "" : args[0].toLowerCase();
                                 return list.stream().filter(s -> s.startsWith(prefix)).toList();
@@ -613,6 +635,7 @@ public final class Lifeline extends JavaPlugin {
         MessageUtil.sendRaw(sender, "help.revives");
         if (sender.hasPermission("lifeline.admin")) {
             MessageUtil.sendRaw(sender, "help.save");
+            MessageUtil.sendRaw(sender, "help.update");
             MessageUtil.sendRaw(sender, "help.reload");
             MessageUtil.sendRaw(sender, "help.resetrevives");
         }

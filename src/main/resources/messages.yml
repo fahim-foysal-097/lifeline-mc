@@ -210,6 +210,7 @@ help:
   radar: "  <yellow>/coradar (or /teamradar, /lfradar)</yellow> <dark_gray>-</dark_gray> <gray>Toggle teammate actionbar radar</gray>"
   revives: "  <yellow>/lifeline revives [player]</yellow> <dark_gray>-</dark_gray> <gray>Check remaining revives</gray>"
   save: "  <yellow>/lifeline save</yellow> <dark_gray>-</dark_gray> <gray>Force-save all stashes to disk</gray>"
+  update: "  <yellow>/lifeline update</yellow> <dark_gray>-</dark_gray> <gray>Check GitHub for plugin updates</gray>"
   reload: "  <yellow>/lifeline reload</yellow> <dark_gray>-</dark_gray> <gray>Reload configuration</gray>"
   resetrevives: "  <yellow>/lifeline resetrevives <player></yellow> <dark_gray>-</dark_gray> <gray>Reset player's revives</gray>"
 
@@ -251,3 +252,14 @@ bedrock:
   tpq-btn-normal: "<player> [<dim>]\n<dist> | HP: <health>"
   tpq-btn-downed: "<player> [DOWNED]\n<dist>"
   tpq-btn-spectator: "<player> [SPECTATOR]\n<dist>"
+
+update:
+  checking: "<yellow>Checking GitHub for Lifeline updates...</yellow>"
+  up-to-date: "<green>Lifeline is currently up to date (<gold>v<current></gold>).</green>"
+  outdated-player-header: "<yellow><bold>⚠ Lifeline Update Available!</bold></yellow>"
+  outdated-player-info: "<yellow>A new version is available: <gold><bold>v<latest></bold></gold> <dark_gray>(Current: <gray>v<current></gray>)</dark_gray></yellow>"
+  outdated-player-link: "<yellow>Download release: <aqua><underlined><click:open_url:'<url>'><hover:show_text:'<green>Click to open GitHub release</green>'><url></click></underlined></aqua></yellow>"
+  ahead-player-header: "<yellow><bold>★ Lifeline Development Build</bold></yellow>"
+  ahead-player-info: "<yellow>You are running <gold><bold>v<current></bold></gold>, which is ahead of the latest GitHub release <dark_gray>(<gray>v<latest></gray>)</dark_gray>.</yellow>"
+  check-failed: "<red>✖ Could not check for updates from GitHub. Check server logs or try again later.</red>"
+

@@ -133,4 +133,45 @@ public class ConfigUpdaterTest {
         assertEquals(3, userConfig.getInt("waypoints.teleport-warmup-seconds"));
         assertEquals(2, userConfig.getInt("waypoints.max-pages"));
     }
+
+    @Test
+    public void testMergeCopiesCommentsAndInlineComments() {
+        String defaultYaml = """
+                # Primary revive setting
+                # Set to 0 for infinite revives
+                max-revives: 3 # default 3
+                # Waypoint settings
+                waypoints:
+                  # Warmup before teleport
+                  teleport-warmup-seconds: 3
+                """;
+
+        String userYaml = """
+                max-revives: 5
+                """;
+
+        YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new StringReader(defaultYaml));
+        YamlConfiguration userConfig = YamlConfiguration.loadConfiguration(new StringReader(userYaml));
+
+        ConfigUpdater.merge(defaultConfig, userConfig);
+
+        // Comments should be copied for existing key if missing
+        List<String> maxRevivesComments = userConfig.getComments("max-revives");
+        assertFalse(maxRevivesComments.isEmpty());
+        assertTrue(maxRevivesComments.contains("Primary revive setting"));
+
+        // Inline comment should be copied
+        List<String> maxRevivesInline = userConfig.getInlineComments("max-revives");
+        assertFalse(maxRevivesInline.isEmpty());
+        assertTrue(maxRevivesInline.contains("default 3"));
+
+        // Comments should be copied for new section and child keys
+        List<String> waypointComments = userConfig.getComments("waypoints");
+        assertFalse(waypointComments.isEmpty());
+        assertTrue(waypointComments.contains("Waypoint settings"));
+
+        List<String> warmupComments = userConfig.getComments("waypoints.teleport-warmup-seconds");
+        assertFalse(warmupComments.isEmpty());
+        assertTrue(warmupComments.contains("Warmup before teleport"));
+    }
 }
