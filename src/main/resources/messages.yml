@@ -271,7 +271,7 @@ update:
   outdated-player-info: "<yellow>A new version is available: <gold><bold>v<latest></bold></gold> <dark_gray>(Current: <gray>v<current></gray>)</dark_gray></yellow>"
   outdated-player-link: "<yellow>Download release: <aqua><underlined><click:open_url:'<url>'><hover:show_text:'<green>Click to open GitHub release</green>'><url></click></underlined></aqua></yellow>"
   ahead-player-header: "<yellow><bold>★ Lifeline Development Build</bold></yellow>"
-  ahead-player-info: "<yellow>You are running <gold><bold>v<current></bold></gold>, which is ahead of the latest GitHub release <dark_gray>(<gray>v<latest></gray>)</dark_gray>.</yellow>"
+  ahead-player-info: "<yellow>You are running <gold><bold>v<current></bold></gold>, which is ahead of the latest GitHub release <dark_gray>(<gray><latest></gray>)</dark_gray>.</yellow>"
   check-failed: "<red>✖ Could not check for updates from GitHub. Check server logs or try again later.</red>"
 
 trash:
