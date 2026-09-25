@@ -66,6 +66,12 @@ permissions:
   lifeline.tether:
     description: Alias for lifeline.tpq.
     default: true
+  lifeline.tpqhere:
+    description: Allows summoning players to your location with /tpq here or /tpqhere.
+    default: true
+  lifeline.tpqh:
+    description: Alias for lifeline.tpqhere.
+    default: true
   lifeline.revive:
     description: Allows reviving downed teammates and checking own revives.
     default: true

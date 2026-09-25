@@ -149,6 +149,7 @@ public class TetherGUI implements Listener, InventoryHolder {
             lore.add(MessageUtil.get("teleport.head-lore-spectator-footer"));
         } else {
             lore.add(MessageUtil.get("teleport.head-lore-click-footer"));
+            lore.add(MessageUtil.get("teleport.head-lore-summon-footer"));
         }
 
         meta.lore(lore);
@@ -205,7 +206,11 @@ public class TetherGUI implements Listener, InventoryHolder {
             return;
         }
 
-        manager.sendRequest(player, target);
+        if (event.isRightClick()) {
+            manager.sendRequest(player, target, TetherRequest.Type.SUMMON_HERE);
+        } else {
+            manager.sendRequest(player, target, TetherRequest.Type.TELEPORT_TO);
+        }
     }
 
     @EventHandler

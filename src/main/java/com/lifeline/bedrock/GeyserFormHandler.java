@@ -279,7 +279,7 @@ final class GeyserFormHandler {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Player target = Bukkit.getPlayer(targetUuid);
                 if (target != null && target.isOnline()) {
-                    manager.sendRequest(player, target);
+                    openTetherActionForm(player, target, manager, plugin);
                 } else {
                     // Player left after the form was opened
                     String name = Bukkit.getOfflinePlayer(targetUuid).getName();
@@ -290,6 +290,53 @@ final class GeyserFormHandler {
         });
 
         sendForm(player, builder.build());
+    }
+
+    static void openTetherActionForm(Player player, Player target, TetherManager manager, Lifeline plugin) {
+        if (!isBedrockPlayer(player)) return;
+
+        String title = MessageUtil.getRaw("bedrock.tpq-action-title", "Teleport: <player>")
+                .replace("<player>", target.getName());
+        String dim = getDimensionName(target.getWorld().getName());
+        String distStr = player.getWorld().equals(target.getWorld())
+                ? ((int) player.getLocation().distance(target.getLocation())) + "m"
+                : "Diff Dimension";
+        int health = (int) Math.ceil(target.getHealth());
+
+        String content = MessageUtil.getRaw("bedrock.tpq-action-content", "Dimension: <dim>\nDistance: <dist>\nHealth: <health> HP")
+                .replace("<dim>", dim)
+                .replace("<dist>", distStr)
+                .replace("<health>", String.valueOf(health));
+
+        String tpBtn = MessageUtil.getRaw("bedrock.tpq-action-tp-btn", "✦ Teleport to Player");
+        String summonBtn = MessageUtil.getRaw("bedrock.tpq-action-summon-btn", "✦ Summon Player Here");
+        String backBtn = MessageUtil.getRaw("bedrock.tpq-action-back-btn", "« Back to Players");
+
+        SimpleForm form = SimpleForm.builder()
+                .title(title)
+                .content(content)
+                .button(tpBtn, FormImage.Type.PATH, "textures/ui/portalIcon")
+                .button(summonBtn, FormImage.Type.PATH, "textures/ui/icon_steve")
+                .button(backBtn, FormImage.Type.PATH, "textures/ui/arrow_left")
+                .validResultHandler(response -> {
+                    int clicked = response.clickedButtonId();
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (!target.isOnline()) {
+                            MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", target.getName()));
+                            return;
+                        }
+                        if (clicked == 0) {
+                            manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.TELEPORT_TO);
+                        } else if (clicked == 1) {
+                            manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
+                        } else if (clicked == 2) {
+                            openTetherForm(player, manager, plugin);
+                        }
+                    });
+                })
+                .build();
+
+        sendForm(player, form);
     }
 
     static void openPersonalWaypointsForm(Player player, com.lifeline.waypoint.PersonalWaypointManager manager, Lifeline plugin) {

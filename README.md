@@ -73,17 +73,19 @@ Works on **26.2+** too.
 - If the timer runs out or the player takes lethal damage while downed, regular death occurs (`PlayerDeathEvent`). Compatible with grave and death-chest plugins.
 - Configurable max revives (`max-revives: 0` for infinite) and master toggle (`revive-enabled`).
 
-### Player Teleportation (`/tpq`)
+### Player Teleportation & Summon (`/tpq`, `/tpqhere`)
 
 - Open the teleport menu with `/tpq` or send a direct request via `/tpq <player>`.
+- Request a partner to teleport to your location with `/tpq here <player>` or `/tpqhere [player]`.
 - Displays teammate status, current dimension, distance in blocks, and remaining health.
+- Chest GUI supports **Left-click** to teleport to player, and **Right-click** to summon player here.
 - Interactive chat confirmation buttons, plus shorthand commands (`/tpq a`, `/tpq d`, `/tpq c`) for mobile and Bedrock players.
 - Configurable warm-up delay that cancels on movement or damage.
 
 ### Native Bedrock Forms (Geyser API)
 
 - When Bedrock players join through Geyser, Lifeline automatically serves native Bedrock Form UI windows instead of virtual chest inventories.
-- Includes form-based waypoint browsing, action modals (teleport/delete), text inputs for naming waypoints, and clean button lists for `/tpq`.
+- Includes form-based waypoint browsing, action modals (teleport/delete), text inputs for naming waypoints, and clean button lists for `/tpq` with Teleport and Summon action options.
 - Java players continue to receive normal chest GUIs.
 
 ### Teammate Actionbar Radar (`/coradar`)
@@ -104,24 +106,26 @@ Works on **26.2+** too.
 
 ## Commands & Permissions
 
-| Command                             | Aliases                                           | Description                        | Permission        |
-| :---------------------------------- | :------------------------------------------------ | :--------------------------------- | :---------------- |
-| `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open shared waypoints GUI / form   | `lifeline.node`   |
-| `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form | `lifeline.mywp`   |
-| `/stash`                            | `/st`, `/safe`                                    | Open shared stash                  | `lifeline.stash`  |
-| `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                | `lifeline.pstash` |
-| `/lltrash`                          | `/lft`, `/lftrash`, `/llt`                        | Open quick trash disposal GUI      | `lifeline.trash`  |
-| `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form    | `lifeline.tpq`    |
-| `/tpq <player>`                     | —                                                 | Send a teleport request            | `lifeline.tpq`    |
-| `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport request            | `lifeline.tpq`    |
-| `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport request              | `lifeline.tpq`    |
-| `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport request   | `lifeline.tpq`    |
-| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar             | `lifeline.radar`  |
-| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state          | `lifeline.radar`  |
-| `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives            | `lifeline.revive` |
-| `/lifeline backup [create\|list]`   | `/ll backup`                                      | Create or list data backups        | `lifeline.admin`  |
-| `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages    | `lifeline.admin`  |
-| `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters       | `lifeline.admin`  |
+| Command                             | Aliases                                           | Description                                  | Permission         |
+| :---------------------------------- | :------------------------------------------------ | :------------------------------------------- | :----------------- |
+| `/node`                             | `/nd`, `/wp`, `/nodes`, `/waypoint`, `/waypoints` | Open shared waypoints GUI / form             | `lifeline.node`    |
+| `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form           | `lifeline.mywp`    |
+| `/stash`                            | `/st`, `/safe`                                    | Open shared stash                            | `lifeline.stash`   |
+| `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                          | `lifeline.pstash`  |
+| `/lltrash`                          | `/lft`, `/lftrash`, `/llt`                        | Open quick trash disposal GUI                | `lifeline.trash`   |
+| `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form              | `lifeline.tpq`     |
+| `/tpq <player>`                     | —                                                 | Send a teleport request                      | `lifeline.tpq`     |
+| `/tpq here <player>`                | `/tpq h`, `/tpq summon`                           | Request player to teleport to you (summon)   | `lifeline.tpq`     |
+| `/tpqhere [player]`                 | `/tpqh`, `/tphere`, `/teleportheregui`            | Open summon GUI or summon player directly    | `lifeline.tpqhere` |
+| `/tpq accept [player]`              | `/tpq a`                                          | Accept teleport / summon request             | `lifeline.tpq`     |
+| `/tpq deny [player]`                | `/tpq d`, `/tpq decline`                          | Deny teleport / summon request               | `lifeline.tpq`     |
+| `/tpq cancel`                       | `/tpq c`                                          | Cancel outgoing teleport / summon request    | `lifeline.tpq`     |
+| `/coradar`                          | `/teamradar`, `/lfradar`                          | Toggle actionbar radar                       | `lifeline.radar`   |
+| `/lifeline radar [on\|off\|toggle]` | `/ll radar`                                       | Change radar toggle state                    | `lifeline.radar`   |
+| `/lifeline revives [player]`        | `/ll revives`                                     | Check remaining revives                      | `lifeline.revive`  |
+| `/lifeline backup [create\|list]`   | `/ll backup`                                      | Create or list data backups                  | `lifeline.admin`   |
+| `/lifeline reload`                  | `/ll reload`                                      | Reload configuration & messages              | `lifeline.admin`   |
+| `/lifeline resetrevives <player>`   | `/ll resetrevives`                                | Reset player revive counters                 | `lifeline.admin`   |
 
 ---
 

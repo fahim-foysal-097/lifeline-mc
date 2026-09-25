@@ -26,12 +26,35 @@ public class TetherRequestTest {
     }
 
     @Test
+    public void testTetherRequestTypes() {
+        UUID sender = UUID.randomUUID();
+        UUID target = UUID.randomUUID();
+        long now = System.currentTimeMillis();
+
+        // Default constructor should default to TELEPORT_TO
+        TetherRequest defaultReq = new TetherRequest(sender, "Sender", target, "Target", now, now + 30000);
+        assertEquals(TetherRequest.Type.TELEPORT_TO, defaultReq.type());
+
+        // Explicit constructor with SUMMON_HERE
+        TetherRequest summonReq = new TetherRequest(sender, "Sender", target, "Target", TetherRequest.Type.SUMMON_HERE, now, now + 30000);
+        assertEquals(TetherRequest.Type.SUMMON_HERE, summonReq.type());
+        assertFalse(summonReq.isExpired());
+        assertTrue(summonReq.getRemainingSeconds() > 0);
+    }
+
+    @Test
     public void testClickButtonPlaceholderResolution() {
         String template = "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept teleport request from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>";
         String resolved = template.replace("<player>", "TestPlayer");
 
         net.kyori.adventure.text.Component component = com.lifeline.util.MessageUtil.parse(resolved);
         assertNotNull(component);
+
+        // Verify summon button template
+        String summonTemplate = "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept summon from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>";
+        String summonResolved = summonTemplate.replace("<player>", "TestPlayer");
+        net.kyori.adventure.text.Component summonComponent = com.lifeline.util.MessageUtil.parse(summonResolved);
+        assertNotNull(summonComponent);
 
         // Verify that parsing unparsed placeholder doesn't crash or break
         com.lifeline.util.MessageUtil.load(new org.bukkit.configuration.file.YamlConfiguration());

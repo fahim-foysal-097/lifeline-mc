@@ -49,19 +49,36 @@ public class TetherManager implements Listener {
     }
 
     /**
-     * Sends a teleport request from sender to target.
+     * Sends a teleport request from sender to target defaulting to TELEPORT_TO.
      */
     public boolean sendRequest(Player sender, Player target) {
+        return sendRequest(sender, target, TetherRequest.Type.TELEPORT_TO);
+    }
+
+    /**
+     * Sends a teleport or summon request from sender to target.
+     */
+    public boolean sendRequest(Player sender, Player target, TetherRequest.Type type) {
         if (sender == null || target == null) {
             return false;
+        }
+
+        if (type == null) {
+            type = TetherRequest.Type.TELEPORT_TO;
         }
 
         UUID senderUuid = sender.getUniqueId();
         UUID targetUuid = target.getUniqueId();
 
-        // Edge case: Self-teleport
+        // Edge case: Self-teleport / Self-summon
         if (senderUuid.equals(targetUuid)) {
             MessageUtil.sendPrefixed(sender, "teleport.self-target");
+            return false;
+        }
+
+        // Edge case: Sender is in Spectator mode
+        if (sender.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+            MessageUtil.sendPrefixed(sender, "teleport.sender-spectator");
             return false;
         }
 
@@ -80,6 +97,12 @@ public class TetherManager implements Listener {
         // Edge case: Target is downed
         if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(targetUuid)) {
             MessageUtil.sendPrefixed(sender, "teleport.target-downed", MessageUtil.p("player", target.getName()));
+            return false;
+        }
+
+        // Edge case: Sender is in the void while trying to summon target to sender
+        if (type == TetherRequest.Type.SUMMON_HERE && sender.getLocation().getY() < sender.getWorld().getMinHeight()) {
+            MessageUtil.sendPrefixed(sender, "teleport.teleport-cancelled-void");
             return false;
         }
 
@@ -107,27 +130,39 @@ public class TetherManager implements Listener {
         long now = System.currentTimeMillis();
         long expiry = now + (timeoutSec * 1000L);
 
-        TetherRequest request = new TetherRequest(senderUuid, sender.getName(), targetUuid, target.getName(), now, expiry);
+        TetherRequest request = new TetherRequest(senderUuid, sender.getName(), targetUuid, target.getName(), type, now, expiry);
         outgoingRequests.put(senderUuid, request);
         incomingRequests.computeIfAbsent(targetUuid, k -> new ConcurrentHashMap<>()).put(senderUuid, request);
 
         // Notify sender
-        MessageUtil.sendPrefixed(sender, "teleport.request-sent-sender",
+        String senderMsgKey = type == TetherRequest.Type.SUMMON_HERE
+                ? "teleport.summon-sent-sender"
+                : "teleport.request-sent-sender";
+        MessageUtil.sendPrefixed(sender, senderMsgKey,
                 MessageUtil.unparsed("player", target.getName()),
                 MessageUtil.p("seconds", String.valueOf(timeoutSec)));
+
         if (config.isSoundEffectsEnabled()) {
             sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.2f);
         }
 
         // Notify target with interactive clickable components
-        MessageUtil.sendPrefixed(target, "teleport.request-received-target", MessageUtil.unparsed("player", sender.getName()));
-
-        // Pre-substitute player name into raw button template so <click:run_command:'/tpq accept <player>'> has the actual name
         String escapedSender = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().escapeTags(sender.getName()).replace("'", "\\'");
-        String rawButtons = MessageUtil.getRaw("teleport.request-received-buttons",
-                "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept teleport request from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>   <red><bold><click:run_command:'/tpq deny <player>'><hover:show_text:'<red>Click to decline teleport request from <player></red>'>[✖ DECLINE]</click></hover></bold></red>")
-                .replace("<player>", escapedSender);
-        MessageUtil.sendPrefixed(target, rawButtons);
+        if (type == TetherRequest.Type.SUMMON_HERE) {
+            MessageUtil.sendPrefixed(target, "teleport.summon-received-target", MessageUtil.unparsed("player", sender.getName()));
+
+            String rawButtons = MessageUtil.getRaw("teleport.summon-received-buttons",
+                    "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept summon from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>   <red><bold><click:run_command:'/tpq deny <player>'><hover:show_text:'<red>Click to decline summon from <player></red>'>[✖ DECLINE]</click></hover></bold></red>")
+                    .replace("<player>", escapedSender);
+            MessageUtil.sendPrefixed(target, rawButtons);
+        } else {
+            MessageUtil.sendPrefixed(target, "teleport.request-received-target", MessageUtil.unparsed("player", sender.getName()));
+
+            String rawButtons = MessageUtil.getRaw("teleport.request-received-buttons",
+                    "<green><bold><click:run_command:'/tpq accept <player>'><hover:show_text:'<green>Click to accept teleport request from <player></green>'>[✔ ACCEPT]</click></hover></bold></green>   <red><bold><click:run_command:'/tpq deny <player>'><hover:show_text:'<red>Click to decline teleport request from <player></red>'>[✖ DECLINE]</click></hover></bold></red>")
+                    .replace("<player>", escapedSender);
+            MessageUtil.sendPrefixed(target, rawButtons);
+        }
 
         if (config.isSoundEffectsEnabled()) {
             target.playSound(target.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.4f);
@@ -219,13 +254,24 @@ public class TetherManager implements Listener {
             return false;
         }
 
-        MessageUtil.sendPrefixed(target, "teleport.accept-target", MessageUtil.unparsed("player", sender.getName()));
-        if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
-            target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
+        boolean isSummon = matchingRequest.type() == TetherRequest.Type.SUMMON_HERE;
+        if (isSummon) {
+            MessageUtil.sendPrefixed(target, "teleport.summon-accept-target", MessageUtil.unparsed("player", sender.getName()));
+            MessageUtil.sendPrefixed(sender, "teleport.summon-accept-sender", MessageUtil.unparsed("player", target.getName()));
+            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
+                sender.playSound(sender.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
+            }
+            // In summon: target travels to sender. Sender was the requester.
+            startTeleportWarmup(target, sender, TetherRequest.Type.SUMMON_HERE, sender.getUniqueId());
+        } else {
+            MessageUtil.sendPrefixed(target, "teleport.accept-target", MessageUtil.unparsed("player", sender.getName()));
+            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
+            }
+            // In normal: sender travels to target. Sender was the requester.
+            startTeleportWarmup(sender, target, TetherRequest.Type.TELEPORT_TO, sender.getUniqueId());
         }
-
-        // Start warmup for sender
-        startTeleportWarmup(sender, target);
         return true;
     }
 
@@ -284,13 +330,24 @@ public class TetherManager implements Listener {
 
         removeRequest(matchingRequest);
 
-        MessageUtil.sendPrefixed(target, "teleport.deny-target", MessageUtil.unparsed("player", matchingRequest.senderName()));
-
-        Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
-        if (sender != null && sender.isOnline()) {
-            MessageUtil.sendPrefixed(sender, "teleport.deny-sender", MessageUtil.unparsed("player", target.getName()));
-            if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
-                sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.8f, 0.6f);
+        boolean isSummon = matchingRequest.type() == TetherRequest.Type.SUMMON_HERE;
+        if (isSummon) {
+            MessageUtil.sendPrefixed(target, "teleport.summon-deny-target", MessageUtil.unparsed("player", matchingRequest.senderName()));
+            Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
+            if (sender != null && sender.isOnline()) {
+                MessageUtil.sendPrefixed(sender, "teleport.summon-deny-sender", MessageUtil.unparsed("player", target.getName()));
+                if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                    sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.8f, 0.6f);
+                }
+            }
+        } else {
+            MessageUtil.sendPrefixed(target, "teleport.deny-target", MessageUtil.unparsed("player", matchingRequest.senderName()));
+            Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
+            if (sender != null && sender.isOnline()) {
+                MessageUtil.sendPrefixed(sender, "teleport.deny-sender", MessageUtil.unparsed("player", target.getName()));
+                if (plugin.getPluginConfig().isSoundEffectsEnabled()) {
+                    sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.8f, 0.6f);
+                }
             }
         }
 
@@ -318,7 +375,11 @@ public class TetherManager implements Listener {
             }
         }
 
-        MessageUtil.sendPrefixed(sender, "teleport.cancel-outgoing", MessageUtil.unparsed("player", req.targetName()));
+        if (req.type() == TetherRequest.Type.SUMMON_HERE) {
+            MessageUtil.sendPrefixed(sender, "teleport.summon-cancel-outgoing", MessageUtil.unparsed("player", req.targetName()));
+        } else {
+            MessageUtil.sendPrefixed(sender, "teleport.cancel-outgoing", MessageUtil.unparsed("player", req.targetName()));
+        }
         return true;
     }
 
@@ -330,7 +391,10 @@ public class TetherManager implements Listener {
 
             Player sender = Bukkit.getPlayer(request.senderUuid());
             if (sender != null && sender.isOnline()) {
-                MessageUtil.sendPrefixed(sender, "teleport.request-expired-sender", MessageUtil.unparsed("player", request.targetName()));
+                String key = request.type() == TetherRequest.Type.SUMMON_HERE
+                        ? "teleport.summon-expired-sender"
+                        : "teleport.request-expired-sender";
+                MessageUtil.sendPrefixed(sender, key, MessageUtil.unparsed("player", request.targetName()));
             }
         }
     }
@@ -348,18 +412,31 @@ public class TetherManager implements Listener {
     }
 
     /**
-     * Initiates warmup and safe teleportation of sender to target.
+     * Initiates warmup and safe teleportation of sender to target defaulting to TELEPORT_TO.
      */
     public void startTeleportWarmup(Player sender, Player target) {
-        UUID senderUuid = sender.getUniqueId();
-        cancelWarmup(sender, false, null);
+        startTeleportWarmup(sender, target, TetherRequest.Type.TELEPORT_TO, sender != null ? sender.getUniqueId() : null);
+    }
 
-        // Cancel any active waypoint warmup
+    /**
+     * Initiates warmup and safe teleportation of traveler to destination.
+     *
+     * @param traveler The player who will physically teleport.
+     * @param destination The player at the destination.
+     * @param type The request type (TELEPORT_TO or SUMMON_HERE).
+     * @param requesterUuid The UUID of the player who initiated the request (for cooldown).
+     */
+    public void startTeleportWarmup(Player traveler, Player destination, TetherRequest.Type type, UUID requesterUuid) {
+        if (traveler == null || destination == null) return;
+        UUID travelerUuid = traveler.getUniqueId();
+        cancelWarmup(traveler, false, null);
+
+        // Cancel any active waypoint warmup for traveler
         if (plugin.getWaypointManager() != null) {
-            plugin.getWaypointManager().cancelWarmup(sender, false);
+            plugin.getWaypointManager().cancelWarmup(traveler, false);
         }
         if (plugin.getPersonalWaypointManager() != null) {
-            plugin.getPersonalWaypointManager().cancelWarmup(sender, false);
+            plugin.getPersonalWaypointManager().cancelWarmup(traveler, false);
         }
 
         PluginConfig config = plugin.getPluginConfig();
@@ -367,21 +444,30 @@ public class TetherManager implements Listener {
 
         // Instant teleport if warmup <= 0
         if (warmupSeconds <= 0) {
-            executeTeleport(sender, target);
+            executeTeleport(traveler, destination, type, requesterUuid);
             return;
         }
 
-        warmupStartLocations.put(senderUuid, sender.getLocation().clone());
+        warmupStartLocations.put(travelerUuid, traveler.getLocation().clone());
 
-        MessageUtil.sendPrefixed(sender, "teleport.warmup-sender",
-                MessageUtil.p("player", target.getName()),
-                MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
-        MessageUtil.sendPrefixed(target, "teleport.warmup-target",
-                MessageUtil.p("player", sender.getName()),
-                MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
+        if (type == TetherRequest.Type.SUMMON_HERE) {
+            MessageUtil.sendPrefixed(traveler, "teleport.summon-warmup-traveler",
+                    MessageUtil.p("player", destination.getName()),
+                    MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
+            MessageUtil.sendPrefixed(destination, "teleport.summon-warmup-summoner",
+                    MessageUtil.p("player", traveler.getName()),
+                    MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
+        } else {
+            MessageUtil.sendPrefixed(traveler, "teleport.warmup-sender",
+                    MessageUtil.p("player", destination.getName()),
+                    MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
+            MessageUtil.sendPrefixed(destination, "teleport.warmup-target",
+                    MessageUtil.p("player", traveler.getName()),
+                    MessageUtil.p("seconds", String.valueOf(warmupSeconds)));
+        }
 
         if (config.isSoundEffectsEnabled()) {
-            sender.playSound(sender.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 0.5f, 1.8f);
+            traveler.playSound(traveler.getLocation(), Sound.BLOCK_PORTAL_TRIGGER, 0.5f, 1.8f);
         }
 
         final int totalTicks = warmupSeconds * 20;
@@ -392,32 +478,32 @@ public class TetherManager implements Listener {
 
             @Override
             public void run() {
-                if (!sender.isOnline() || sender.isDead()) {
-                    cancelWarmup(sender, false, null);
+                if (!traveler.isOnline() || traveler.isDead()) {
+                    cancelWarmup(traveler, false, null);
                     return;
                 }
 
-                if (!target.isOnline() || target.isDead()) {
-                    cancelWarmup(sender, true, "teleport.teleport-cancelled-target-unavailable", MessageUtil.p("player", target.getName()));
+                if (!destination.isOnline() || destination.isDead()) {
+                    cancelWarmup(traveler, true, "teleport.teleport-cancelled-target-unavailable", MessageUtil.p("player", destination.getName()));
                     return;
                 }
 
                 // Check downed state
                 if (plugin.getDownedManager() != null) {
-                    if (plugin.getDownedManager().isDowned(senderUuid)) {
-                        cancelWarmup(sender, false, null);
+                    if (plugin.getDownedManager().isDowned(travelerUuid)) {
+                        cancelWarmup(traveler, false, null);
                         return;
                     }
-                    if (plugin.getDownedManager().isDowned(target.getUniqueId())) {
-                        cancelWarmup(sender, true, "teleport.target-downed-warmup", MessageUtil.p("player", target.getName()));
+                    if (plugin.getDownedManager().isDowned(destination.getUniqueId())) {
+                        cancelWarmup(traveler, true, "teleport.target-downed-warmup", MessageUtil.p("player", destination.getName()));
                         return;
                     }
                 }
 
                 // Movement check
-                Location initial = warmupStartLocations.get(senderUuid);
-                if (initial == null || initial.getWorld() != sender.getWorld() || initial.distanceSquared(sender.getLocation()) > 0.05) {
-                    cancelWarmup(sender, true, "teleport.teleport-cancelled-moved");
+                Location initial = warmupStartLocations.get(travelerUuid);
+                if (initial == null || initial.getWorld() != traveler.getWorld() || initial.distanceSquared(traveler.getLocation()) > 0.05) {
+                    cancelWarmup(traveler, true, "teleport.teleport-cancelled-moved");
                     return;
                 }
 
@@ -425,83 +511,89 @@ public class TetherManager implements Listener {
                 int remainingSeconds = (int) Math.ceil((totalTicks - elapsed) / 20.0);
 
                 if (elapsed % 20 == 0 && remainingSeconds > 0) {
-                    MessageUtil.sendActionBar(sender, "teleport.warmup-actionbar",
-                            MessageUtil.p("player", target.getName()),
+                    MessageUtil.sendActionBar(traveler, "teleport.warmup-actionbar",
+                            MessageUtil.p("player", destination.getName()),
                             MessageUtil.p("seconds", String.valueOf(remainingSeconds)));
                     if (config.isSoundEffectsEnabled()) {
-                        sender.playSound(sender.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.8f, 1.2f);
+                        traveler.playSound(traveler.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.8f, 1.2f);
                     }
                 }
 
                 if (config.isParticlesEnabled()) {
-                    sender.getWorld().spawnParticle(Particle.PORTAL, sender.getLocation().add(0, 1, 0), 6, 0.3, 0.5, 0.3, 0.05);
+                    traveler.getWorld().spawnParticle(Particle.PORTAL, traveler.getLocation().add(0, 1, 0), 6, 0.3, 0.5, 0.3, 0.05);
                 }
 
                 if (elapsed >= totalTicks) {
                     // Only execute if warmup hasn't been cancelled externally (e.g. by event listener)
-                    if (activeWarmups.containsKey(senderUuid)) {
-                        cancelWarmup(sender, false, null);
-                        executeTeleport(sender, target);
+                    if (activeWarmups.containsKey(travelerUuid)) {
+                        cancelWarmup(traveler, false, null);
+                        executeTeleport(traveler, destination, type, requesterUuid);
                     }
                 }
             }
         }, 0L, interval);
 
-        activeWarmups.put(senderUuid, task);
+        activeWarmups.put(travelerUuid, task);
     }
 
-    private void executeTeleport(Player sender, Player target) {
-        if (!sender.isOnline() || !target.isOnline() || sender.isDead() || target.isDead()) {
+    private void executeTeleport(Player traveler, Player destination, TetherRequest.Type type, UUID requesterUuid) {
+        if (!traveler.isOnline() || !destination.isOnline() || traveler.isDead() || destination.isDead()) {
             return;
         }
 
-        Location dest = target.getLocation();
+        Location dest = destination.getLocation();
         if (dest.getWorld() == null) {
-            MessageUtil.sendPrefixed(sender, "teleport.teleport-cancelled-invalid-world");
+            MessageUtil.sendPrefixed(traveler, "teleport.teleport-cancelled-invalid-world");
             return;
         }
 
         // Void safety check
         if (dest.getY() < dest.getWorld().getMinHeight()) {
-            MessageUtil.sendPrefixed(sender, "teleport.teleport-cancelled-void");
+            MessageUtil.sendPrefixed(traveler, "teleport.teleport-cancelled-void");
             return;
         }
 
         // Leave vehicle before teleporting
-        if (sender.isInsideVehicle()) {
-            sender.leaveVehicle();
+        if (traveler.isInsideVehicle()) {
+            traveler.leaveVehicle();
         }
 
         PluginConfig config = plugin.getPluginConfig();
 
-        sender.teleportAsync(dest).thenAccept(success -> {
+        traveler.teleportAsync(dest).thenAccept(success -> {
             // teleportAsync completes on a background thread - schedule all Bukkit API work onto the main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if (!sender.isOnline()) {
+                if (!traveler.isOnline()) {
                     return;
                 }
                 if (success) {
-                    MessageUtil.sendPrefixed(sender, "teleport.teleport-success-sender", MessageUtil.p("player", target.getName()));
-                    MessageUtil.sendActionBar(sender, "teleport.teleport-success-actionbar");
-                    MessageUtil.sendPrefixed(target, "teleport.teleport-success-target", MessageUtil.p("player", sender.getName()));
+                    if (type == TetherRequest.Type.SUMMON_HERE) {
+                        MessageUtil.sendPrefixed(traveler, "teleport.summon-success-traveler", MessageUtil.p("player", destination.getName()));
+                        MessageUtil.sendActionBar(traveler, "teleport.teleport-success-actionbar");
+                        MessageUtil.sendPrefixed(destination, "teleport.summon-success-summoner", MessageUtil.p("player", traveler.getName()));
+                    } else {
+                        MessageUtil.sendPrefixed(traveler, "teleport.teleport-success-sender", MessageUtil.p("player", destination.getName()));
+                        MessageUtil.sendActionBar(traveler, "teleport.teleport-success-actionbar");
+                        MessageUtil.sendPrefixed(destination, "teleport.teleport-success-target", MessageUtil.p("player", traveler.getName()));
+                    }
 
                     if (config.isSoundEffectsEnabled()) {
-                        sender.playSound(sender.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                        target.playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        traveler.playSound(traveler.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        destination.playSound(destination.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
                     }
 
                     if (config.isParticlesEnabled()) {
-                        sender.getWorld().spawnParticle(Particle.REVERSE_PORTAL, sender.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
-                        target.getWorld().spawnParticle(Particle.PORTAL, target.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                        traveler.getWorld().spawnParticle(Particle.REVERSE_PORTAL, traveler.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
+                        destination.getWorld().spawnParticle(Particle.PORTAL, destination.getLocation().add(0, 1, 0), 25, 0.5, 1.0, 0.5, 0.1);
                     }
 
-                    // Set cooldown
+                    // Set cooldown for requester
                     int cooldownSec = config.getTetherCooldownSeconds();
-                    if (cooldownSec > 0) {
-                        cooldowns.put(sender.getUniqueId(), System.currentTimeMillis() + (cooldownSec * 1000L));
+                    if (cooldownSec > 0 && requesterUuid != null) {
+                        cooldowns.put(requesterUuid, System.currentTimeMillis() + (cooldownSec * 1000L));
                     }
                 } else {
-                    MessageUtil.sendPrefixed(sender, "teleport.teleport-failed");
+                    MessageUtil.sendPrefixed(traveler, "teleport.teleport-failed");
                 }
             });
         });

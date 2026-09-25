@@ -331,6 +331,18 @@ public final class Lifeline extends JavaPlugin {
                                 case "gui", "menu" -> {
                                     tetherGUI.open(player);
                                 }
+                                case "here", "h", "summon" -> {
+                                    if (args.length < 2) {
+                                        MessageUtil.sendPrefixed(player, "teleport.usage-here");
+                                        return;
+                                    }
+                                    Player target = Bukkit.getPlayer(args[1]);
+                                    if (target == null || !target.isOnline()) {
+                                        MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", args[1]));
+                                        return;
+                                    }
+                                    tetherManager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
+                                }
                                 default -> {
                                     Player target = Bukkit.getPlayer(args[0]);
                                     if (target == null || !target.isOnline()) {
@@ -350,7 +362,7 @@ public final class Lifeline extends JavaPlugin {
                             }
 
                             if (args.length <= 1) {
-                                List<String> list = new java.util.ArrayList<>(List.of("accept", "deny", "cancel", "gui", "a", "d", "c"));
+                                List<String> list = new java.util.ArrayList<>(List.of("accept", "deny", "cancel", "gui", "here", "summon", "a", "d", "c", "h"));
                                 for (Player p : Bukkit.getOnlinePlayers()) {
                                     if (!p.getUniqueId().equals(player.getUniqueId())) {
                                         list.add(p.getName());
@@ -365,6 +377,81 @@ public final class Lifeline extends JavaPlugin {
                                 return tetherManager.getPendingSenderNames(player).stream()
                                          .filter(name -> name.toLowerCase().startsWith(prefix))
                                          .toList();
+                            }
+
+                            if (args.length == 2 && (args[0].equalsIgnoreCase("here") || args[0].equalsIgnoreCase("h") || args[0].equalsIgnoreCase("summon"))) {
+                                String prefix = args[1].toLowerCase();
+                                List<String> list = new java.util.ArrayList<>();
+                                for (Player p : Bukkit.getOnlinePlayers()) {
+                                    if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                        list.add(p.getName());
+                                    }
+                                }
+                                return list.stream().filter(s -> s.toLowerCase().startsWith(prefix)).toList();
+                            }
+
+                            return List.of();
+                        }
+
+                        @Override
+                        public boolean canUse(CommandSender sender) {
+                            return hasTetherPermission(sender);
+                        }
+                    }
+            );
+
+            commands.register(
+                    "tpqhere",
+                    "Requests a player to teleport to your location (summon)",
+                    List.of("tpqh", "tphere", "teleportheregui"),
+                    new BasicCommand() {
+                        @Override
+                        public void execute(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
+                                return;
+                            }
+
+                            if (!hasTetherPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "teleport.no-permission");
+                                return;
+                            }
+
+                            if (downedManager.isDowned(player.getUniqueId())) {
+                                MessageUtil.sendPrefixed(player, "teleport.downed-blocked");
+                                return;
+                            }
+
+                            if (args.length == 0) {
+                                tetherGUI.open(player);
+                                return;
+                            }
+
+                            Player target = Bukkit.getPlayer(args[0]);
+                            if (target == null || !target.isOnline()) {
+                                MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", args[0]));
+                                return;
+                            }
+                            tetherManager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
+                        }
+
+                        @Override
+                        public Collection<String> suggest(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                return List.of();
+                            }
+
+                            if (args.length <= 1) {
+                                List<String> list = new java.util.ArrayList<>();
+                                for (Player p : Bukkit.getOnlinePlayers()) {
+                                    if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                        list.add(p.getName());
+                                    }
+                                }
+                                String prefix = args.length == 0 ? "" : args[0].toLowerCase();
+                                return list.stream().filter(s -> s.toLowerCase().startsWith(prefix)).toList();
                             }
 
                             return List.of();
@@ -706,7 +793,11 @@ public final class Lifeline extends JavaPlugin {
     }
 
     private boolean hasTetherPermission(CommandSender sender) {
-        return sender.hasPermission("lifeline.tpq") || sender.hasPermission("lifeline.tether");
+        return sender.hasPermission("lifeline.tpq")
+                || sender.hasPermission("lifeline.tether")
+                || sender.hasPermission("lifeline.tpqhere")
+                || sender.hasPermission("lifeline.tpqh")
+                || sender.hasPermission("lifeline.use");
     }
 
     private boolean hasTrashPermission(CommandSender sender) {
@@ -723,6 +814,7 @@ public final class Lifeline extends JavaPlugin {
         MessageUtil.sendRaw(sender, "help.pstash");
         MessageUtil.sendRaw(sender, "help.trash");
         MessageUtil.sendRaw(sender, "help.tpq");
+        MessageUtil.sendRaw(sender, "help.tpqhere");
         MessageUtil.sendRaw(sender, "help.radar");
         MessageUtil.sendRaw(sender, "help.revives");
         if (sender.hasPermission("lifeline.admin")) {
