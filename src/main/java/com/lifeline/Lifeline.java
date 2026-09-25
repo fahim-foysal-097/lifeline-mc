@@ -428,12 +428,31 @@ public final class Lifeline extends JavaPlugin {
                                 return;
                             }
 
-                            Player target = Bukkit.getPlayer(args[0]);
-                            if (target == null || !target.isOnline()) {
-                                MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", args[0]));
-                                return;
+                            String sub = args[0].toLowerCase();
+                            switch (sub) {
+                                case "accept", "a" -> {
+                                    String targetSender = args.length > 1 ? args[1] : null;
+                                    tetherManager.acceptRequest(player, targetSender);
+                                }
+                                case "deny", "decline", "d" -> {
+                                    String targetSender = args.length > 1 ? args[1] : null;
+                                    tetherManager.denyRequest(player, targetSender);
+                                }
+                                case "cancel", "c" -> {
+                                    tetherManager.cancelOutgoingRequest(player);
+                                }
+                                case "gui", "menu" -> {
+                                    tetherGUI.open(player);
+                                }
+                                default -> {
+                                    Player target = Bukkit.getPlayer(args[0]);
+                                    if (target == null || !target.isOnline()) {
+                                        MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", args[0]));
+                                        return;
+                                    }
+                                    tetherManager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
+                                }
                             }
-                            tetherManager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
                         }
 
                         @Override
@@ -444,7 +463,7 @@ public final class Lifeline extends JavaPlugin {
                             }
 
                             if (args.length <= 1) {
-                                List<String> list = new java.util.ArrayList<>();
+                                List<String> list = new java.util.ArrayList<>(List.of("accept", "deny", "cancel", "gui", "a", "d", "c"));
                                 for (Player p : Bukkit.getOnlinePlayers()) {
                                     if (!p.getUniqueId().equals(player.getUniqueId())) {
                                         list.add(p.getName());
@@ -452,6 +471,13 @@ public final class Lifeline extends JavaPlugin {
                                 }
                                 String prefix = args.length == 0 ? "" : args[0].toLowerCase();
                                 return list.stream().filter(s -> s.toLowerCase().startsWith(prefix)).toList();
+                            }
+
+                            if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("a") || args[0].equalsIgnoreCase("deny") || args[0].equalsIgnoreCase("d") || args[0].equalsIgnoreCase("decline"))) {
+                                String prefix = args[1].toLowerCase();
+                                return tetherManager.getPendingSenderNames(player).stream()
+                                         .filter(name -> name.toLowerCase().startsWith(prefix))
+                                         .toList();
                             }
 
                             return List.of();

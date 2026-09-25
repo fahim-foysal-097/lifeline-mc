@@ -321,6 +321,13 @@ final class GeyserFormHandler {
                 .validResultHandler(response -> {
                     int clicked = response.clickedButtonId();
                     Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (!player.isOnline()) {
+                            return;
+                        }
+                        if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(player.getUniqueId())) {
+                            MessageUtil.sendPrefixed(player, "teleport.downed-blocked");
+                            return;
+                        }
                         if (!target.isOnline()) {
                             MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", target.getName()));
                             return;

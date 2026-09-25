@@ -112,10 +112,14 @@ public class TetherManager implements Listener {
         int cooldownSec = config.getTetherCooldownSeconds();
         if (cooldownSec > 0) {
             Long cooldownEnd = cooldowns.get(senderUuid);
-            if (cooldownEnd != null && System.currentTimeMillis() < cooldownEnd) {
-                long remaining = Math.max(1, (cooldownEnd - System.currentTimeMillis()) / 1000);
-                MessageUtil.sendPrefixed(sender, "teleport.cooldown", MessageUtil.p("seconds", String.valueOf(remaining)));
-                return false;
+            if (cooldownEnd != null) {
+                if (System.currentTimeMillis() < cooldownEnd) {
+                    long remaining = Math.max(1, (cooldownEnd - System.currentTimeMillis()) / 1000);
+                    MessageUtil.sendPrefixed(sender, "teleport.cooldown", MessageUtil.p("seconds", String.valueOf(remaining)));
+                    return false;
+                } else {
+                    cooldowns.remove(senderUuid);
+                }
             }
         }
 
@@ -242,6 +246,12 @@ public class TetherManager implements Listener {
 
         // Remove from tracking
         removeRequest(matchingRequest);
+
+        // Also clean up any cross-request from target to sender
+        TetherRequest reverseReq = outgoingRequests.get(target.getUniqueId());
+        if (reverseReq != null && reverseReq.targetUuid().equals(matchingRequest.senderUuid())) {
+            removeRequest(reverseReq);
+        }
 
         Player sender = Bukkit.getPlayer(matchingRequest.senderUuid());
         if (sender == null || !sender.isOnline()) {
@@ -488,6 +498,16 @@ public class TetherManager implements Listener {
                     return;
                 }
 
+                // Check spectator mode
+                if (traveler.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+                    cancelWarmup(traveler, false, null);
+                    return;
+                }
+                if (destination.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+                    cancelWarmup(traveler, true, "teleport.target-spectator", MessageUtil.p("player", destination.getName()));
+                    return;
+                }
+
                 // Check downed state
                 if (plugin.getDownedManager() != null) {
                     if (plugin.getDownedManager().isDowned(travelerUuid)) {
@@ -539,6 +559,21 @@ public class TetherManager implements Listener {
     private void executeTeleport(Player traveler, Player destination, TetherRequest.Type type, UUID requesterUuid) {
         if (!traveler.isOnline() || !destination.isOnline() || traveler.isDead() || destination.isDead()) {
             return;
+        }
+
+        if (traveler.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+            return;
+        }
+
+        if (destination.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+            MessageUtil.sendPrefixed(traveler, "teleport.target-spectator", MessageUtil.p("player", destination.getName()));
+            return;
+        }
+
+        if (plugin.getDownedManager() != null) {
+            if (plugin.getDownedManager().isDowned(traveler.getUniqueId()) || plugin.getDownedManager().isDowned(destination.getUniqueId())) {
+                return;
+            }
         }
 
         Location dest = destination.getLocation();

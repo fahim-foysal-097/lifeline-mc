@@ -62,4 +62,55 @@ public class TetherRequestTest {
                 com.lifeline.util.MessageUtil.unparsed("player", "<player>"));
         assertNotNull(parsed);
     }
+
+    @Test
+    public void testAllSummonMessagesLoadAndParse() throws Exception {
+        java.io.InputStream stream = getClass().getResourceAsStream("/messages.yml");
+        assertNotNull(stream, "messages.yml must exist in classpath");
+
+        try (java.io.InputStreamReader reader = new java.io.InputStreamReader(stream, java.nio.charset.StandardCharsets.UTF_8)) {
+            org.bukkit.configuration.file.YamlConfiguration yaml = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(reader);
+
+            String[] requiredKeys = {
+                "teleport.usage-here",
+                "teleport.sender-spectator",
+                "teleport.summon-sent-sender",
+                "teleport.summon-received-target",
+                "teleport.summon-received-buttons",
+                "teleport.summon-accept-target",
+                "teleport.summon-accept-sender",
+                "teleport.summon-deny-target",
+                "teleport.summon-deny-sender",
+                "teleport.summon-cancel-outgoing",
+                "teleport.summon-expired-sender",
+                "teleport.summon-warmup-traveler",
+                "teleport.summon-warmup-summoner",
+                "teleport.summon-success-traveler",
+                "teleport.summon-success-summoner",
+                "teleport.head-lore-summon-footer",
+                "bedrock.tpq-action-title",
+                "bedrock.tpq-action-content",
+                "bedrock.tpq-action-tp-btn",
+                "bedrock.tpq-action-summon-btn",
+                "bedrock.tpq-action-back-btn",
+                "help.tpqhere"
+            };
+
+            for (String key : requiredKeys) {
+                assertTrue(yaml.contains(key), "Missing key in messages.yml: " + key);
+                String val = yaml.getString(key);
+                assertNotNull(val, "Key has null value: " + key);
+                assertFalse(val.isBlank(), "Key has blank value: " + key);
+
+                // Ensure it can be parsed as MiniMessage without syntax errors
+                net.kyori.adventure.text.Component comp = com.lifeline.util.MessageUtil.parse(val,
+                        com.lifeline.util.MessageUtil.p("player", "Alice"),
+                        com.lifeline.util.MessageUtil.p("seconds", "3"),
+                        com.lifeline.util.MessageUtil.p("dim", "Overworld"),
+                        com.lifeline.util.MessageUtil.p("dist", "20m"),
+                        com.lifeline.util.MessageUtil.p("health", "20"));
+                assertNotNull(comp);
+            }
+        }
+    }
 }
