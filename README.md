@@ -111,6 +111,7 @@ Works on **26.2+** too.
 | `/mywp`                             | `/pwaypoints`, `/lfnode`                          | Open personal waypoints GUI / form           | `lifeline.mywp`    |
 | `/stash`                            | `/st`, `/safe`                                    | Open shared stash                            | `lifeline.stash`   |
 | `/pstash`                           | `/stashp`, `/pst`, `/mystash`                     | Open personal stash                          | `lifeline.pstash`  |
+| `/parcel [player]`                  | `/package`, `/llparcel`, `/lfparcel`              | Open item parcel package delivery GUI        | `lifeline.parcel`  |
 | `/lltrash`                          | `/lft`, `/lftrash`, `/llt`                        | Open quick trash disposal GUI                | `lifeline.trash`   |
 | `/tpq`                              | `/teleportgui`                                    | Open player teleport GUI / form              | `lifeline.tpq`     |
 | `/tpq <player>`                     | —                                                 | Send a teleport request                      | `lifeline.tpq`     |
