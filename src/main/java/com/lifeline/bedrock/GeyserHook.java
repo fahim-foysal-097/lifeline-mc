@@ -101,10 +101,17 @@ public final class GeyserHook {
      * Opens the native Bedrock Teleport Player form (/tpq).
      */
     public static void openTetherForm(Player player, TetherManager manager, Lifeline plugin) {
+        openTetherForm(player, manager, plugin, false);
+    }
+
+    /**
+     * Opens the native Bedrock Teleport Player form (/tpq or /tpqhere).
+     */
+    public static void openTetherForm(Player player, TetherManager manager, Lifeline plugin, boolean isHereMode) {
         if (player == null || !isGeyserPresent()) return;
         if (plugin != null && !plugin.getPluginConfig().isBedrockFormsEnabled()) return;
         try {
-            GeyserFormHandler.openTetherForm(player, manager, plugin);
+            GeyserFormHandler.openTetherForm(player, manager, plugin, isHereMode);
         } catch (Throwable t) {
             if (plugin != null) {
                 plugin.getLogger().warning("Failed to open Bedrock teleport form: " + t.getMessage());

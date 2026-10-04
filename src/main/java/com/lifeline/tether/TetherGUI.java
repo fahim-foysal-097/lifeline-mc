@@ -53,15 +53,30 @@ public class TetherGUI implements Listener, InventoryHolder {
     }
 
     /**
-     * Opens the Teleport Player GUI for the specified player.
+     * Opens the Teleport Player GUI for the specified player in default (/tpq) mode.
      */
     public void open(Player player) {
+        open(player, false);
+    }
+
+    /**
+     * Opens the Teleport Player GUI for the specified player.
+     *
+     * @param player     The player opening the GUI.
+     * @param isHereMode If true (/tpqhere), inverts button actions (right-click summons player here).
+     */
+    public void open(Player player, boolean isHereMode) {
         if (plugin.getPluginConfig().isBedrockFormsEnabled() && com.lifeline.bedrock.GeyserHook.isBedrockPlayer(player)) {
-            com.lifeline.bedrock.GeyserHook.openTetherForm(player, manager, plugin);
+            com.lifeline.bedrock.GeyserHook.openTetherForm(player, manager, plugin, isHereMode);
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(this, 27, MessageUtil.get("teleport.gui-title"));
+        TetherHolder holder = new TetherHolder(isHereMode);
+        Component title = isHereMode
+                ? MessageUtil.get("teleport.gui-title-here")
+                : MessageUtil.get("teleport.gui-title");
+
+        Inventory inv = Bukkit.createInventory(holder, 27, title);
 
         List<Player> targets = new ArrayList<>(Bukkit.getOnlinePlayers());
         targets.remove(player);
@@ -90,7 +105,7 @@ public class TetherGUI implements Listener, InventoryHolder {
 
             for (int i = 0; i < count; i++) {
                 Player target = targets.get(i);
-                inv.setItem(slots[i], createPlayerHead(player, target));
+                inv.setItem(slots[i], createPlayerHead(player, target, isHereMode));
             }
         }
 
@@ -100,7 +115,7 @@ public class TetherGUI implements Listener, InventoryHolder {
         }
     }
 
-    private ItemStack createPlayerHead(Player viewer, Player target) {
+    private ItemStack createPlayerHead(Player viewer, Player target, boolean isHereMode) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(target);
@@ -147,6 +162,9 @@ public class TetherGUI implements Listener, InventoryHolder {
             lore.add(MessageUtil.get("teleport.head-lore-downed-footer"));
         } else if (isSpectator) {
             lore.add(MessageUtil.get("teleport.head-lore-spectator-footer"));
+        } else if (isHereMode) {
+            lore.add(MessageUtil.get("teleport.head-lore-click-footer-here"));
+            lore.add(MessageUtil.get("teleport.head-lore-summon-footer-here"));
         } else {
             lore.add(MessageUtil.get("teleport.head-lore-click-footer"));
             lore.add(MessageUtil.get("teleport.head-lore-summon-footer"));
@@ -161,7 +179,10 @@ public class TetherGUI implements Listener, InventoryHolder {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof TetherGUI)) {
+        boolean isHereMode = false;
+        if (event.getInventory().getHolder() instanceof TetherHolder tetherHolder) {
+            isHereMode = tetherHolder.isHereMode();
+        } else if (!(event.getInventory().getHolder() instanceof TetherGUI)) {
             return;
         }
 
@@ -206,16 +227,30 @@ public class TetherGUI implements Listener, InventoryHolder {
             return;
         }
 
-        if (event.isRightClick()) {
-            manager.sendRequest(player, target, TetherRequest.Type.SUMMON_HERE);
+        if (!isHereMode) {
+            // Normal /tpq:
+            // Right-click: tp to other player
+            // Left-click: summon player here
+            if (event.isRightClick()) {
+                manager.sendRequest(player, target, TetherRequest.Type.TELEPORT_TO);
+            } else {
+                manager.sendRequest(player, target, TetherRequest.Type.SUMMON_HERE);
+            }
         } else {
-            manager.sendRequest(player, target, TetherRequest.Type.TELEPORT_TO);
+            // Inverted /tpqhere:
+            // Right-click: summon player here
+            // Left-click: tp to other player
+            if (event.isRightClick()) {
+                manager.sendRequest(player, target, TetherRequest.Type.SUMMON_HERE);
+            } else {
+                manager.sendRequest(player, target, TetherRequest.Type.TELEPORT_TO);
+            }
         }
     }
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof TetherGUI) {
+        if (event.getInventory().getHolder() instanceof TetherHolder || event.getInventory().getHolder() instanceof TetherGUI) {
             event.setCancelled(true);
         }
     }

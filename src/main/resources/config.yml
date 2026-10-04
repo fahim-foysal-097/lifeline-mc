@@ -238,9 +238,9 @@ synergy:
   # Check interval in server ticks (20 ticks = 1 second). Default: 20
   update-interval-ticks: 20
 
-  # Movement speed percentage bonus applied while near your partner (default: 5.0%).
+  # Movement speed percentage bonus applied while near your partner (default: 15.0%).
   # Applied as a safe transient attribute modifier (no FOV glitch, no lingering NBT).
-  speed-boost-percentage: 5.0
+  speed-boost-percentage: 15.0
 
   # Whether subtle sound effects play when entering/leaving synergy range.
   sound-effects: true
@@ -256,7 +256,6 @@ synergy:
     haste:
       enabled: false
       amplifier: 0
-
-
-
-
+    speed:
+      enabled: false
+      amplifier: 0

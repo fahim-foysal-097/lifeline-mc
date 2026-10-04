@@ -219,6 +219,10 @@ final class GeyserFormHandler {
     }
 
     static void openTetherForm(Player player, TetherManager manager, Lifeline plugin) {
+        openTetherForm(player, manager, plugin, false);
+    }
+
+    static void openTetherForm(Player player, TetherManager manager, Lifeline plugin, boolean isHereMode) {
         if (!isBedrockPlayer(player)) return;
 
         List<Player> targets = new ArrayList<>(Bukkit.getOnlinePlayers());
@@ -229,7 +233,9 @@ final class GeyserFormHandler {
         // null for offline players) rather than relying on a now-shifted list index.
         final java.util.Map<Integer, java.util.UUID> buttonIndexToUuid = new java.util.HashMap<>();
 
-        String title = MessageUtil.getRaw("bedrock.tpq-title", "Teleport to Player");
+        String titleKey = isHereMode ? "bedrock.tpq-here-title" : "bedrock.tpq-title";
+        String fallbackTitle = isHereMode ? "Summon Player Here" : "Teleport to Player";
+        String title = MessageUtil.getRaw(titleKey, fallbackTitle);
         String content = targets.isEmpty()
                 ? MessageUtil.getRaw("bedrock.tpq-no-players", "No other players online.")
                 : MessageUtil.getRaw("bedrock.tpq-content", "Select a player to send a teleport request:");
@@ -279,7 +285,7 @@ final class GeyserFormHandler {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Player target = Bukkit.getPlayer(targetUuid);
                 if (target != null && target.isOnline()) {
-                    openTetherActionForm(player, target, manager, plugin);
+                    openTetherActionForm(player, target, manager, plugin, isHereMode);
                 } else {
                     // Player left after the form was opened
                     String name = Bukkit.getOfflinePlayer(targetUuid).getName();
@@ -293,6 +299,10 @@ final class GeyserFormHandler {
     }
 
     static void openTetherActionForm(Player player, Player target, TetherManager manager, Lifeline plugin) {
+        openTetherActionForm(player, target, manager, plugin, false);
+    }
+
+    static void openTetherActionForm(Player player, Player target, TetherManager manager, Lifeline plugin, boolean isHereMode) {
         if (!isBedrockPlayer(player)) return;
 
         String title = MessageUtil.getRaw("bedrock.tpq-action-title", "Teleport: <player>")
@@ -312,36 +322,53 @@ final class GeyserFormHandler {
         String summonBtn = MessageUtil.getRaw("bedrock.tpq-action-summon-btn", "✦ Summon Player Here");
         String backBtn = MessageUtil.getRaw("bedrock.tpq-action-back-btn", "« Back to Players");
 
-        SimpleForm form = SimpleForm.builder()
+        SimpleForm.Builder formBuilder = SimpleForm.builder()
                 .title(title)
-                .content(content)
-                .button(tpBtn, FormImage.Type.PATH, "textures/ui/portalIcon")
-                .button(summonBtn, FormImage.Type.PATH, "textures/ui/icon_steve")
-                .button(backBtn, FormImage.Type.PATH, "textures/ui/arrow_left")
-                .validResultHandler(response -> {
-                    int clicked = response.clickedButtonId();
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        if (!player.isOnline()) {
-                            return;
-                        }
-                        if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(player.getUniqueId())) {
-                            MessageUtil.sendPrefixed(player, "teleport.downed-blocked");
-                            return;
-                        }
-                        if (!target.isOnline()) {
-                            MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", target.getName()));
-                            return;
-                        }
-                        if (clicked == 0) {
-                            manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.TELEPORT_TO);
-                        } else if (clicked == 1) {
-                            manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
-                        } else if (clicked == 2) {
-                            openTetherForm(player, manager, plugin);
-                        }
-                    });
-                })
-                .build();
+                .content(content);
+
+        if (!isHereMode) {
+            formBuilder.button(tpBtn, FormImage.Type.PATH, "textures/ui/portalIcon")
+                       .button(summonBtn, FormImage.Type.PATH, "textures/ui/icon_steve");
+        } else {
+            formBuilder.button(summonBtn, FormImage.Type.PATH, "textures/ui/icon_steve")
+                       .button(tpBtn, FormImage.Type.PATH, "textures/ui/portalIcon");
+        }
+        formBuilder.button(backBtn, FormImage.Type.PATH, "textures/ui/arrow_left");
+
+        SimpleForm form = formBuilder.validResultHandler(response -> {
+            int clicked = response.clickedButtonId();
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!player.isOnline()) {
+                    return;
+                }
+                if (plugin.getDownedManager() != null && plugin.getDownedManager().isDowned(player.getUniqueId())) {
+                    MessageUtil.sendPrefixed(player, "teleport.downed-blocked");
+                    return;
+                }
+                if (!target.isOnline()) {
+                    MessageUtil.sendPrefixed(player, "teleport.player-offline", MessageUtil.unparsed("player", target.getName()));
+                    return;
+                }
+
+                if (!isHereMode) {
+                    if (clicked == 0) {
+                        manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.TELEPORT_TO);
+                    } else if (clicked == 1) {
+                        manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
+                    } else if (clicked == 2) {
+                        openTetherForm(player, manager, plugin, isHereMode);
+                    }
+                } else {
+                    if (clicked == 0) {
+                        manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.SUMMON_HERE);
+                    } else if (clicked == 1) {
+                        manager.sendRequest(player, target, com.lifeline.tether.TetherRequest.Type.TELEPORT_TO);
+                    } else if (clicked == 2) {
+                        openTetherForm(player, manager, plugin, isHereMode);
+                    }
+                }
+            });
+        }).build();
 
         sendForm(player, form);
     }

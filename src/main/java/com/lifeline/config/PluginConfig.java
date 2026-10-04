@@ -97,6 +97,8 @@ public class PluginConfig {
     private int synergyResistanceAmplifier;
     private boolean synergyHasteEnabled;
     private int synergyHasteAmplifier;
+    private boolean synergySpeedPotionEnabled;
+    private int synergySpeedPotionAmplifier;
 
     public PluginConfig(Lifeline plugin) {
         this.plugin = plugin;
@@ -221,6 +223,8 @@ public class PluginConfig {
         this.synergyResistanceAmplifier = Math.max(0, config.getInt("synergy.buffs.resistance.amplifier", 0));
         this.synergyHasteEnabled = config.getBoolean("synergy.buffs.haste.enabled", false);
         this.synergyHasteAmplifier = Math.max(0, config.getInt("synergy.buffs.haste.amplifier", 0));
+        this.synergySpeedPotionEnabled = config.getBoolean("synergy.buffs.speed.enabled", false);
+        this.synergySpeedPotionAmplifier = Math.max(0, config.getInt("synergy.buffs.speed.amplifier", 0));
     }
 
     public int getMaxRevives() {
@@ -453,5 +457,13 @@ public class PluginConfig {
 
     public int getSynergyHasteAmplifier() {
         return synergyHasteAmplifier;
+    }
+
+    public boolean isSynergySpeedPotionEnabled() {
+        return synergySpeedPotionEnabled;
+    }
+
+    public int getSynergySpeedPotionAmplifier() {
+        return synergySpeedPotionAmplifier;
     }
 }

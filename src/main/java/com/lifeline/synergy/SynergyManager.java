@@ -146,7 +146,7 @@ public class SynergyManager implements Listener {
         if (speedAttr != null) {
             double boostScalar = config.getSynergySpeedBoostPercentage() / 100.0;
             AttributeModifier existing = speedAttr.getModifier(speedKey);
-            if (existing != null && Math.abs(existing.getAmount() - boostScalar) > 0.0001) {
+            if (existing != null && (boostScalar <= 0.0 || Math.abs(existing.getAmount() - boostScalar) > 0.0001)) {
                 speedAttr.removeModifier(speedKey);
                 existing = null;
             }
@@ -156,16 +156,34 @@ public class SynergyManager implements Listener {
             }
         }
 
-        // Apply optional potion buffs (ambient, hidden particles, icon visible)
-        // Duration is 40 ticks so it remains seamless across 20-tick check intervals
+        // Apply optional potion buffs without resetting tick timers (allowing Regeneration to heal)
         if (config.isSynergyRegenEnabled()) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, config.getSynergyRegenAmplifier(), true, false, true));
+            applyPotionBuff(player, PotionEffectType.REGENERATION, config.getSynergyRegenAmplifier());
         }
         if (config.isSynergyResistanceEnabled()) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 40, config.getSynergyResistanceAmplifier(), true, false, true));
+            applyPotionBuff(player, PotionEffectType.RESISTANCE, config.getSynergyResistanceAmplifier());
         }
         if (config.isSynergyHasteEnabled()) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 40, config.getSynergyHasteAmplifier(), true, false, true));
+            applyPotionBuff(player, PotionEffectType.HASTE, config.getSynergyHasteAmplifier());
+        }
+        if (config.isSynergySpeedPotionEnabled()) {
+            applyPotionBuff(player, PotionEffectType.SPEED, config.getSynergySpeedPotionAmplifier());
+        }
+    }
+
+    private void applyPotionBuff(Player player, PotionEffectType type, int amplifier) {
+        PotionEffect current = player.getPotionEffect(type);
+        if (current == null) {
+            player.addPotionEffect(new PotionEffect(type, 100, amplifier, true, false, true));
+        } else if (current.getAmplifier() == amplifier && current.getDuration() <= 30) {
+            player.addPotionEffect(new PotionEffect(type, 100, amplifier, true, false, true));
+        }
+    }
+
+    private void removePotionBuffIfSynergy(Player player, PotionEffectType type, int amplifier) {
+        PotionEffect current = player.getPotionEffect(type);
+        if (current != null && current.getAmplifier() == amplifier) {
+            player.removePotionEffect(type);
         }
     }
 
@@ -181,18 +199,45 @@ public class SynergyManager implements Listener {
             speedAttr.removeModifier(speedKey);
         }
 
+        PluginConfig config = plugin.getPluginConfig();
+        if (config.isSynergyRegenEnabled()) {
+            removePotionBuffIfSynergy(player, PotionEffectType.REGENERATION, config.getSynergyRegenAmplifier());
+        }
+        if (config.isSynergyResistanceEnabled()) {
+            removePotionBuffIfSynergy(player, PotionEffectType.RESISTANCE, config.getSynergyResistanceAmplifier());
+        }
+        if (config.isSynergyHasteEnabled()) {
+            removePotionBuffIfSynergy(player, PotionEffectType.HASTE, config.getSynergyHasteAmplifier());
+        }
+        if (config.isSynergySpeedPotionEnabled()) {
+            removePotionBuffIfSynergy(player, PotionEffectType.SPEED, config.getSynergySpeedPotionAmplifier());
+        }
+
         if (wasActive && player.isOnline() && !player.isDead()) {
             MessageUtil.sendActionBar(player, "synergy.deactivated");
         }
     }
 
     private void cleanupActiveBuffs() {
+        PluginConfig config = plugin.getPluginConfig();
         for (UUID uuid : activeSynergyPlayers) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
                 AttributeInstance speedAttr = p.getAttribute(Attribute.MOVEMENT_SPEED);
                 if (speedAttr != null) {
                     speedAttr.removeModifier(speedKey);
+                }
+                if (config.isSynergyRegenEnabled()) {
+                    removePotionBuffIfSynergy(p, PotionEffectType.REGENERATION, config.getSynergyRegenAmplifier());
+                }
+                if (config.isSynergyResistanceEnabled()) {
+                    removePotionBuffIfSynergy(p, PotionEffectType.RESISTANCE, config.getSynergyResistanceAmplifier());
+                }
+                if (config.isSynergyHasteEnabled()) {
+                    removePotionBuffIfSynergy(p, PotionEffectType.HASTE, config.getSynergyHasteAmplifier());
+                }
+                if (config.isSynergySpeedPotionEnabled()) {
+                    removePotionBuffIfSynergy(p, PotionEffectType.SPEED, config.getSynergySpeedPotionAmplifier());
                 }
             }
         }

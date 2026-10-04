@@ -130,6 +130,14 @@ public class TetherManager implements Listener {
             MessageUtil.sendPrefixed(sender, "teleport.request-cancelled-previous", MessageUtil.p("player", existing.targetName()));
         }
 
+        // Edge case: Cancel any outgoing cross-request from target to sender (stale reverse request).
+        // Without this, if B had previously sent a TELEPORT_TO to A, and then A sends SUMMON_HERE to B,
+        // B accepting with /tpq a could accidentally pick the old TELEPORT_TO instead of the new SUMMON_HERE.
+        TetherRequest crossRequest = outgoingRequests.get(targetUuid);
+        if (crossRequest != null && crossRequest.targetUuid().equals(senderUuid)) {
+            removeRequest(crossRequest);
+        }
+
         int timeoutSec = config.getTetherTimeoutSeconds();
         long now = System.currentTimeMillis();
         long expiry = now + (timeoutSec * 1000L);

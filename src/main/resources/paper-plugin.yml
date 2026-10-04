@@ -90,6 +90,9 @@ permissions:
   lifeline.package:
     description: Alias for lifeline.parcel.
     default: true
+  lifeline.parcel.bypass:
+    description: Bypasses parcel sending cooldowns.
+    default: false
   lifeline.admin:
     description: Allows reloading configuration and managing other players' revives.
     default: op

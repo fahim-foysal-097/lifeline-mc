@@ -168,8 +168,8 @@ public class ParcelManager {
             return false;
         }
 
-        // Cooldown check (admin bypasses)
-        if (!sender.hasPermission("lifeline.admin")) {
+        // Cooldown check (only bypasses if explicit bypass permission is granted)
+        if (!sender.hasPermission("lifeline.parcel.bypass")) {
             int remaining = getRemainingCooldown(sender.getUniqueId());
             if (remaining > 0) {
                 if (notify) {

@@ -349,7 +349,7 @@ public final class Lifeline extends JavaPlugin {
                                 }
                                 case "here", "h", "summon" -> {
                                     if (args.length < 2) {
-                                        MessageUtil.sendPrefixed(player, "teleport.usage-here");
+                                        tetherGUI.open(player, true);
                                         return;
                                     }
                                     Player target = Bukkit.getPlayer(args[1]);
@@ -440,7 +440,7 @@ public final class Lifeline extends JavaPlugin {
                             }
 
                             if (args.length == 0) {
-                                tetherGUI.open(player);
+                                tetherGUI.open(player, true);
                                 return;
                             }
 
@@ -458,7 +458,7 @@ public final class Lifeline extends JavaPlugin {
                                     tetherManager.cancelOutgoingRequest(player);
                                 }
                                 case "gui", "menu" -> {
-                                    tetherGUI.open(player);
+                                    tetherGUI.open(player, true);
                                 }
                                 default -> {
                                     Player target = Bukkit.getPlayer(args[0]);
@@ -753,6 +753,7 @@ public final class Lifeline extends JavaPlugin {
                                                 || top.getHolder() instanceof com.lifeline.waypoint.WaypointGUI
                                                 || top.getHolder() instanceof com.lifeline.waypoint.PersonalWaypointGUI
                                                 || top.getHolder() instanceof com.lifeline.tether.TetherGUI
+                                                || top.getHolder() instanceof com.lifeline.tether.TetherHolder
                                                 || top.getHolder() instanceof com.lifeline.trash.TrashHolder
                                                 || top.getHolder() instanceof com.lifeline.parcel.ParcelHolder) {
                                             p.closeInventory();
