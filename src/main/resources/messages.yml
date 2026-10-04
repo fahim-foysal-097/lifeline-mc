@@ -1,6 +1,14 @@
 # ==============================================================================
 #                       LIFELINE - MESSAGES CONFIGURATION
 # ==============================================================================
+#
+# ⚠ WARNING: This file automatically resets to default on every plugin
+#   startup and /lfreload. Any changes you make here WILL BE LOST when the
+#   plugin restarts or is updated. This is intentional — it keeps all message
+#   keys, button labels, and lore text in sync with the current plugin version.
+#
+# If you need custom messages, you will need to re-apply them after each restart.
+#
 # All messages support Adventure MiniMessage formatting, hex colors, and gradients.
 # Tags syntax reference: https://docs.advntr.dev/minimessage/format.html
 

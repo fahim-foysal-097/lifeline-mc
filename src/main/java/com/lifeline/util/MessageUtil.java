@@ -28,14 +28,18 @@ public final class MessageUtil {
     }
 
     /**
-     * Initializes, updates/merges, and loads messages.yml from the plugin data folder.
+     * Always overwrites messages.yml from the bundled JAR default and loads it.
+     * This ensures all message keys, lore text, and button labels stay in sync
+     * with the current plugin version. Any manual edits to messages.yml will be
+     * lost on restart or /lfreload — see the file header for details.
      */
     public static void load(Lifeline plugin) {
         if (plugin == null) return;
-        YamlConfiguration config = ConfigUpdater.update(plugin, "messages.yml");
-        if (config != null) {
-            load(config);
-        }
+        // Always overwrite with the JAR default so messages stay in sync
+        plugin.saveResource("messages.yml", true);
+        java.io.File file = new java.io.File(plugin.getDataFolder(), "messages.yml");
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        load(config);
     }
 
     /**

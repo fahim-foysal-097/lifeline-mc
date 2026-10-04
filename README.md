@@ -98,7 +98,6 @@ Works on **26.2+** too.
 
 ### Config & Localization
 
-- All user messages, GUI titles, and actionbar alerts are managed in `messages.yml` using [MiniMessage](https://docs.advntr.dev/minimessage/format.html) (supports hex colors and gradients).
 - Automatic configuration updating merges missing keys on updates without resetting your changes.
 - Hot-reload settings anytime with `/lifeline reload`.
 
@@ -134,7 +133,7 @@ Works on **26.2+** too.
 Files are stored in `plugins/Lifeline/`:
 
 - `config.yml` — Timers, warm-ups, debuffs, sounds, and toggles.
-- `messages.yml` — All user-facing text with MiniMessage formatting.
+- `messages.yml` — All user-facing text with MiniMessage formatting. RESETS ON EVERY RESTART.
 - `waypoints.yml` — Saved shared waypoint data.
 - `personal-waypoints.yml` — Saved per-player personal waypoint data.
 - `vault.yml` — Stored items for the shared stash.
@@ -183,18 +182,6 @@ trash:
   sound-effects: true
 ```
 
-### Customizing `messages.yml`
-
-Messages support MiniMessage tags and hex colors:
-
-```yaml
-prefix: "<color:#00FFA3><bold>Lifeline</bold></color> <dark_gray>»</dark_gray> "
-waypoints.gui-title: "<gradient:#00FFA3:#00B8D9><bold>Shared Waypoints</bold></gradient>"
-teleport.request-received-buttons: "<green><click:run_command:'/tpq accept <player>'>[✔ ACCEPT]</click></green>"
-```
-
----
-
 ## Building
 
 Requires **Java 21+ JDK**.
@@ -226,34 +213,3 @@ Output jar: `build/libs/Lifeline-<version>.jar`
 ## Extras
 
 The `/docs` folder is the folder for gh-pages.
-
----
-
-## New Features (v1.0.2)
-
-### Item Parcel Delivery (`/parcel`, `/llparcel`, `/lfparcel`, `/package`)
-
-- A lightweight item-sending delivery system letting partners send single items or small packages directly to each other without needing a full teleport.
-- **Fair & Anti-Abuse**: Enforces a configurable cooldown (default: 60 seconds) and a configurable item slot limit per sending session (default: 4 slots, 1–9) so players cannot dump entire inventories.
-- **Delivery GUI**: Run `/parcel [player]` to open a dedicated 27-slot chest GUI. Place items in the unlocked parcel slots and click **`[ Send Parcel ]`** (slot 22) to dispatch.
-- **Quick Hand Sending**: Use `/parcel hand [player]` to instantly send the item stack currently held in your main hand.
-- **Safety Guarantee**: If the player closes the window, disconnects, or cancels before confirming, all placed items are safely returned to their inventory (or dropped at their feet if full).
-- **Overflow Protection**: If the recipient's inventory is full, remaining items are safely dropped naturally at their feet.
-- **Master Toggle & Dimension Settings**: Configurable in `config.yml` under `parcel:`.
-
-### Proximity Synergy Buffs
-
-- Passive co-op perks granted when partners stay within close range of each other (default: 20 blocks).
-- **Movement Speed Synergy**: Grants a subtle passive speed boost (+5.0% by default) while remaining in proximity to your partner.
-- **Safe Native Attributes**: Uses Paper's transient attribute modifiers (`Attribute.MOVEMENT_SPEED`) to guarantee zero FOV distortion and zero risk of permanent modifier leakage across restarts or disconnects.
-- **Optional Potion Perks**: Server owners can optionally enable passive Regeneration, Resistance, or Haste while in range.
-- **Master Toggle & Custom Range**: Configurable in `config.yml` under `synergy:`.
-
----
-
-## Additional Commands & Permissions (v1.0.2)
-
-| Command                  | Aliases                                   | Description                                      | Permission        |
-| :----------------------- | :---------------------------------------- | :----------------------------------------------- | :---------------- |
-| `/parcel [player]`       | `/llparcel`, `/lfparcel`, `/package`      | Open item parcel delivery GUI for partner        | `lifeline.parcel` |
-| `/parcel hand [player]`  | `/llparcel hand`, `/package hand`         | Instantly deliver main-hand item to partner      | `lifeline.parcel` |
