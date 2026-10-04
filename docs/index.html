@@ -55,7 +55,7 @@
                     <span class="font-extrabold text-xl tracking-tight text-white flex items-center gap-2">
                         Lifeline
                         <span
-                            class="text-[10px] font-bold bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/30 px-2 py-0.5 rounded-full">v1.0.1</span>
+                            class="text-[10px] font-bold bg-brand-indigo/15 text-indigo-300 border border-brand-indigo/30 px-2 py-0.5 rounded-full">v1.0.2</span>
                     </span>
                     <span class="text-xs text-slate-400 font-medium">Co-op Mod for Paper</span>
                 </div>
@@ -81,7 +81,7 @@
                 <a href="#download"
                     class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-indigo via-brand-violet to-brand-mint text-white font-bold hover:shadow-lg hover:shadow-brand-indigo/25 hover:scale-[1.02] active:scale-95 transition-all">
                     <i class="fa-solid fa-download"></i>
-                    <span>Download v1.0.1</span>
+                    <span>Download v1.0.2</span>
                 </a>
             </div>
         </div>
@@ -130,11 +130,11 @@
 
             <!-- Buttons -->
             <div id="download" class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-                <a href="https://hangarcdn.papermc.io/plugins/Zero097/Lifeline/versions/1.0.1/PAPER/Lifeline-1.0.1.jar"
+                <a href="https://hangarcdn.papermc.io/plugins/Zero097/Lifeline/versions/1.0.2/PAPER/Lifeline-1.0.2.jar"
                     target="_blank" download
                     class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-indigo via-brand-violet to-brand-mint text-white font-extrabold text-base flex items-center justify-center gap-3 shadow-xl shadow-brand-indigo/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                     <i class="fa-solid fa-circle-down text-lg"></i>
-                    <span>Download Jar (Lifeline-1.0.1.jar)</span>
+                    <span>Download Jar (Lifeline-1.0.2.jar)</span>
                 </a>
                 <button>
                     <i class="fa-solid fa-terminal text-brand-mint"></i>
@@ -402,14 +402,14 @@
                         <i class="fa-solid fa-route"></i>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Player
-                        Tether (/tpq)</h3>
+                        Tether (/tpq, /tpqhere)</h3>
                     <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
-                        Interactive direct teleport requests with GUI selector, clickable chat buttons, request timeout
+                        Interactive direct teleport and summon requests with GUI selector, clickable chat buttons, request timeout
                         timers, cooldowns, and void/combat checks.
                     </p>
                     <div
                         class="flex items-center gap-2 text-xs font-mono text-indigo-400 bg-indigo-950/40 px-3 py-1.5 rounded-lg border border-indigo-800/40 group-hover:border-indigo-500/40 w-fit transition-colors">
-                        <span>/tpq</span> • <span>/tpq accept</span> • <span>/tpq deny</span>
+                        <span>/tpq</span> • <span>/tpqhere</span> • <span>/tpq accept</span>
                     </div>
                 </div>
 
@@ -431,21 +431,20 @@
                     </div>
                 </div>
 
-                <!-- Feature 7 -->
+                <!-- Feature 7: Item Parcels & Proximity Synergy -->
                 <div class="mc-glass-card group p-8 rounded-2xl">
                     <div
-                        class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-xl mb-6 group-hover:scale-110 group-hover:bg-indigo-500/20 group-hover:border-indigo-500/40 group-hover:rotate-3 transition-all duration-300">
-                        <i class="fa-solid fa-compass"></i>
+                        class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-brand-mint text-xl mb-6 group-hover:scale-110 group-hover:bg-teal-500/20 group-hover:border-teal-500/40 group-hover:rotate-3 transition-all duration-300">
+                        <i class="fa-solid fa-gift"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">
-                        Actionbar Radar</h3>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-mint transition-colors">
+                        Item Parcels & Synergy</h3>
                     <p class="text-sm text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors">
-                        Actionbar HUD displaying partner status, distance, health, and a dynamic 8-directional facing
-                        compass (`Partner: 24m ↗ | ❤ 8.5/10`).
+                        Send single items or small packages directly to your partner with cooldown and slot limits (/parcel). Gain passive synergy buffs (+5% speed) within 20 blocks.
                     </p>
                     <div
-                        class="flex items-center gap-2 text-xs font-mono text-indigo-400 bg-indigo-950/40 px-3 py-1.5 rounded-lg border border-indigo-800/40 group-hover:border-indigo-500/40 w-fit transition-colors">
-                        <span>/coradar</span> • <span>/teamradar</span>
+                        class="flex items-center gap-2 text-xs font-mono text-brand-mint bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-800/40 group-hover:border-emerald-500/40 w-fit transition-colors">
+                        <span>/parcel</span> • <span>/parcel hand</span> • <span>synergy.enabled</span>
                     </div>
                 </div>
 
@@ -894,6 +893,50 @@
                                 <td class="py-4 px-6 text-xs text-amber-400">lifeline.trash</td>
                             </tr>
 
+                            <!-- Command: /parcel -->
+                            <tr
+                                class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
+                                <td class="py-4 px-6 font-bold text-teal-300 flex items-center gap-2">
+                                    <span>/parcel [player]</span>
+                                    <button onclick="copyCommand('/parcel')"
+                                        class="text-slate-500 hover:text-teal-300 transition"><i
+                                            class="fa-regular fa-copy text-xs"></i></button>
+                                </td>
+                                <td class="py-4 px-6 text-xs">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/llparcel</span>
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/lfparcel</span>
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/package</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-sans text-slate-300">Open item parcel package delivery GUI for partner</td>
+                                <td class="py-4 px-6 text-xs text-amber-400">lifeline.parcel</td>
+                            </tr>
+
+                            <!-- Command: /parcel hand -->
+                            <tr
+                                class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
+                                <td class="py-4 px-6 font-bold text-teal-300 flex items-center gap-2">
+                                    <span>/parcel hand [player]</span>
+                                    <button onclick="copyCommand('/parcel hand')"
+                                        class="text-slate-500 hover:text-teal-300 transition"><i
+                                            class="fa-regular fa-copy text-xs"></i></button>
+                                </td>
+                                <td class="py-4 px-6 text-xs">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/llparcel hand</span>
+                                        <span
+                                            class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/package hand</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 font-sans text-slate-300">Directly send held main-hand item stack to partner</td>
+                                <td class="py-4 px-6 text-xs text-amber-400">lifeline.parcel</td>
+                            </tr>
+
                             <!-- Command 3 -->
                             <tr
                                 class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
@@ -983,6 +1026,23 @@
                                         c</span>
                                 </td>
                                 <td class="py-4 px-6 font-sans text-slate-300">Cancel outgoing teleport request</td>
+                                <td class="py-4 px-6 text-xs text-amber-400">lifeline.tpq</td>
+                            </tr>
+
+                            <tr
+                                class="hover:bg-indigo-950/30 hover:border-l-4 hover:border-l-brand-mint transition-all">
+                                <td class="py-4 px-6 font-bold text-indigo-300 flex items-center gap-2">
+                                    <span>/tpqhere</span>
+                                    <button onclick="copyCommand('/tpqhere')"
+                                        class="text-slate-500 hover:text-indigo-300 transition"><i
+                                            class="fa-regular fa-copy text-xs"></i></button>
+                                </td>
+                                <td class="py-4 px-6 text-xs">
+                                    <span
+                                        class="px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700">/tpq
+                                        c</span>
+                                </td>
+                                <td class="py-4 px-6 font-sans text-slate-300">Request a player to tp to you</td>
                                 <td class="py-4 px-6 text-xs text-amber-400">lifeline.tpq</td>
                             </tr>
 
@@ -1191,7 +1251,20 @@
 <span class="text-slate-500"># --- Quick Trash (/lltrash, /lft) ---</span>
 <span class="text-indigo-400">trash</span>:
   <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span> <span class="text-slate-500"># 27-slot safe disposal GUI</span>
-  <span class="text-indigo-400">sound-effects</span>: <span class="text-emerald-400">true</span></code></pre>
+  <span class="text-indigo-400">sound-effects</span>: <span class="text-emerald-400">true</span>
+
+<span class="text-slate-500"># --- Item Parcel Delivery (/parcel) ---</span>
+<span class="text-indigo-400">parcel</span>:
+  <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span>
+  <span class="text-indigo-400">cooldown-seconds</span>: <span class="text-amber-400">60</span>
+  <span class="text-indigo-400">max-slots</span>: <span class="text-amber-400">4</span> <span class="text-slate-500"># 1-9 slots allowed</span>
+  <span class="text-indigo-400">allow-cross-dimension</span>: <span class="text-emerald-400">true</span>
+
+<span class="text-slate-500"># --- Proximity Synergy Buffs ---</span>
+<span class="text-indigo-400">synergy</span>:
+  <span class="text-indigo-400">enabled</span>: <span class="text-emerald-400">true</span>
+  <span class="text-indigo-400">range-blocks</span>: <span class="text-amber-400">20.0</span>
+  <span class="text-indigo-400">speed-boost-percentage</span>: <span class="text-amber-400">5.0</span> <span class="text-slate-500"># +5% movement speed</span></code></pre>
 
                 <!-- Tab 2: Messages YAML -->
                 <pre id="code-messages"
@@ -1231,7 +1304,7 @@
                     <h3 class="text-lg font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Download
                         Binary</h3>
                     <p class="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">Download <span
-                            class="text-indigo-300 font-mono">Lifeline-1.0.1.jar</span> compiled for Paper 1.21+.</p>
+                            class="text-indigo-300 font-mono">Lifeline-1.0.2.jar</span> compiled for Paper 1.21+.</p>
                 </div>
                 <div class="mc-glass-card group p-8 rounded-2xl relative">
                     <span
@@ -1265,7 +1338,7 @@
                         <i class="fa-solid fa-gem text-brand-mint text-xs"></i>
                     </div>
                 </div>
-                <span class="text-slate-300 font-bold">Lifeline Mod v1.0.1</span>
+                <span class="text-slate-300 font-bold">Lifeline Mod v1.0.2</span>
             </div>
             <div class="text-center md:text-right text-xs text-slate-500">
                 MIT License • PaperMC 1.21+

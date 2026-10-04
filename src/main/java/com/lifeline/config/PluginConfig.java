@@ -78,6 +78,26 @@ public class PluginConfig {
     private boolean trashEnabled;
     private boolean trashSoundEffectsEnabled;
 
+    // Item Parcel Delivery
+    private boolean parcelEnabled;
+    private int parcelCooldownSeconds;
+    private int parcelMaxSlots;
+    private boolean parcelAllowCrossDimension;
+    private boolean parcelSoundEffectsEnabled;
+
+    // Proximity Synergy Buffs
+    private boolean synergyEnabled;
+    private double synergyRangeBlocks;
+    private int synergyUpdateIntervalTicks;
+    private double synergySpeedBoostPercentage;
+    private boolean synergySoundEffectsEnabled;
+    private boolean synergyRegenEnabled;
+    private int synergyRegenAmplifier;
+    private boolean synergyResistanceEnabled;
+    private int synergyResistanceAmplifier;
+    private boolean synergyHasteEnabled;
+    private int synergyHasteAmplifier;
+
     public PluginConfig(Lifeline plugin) {
         this.plugin = plugin;
         if (plugin != null) {
@@ -180,6 +200,27 @@ public class PluginConfig {
         // 16. Quick Trash
         this.trashEnabled = config.getBoolean("trash.enabled", true);
         this.trashSoundEffectsEnabled = config.getBoolean("trash.sound-effects", true);
+
+        // 17. Item Parcel Delivery
+        this.parcelEnabled = config.getBoolean("parcel.enabled", true);
+        this.parcelCooldownSeconds = Math.max(0, config.getInt("parcel.cooldown-seconds", 60));
+        int rawParcelSlots = config.getInt("parcel.max-slots", 4);
+        this.parcelMaxSlots = Math.max(1, Math.min(9, rawParcelSlots));
+        this.parcelAllowCrossDimension = config.getBoolean("parcel.allow-cross-dimension", true);
+        this.parcelSoundEffectsEnabled = config.getBoolean("parcel.sound-effects", true);
+
+        // 18. Proximity Synergy Buffs
+        this.synergyEnabled = config.getBoolean("synergy.enabled", true);
+        this.synergyRangeBlocks = Math.max(1.0, config.getDouble("synergy.range-blocks", 20.0));
+        this.synergyUpdateIntervalTicks = Math.max(1, config.getInt("synergy.update-interval-ticks", 20));
+        this.synergySpeedBoostPercentage = Math.max(0.0, config.getDouble("synergy.speed-boost-percentage", 5.0));
+        this.synergySoundEffectsEnabled = config.getBoolean("synergy.sound-effects", true);
+        this.synergyRegenEnabled = config.getBoolean("synergy.buffs.regeneration.enabled", false);
+        this.synergyRegenAmplifier = Math.max(0, config.getInt("synergy.buffs.regeneration.amplifier", 0));
+        this.synergyResistanceEnabled = config.getBoolean("synergy.buffs.resistance.enabled", false);
+        this.synergyResistanceAmplifier = Math.max(0, config.getInt("synergy.buffs.resistance.amplifier", 0));
+        this.synergyHasteEnabled = config.getBoolean("synergy.buffs.haste.enabled", false);
+        this.synergyHasteAmplifier = Math.max(0, config.getInt("synergy.buffs.haste.amplifier", 0));
     }
 
     public int getMaxRevives() {
@@ -348,5 +389,69 @@ public class PluginConfig {
 
     public boolean isTrashSoundEffectsEnabled() {
         return trashSoundEffectsEnabled && soundEffectsEnabled;
+    }
+
+    public boolean isParcelEnabled() {
+        return parcelEnabled;
+    }
+
+    public int getParcelCooldownSeconds() {
+        return parcelCooldownSeconds;
+    }
+
+    public int getParcelMaxSlots() {
+        return parcelMaxSlots;
+    }
+
+    public boolean isParcelAllowCrossDimension() {
+        return parcelAllowCrossDimension;
+    }
+
+    public boolean isParcelSoundEffectsEnabled() {
+        return parcelSoundEffectsEnabled && soundEffectsEnabled;
+    }
+
+    public boolean isSynergyEnabled() {
+        return synergyEnabled;
+    }
+
+    public double getSynergyRangeBlocks() {
+        return synergyRangeBlocks;
+    }
+
+    public int getSynergyUpdateIntervalTicks() {
+        return synergyUpdateIntervalTicks;
+    }
+
+    public double getSynergySpeedBoostPercentage() {
+        return synergySpeedBoostPercentage;
+    }
+
+    public boolean isSynergySoundEffectsEnabled() {
+        return synergySoundEffectsEnabled && soundEffectsEnabled;
+    }
+
+    public boolean isSynergyRegenEnabled() {
+        return synergyRegenEnabled;
+    }
+
+    public int getSynergyRegenAmplifier() {
+        return synergyRegenAmplifier;
+    }
+
+    public boolean isSynergyResistanceEnabled() {
+        return synergyResistanceEnabled;
+    }
+
+    public int getSynergyResistanceAmplifier() {
+        return synergyResistanceAmplifier;
+    }
+
+    public boolean isSynergyHasteEnabled() {
+        return synergyHasteEnabled;
+    }
+
+    public int getSynergyHasteAmplifier() {
+        return synergyHasteAmplifier;
     }
 }

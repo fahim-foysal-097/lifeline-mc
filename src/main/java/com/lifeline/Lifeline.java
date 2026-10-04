@@ -43,6 +43,9 @@ public final class Lifeline extends JavaPlugin {
     private com.lifeline.waypoint.PersonalWaypointGUI personalWaypointGUI;
     private com.lifeline.backup.BackupManager backupManager;
     private com.lifeline.trash.TrashGUI trashGUI;
+    private com.lifeline.parcel.ParcelManager parcelManager;
+    private com.lifeline.parcel.ParcelGUI parcelGUI;
+    private com.lifeline.synergy.SynergyManager synergyManager;
 
     @Override
     public void onEnable() {
@@ -67,6 +70,9 @@ public final class Lifeline extends JavaPlugin {
         this.personalWaypointGUI = new com.lifeline.waypoint.PersonalWaypointGUI(this, this.personalWaypointManager);
         this.backupManager = new com.lifeline.backup.BackupManager(this);
         this.trashGUI = new com.lifeline.trash.TrashGUI(this);
+        this.parcelManager = new com.lifeline.parcel.ParcelManager(this);
+        this.parcelGUI = new com.lifeline.parcel.ParcelGUI(this, this.parcelManager);
+        this.synergyManager = new com.lifeline.synergy.SynergyManager(this);
 
         // Register Event Listeners
         PluginManager pm = getServer().getPluginManager();
@@ -82,6 +88,8 @@ public final class Lifeline extends JavaPlugin {
         pm.registerEvents(this.personalWaypointGUI, this);
         pm.registerEvents(this.backupManager, this);
         pm.registerEvents(this.trashGUI, this);
+        pm.registerEvents(this.parcelGUI, this);
+        pm.registerEvents(this.synergyManager, this);
         pm.registerEvents(new com.lifeline.util.UpdateListener(this), this);
 
         registerCommands();
@@ -136,6 +144,14 @@ public final class Lifeline extends JavaPlugin {
 
         if (this.radarManager != null) {
             this.radarManager.cleanup();
+        }
+
+        if (this.parcelManager != null) {
+            this.parcelManager.cleanup();
+        }
+
+        if (this.synergyManager != null) {
+            this.synergyManager.cleanup();
         }
 
         getLogger().info("Lifeline successfully disabled.");
@@ -586,6 +602,119 @@ public final class Lifeline extends JavaPlugin {
             );
 
             commands.register(
+                    "parcel",
+                    "Sends an item parcel or small package directly to a teammate",
+                    List.of("llparcel", "lfparcel", "package"),
+                    new BasicCommand() {
+                        @Override
+                        public void execute(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                MessageUtil.sendPrefixed(sender, "general.player-only");
+                                return;
+                            }
+
+                            if (!hasParcelPermission(player)) {
+                                MessageUtil.sendPrefixed(player, "parcel.no-permission");
+                                return;
+                            }
+
+                            if (!pluginConfig.isParcelEnabled()) {
+                                MessageUtil.sendPrefixed(player, "parcel.globally-disabled");
+                                return;
+                            }
+
+                            if (downedManager.isDowned(player.getUniqueId())) {
+                                MessageUtil.sendPrefixed(player, "parcel.downed-blocked");
+                                return;
+                            }
+
+                            // Shorthand command: /parcel hand [player]
+                            if (args.length > 0 && args[0].equalsIgnoreCase("hand")) {
+                                Player target;
+                                if (args.length > 1) {
+                                    target = Bukkit.getPlayer(args[1]);
+                                    if (target == null || !target.isOnline()) {
+                                        MessageUtil.sendPrefixed(player, "parcel.player-offline", MessageUtil.unparsed("player", args[1]));
+                                        return;
+                                    }
+                                } else {
+                                    target = parcelManager.getDefaultPartner(player);
+                                    if (target == null) {
+                                        MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                        return;
+                                    }
+                                }
+                                parcelManager.sendHandItem(player, target);
+                                return;
+                            }
+
+                            Player target;
+                            if (args.length > 0) {
+                                target = Bukkit.getPlayer(args[0]);
+                                if (target == null || !target.isOnline()) {
+                                    MessageUtil.sendPrefixed(player, "parcel.player-offline", MessageUtil.unparsed("player", args[0]));
+                                    return;
+                                }
+                            } else {
+                                target = parcelManager.getDefaultPartner(player);
+                                if (target == null) {
+                                    List<Player> others = new java.util.ArrayList<>();
+                                    for (Player p : Bukkit.getOnlinePlayers()) {
+                                        if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                            others.add(p);
+                                        }
+                                    }
+                                    if (others.isEmpty()) {
+                                        MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                    } else {
+                                        MessageUtil.sendPrefixed(player, "parcel.usage");
+                                    }
+                                    return;
+                                }
+                            }
+
+                            parcelGUI.open(player, target);
+                        }
+
+                        @Override
+                        public Collection<String> suggest(CommandSourceStack stack, String[] args) {
+                            CommandSender sender = stack.getSender();
+                            if (!(sender instanceof Player player)) {
+                                return List.of();
+                            }
+
+                            if (args.length <= 1) {
+                                List<String> list = new java.util.ArrayList<>(List.of("hand"));
+                                for (Player p : Bukkit.getOnlinePlayers()) {
+                                    if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                        list.add(p.getName());
+                                    }
+                                }
+                                String prefix = args.length == 0 ? "" : args[0].toLowerCase();
+                                return list.stream().filter(s -> s.toLowerCase().startsWith(prefix)).toList();
+                            }
+
+                            if (args.length == 2 && args[0].equalsIgnoreCase("hand")) {
+                                String prefix = args[1].toLowerCase();
+                                return Bukkit.getOnlinePlayers().stream()
+                                        .filter(p -> !p.getUniqueId().equals(player.getUniqueId()))
+                                        .map(Player::getName)
+                                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                                        .toList();
+                            }
+
+                            return List.of();
+                        }
+
+                        @Override
+                        public boolean canUse(CommandSender sender) {
+                            return hasParcelPermission(sender);
+                        }
+                    }
+            );
+
+            commands.register(
                     "lifeline",
                     "Lifeline plugin administration and management commands",
                     List.of("ll"),
@@ -614,7 +743,8 @@ public final class Lifeline extends JavaPlugin {
                                                 || top.getHolder() instanceof com.lifeline.waypoint.WaypointGUI
                                                 || top.getHolder() instanceof com.lifeline.waypoint.PersonalWaypointGUI
                                                 || top.getHolder() instanceof com.lifeline.tether.TetherGUI
-                                                || top.getHolder() instanceof com.lifeline.trash.TrashHolder) {
+                                                || top.getHolder() instanceof com.lifeline.trash.TrashHolder
+                                                || top.getHolder() instanceof com.lifeline.parcel.ParcelHolder) {
                                             p.closeInventory();
                                         }
                                     }
@@ -633,6 +763,9 @@ public final class Lifeline extends JavaPlugin {
                                         backupManager.updateBakFiles();
                                     }
                                     radarManager.startTask();
+                                    if (synergyManager != null) {
+                                        synergyManager.startTask();
+                                    }
                                     if (!pluginConfig.isReviveEnabled()) {
                                         for (Player p : Bukkit.getOnlinePlayers()) {
                                             if (downedManager.isDowned(p.getUniqueId())) {
@@ -673,6 +806,67 @@ public final class Lifeline extends JavaPlugin {
                                                     com.lifeline.util.UpdateChecker.notifySender(Lifeline.this, sender, result);
                                                 });
                                             });
+                                }
+                                case "parcel", "package" -> {
+                                    if (!(sender instanceof Player player)) {
+                                        MessageUtil.sendPrefixed(sender, "general.player-only");
+                                        return;
+                                    }
+                                    if (!hasParcelPermission(player)) {
+                                        MessageUtil.sendPrefixed(player, "parcel.no-permission");
+                                        return;
+                                    }
+                                    if (!pluginConfig.isParcelEnabled()) {
+                                        MessageUtil.sendPrefixed(player, "parcel.globally-disabled");
+                                        return;
+                                    }
+                                    if (downedManager.isDowned(player.getUniqueId())) {
+                                        MessageUtil.sendPrefixed(player, "parcel.downed-blocked");
+                                        return;
+                                    }
+                                    if (args.length > 1 && args[1].equalsIgnoreCase("hand")) {
+                                        Player target;
+                                        if (args.length > 2) {
+                                            target = Bukkit.getPlayer(args[2]);
+                                            if (target == null || !target.isOnline()) {
+                                                MessageUtil.sendPrefixed(player, "parcel.player-offline", MessageUtil.unparsed("player", args[2]));
+                                                return;
+                                            }
+                                        } else {
+                                            target = parcelManager.getDefaultPartner(player);
+                                            if (target == null) {
+                                                MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                                return;
+                                            }
+                                        }
+                                        parcelManager.sendHandItem(player, target);
+                                        return;
+                                    }
+                                    Player target;
+                                    if (args.length > 1) {
+                                        target = Bukkit.getPlayer(args[1]);
+                                        if (target == null || !target.isOnline()) {
+                                            MessageUtil.sendPrefixed(player, "parcel.player-offline", MessageUtil.unparsed("player", args[1]));
+                                            return;
+                                        }
+                                    } else {
+                                        target = parcelManager.getDefaultPartner(player);
+                                        if (target == null) {
+                                            List<Player> others = new java.util.ArrayList<>();
+                                            for (Player p : Bukkit.getOnlinePlayers()) {
+                                                if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                                    others.add(p);
+                                                }
+                                            }
+                                            if (others.isEmpty()) {
+                                                MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                            } else {
+                                                MessageUtil.sendPrefixed(player, "parcel.usage");
+                                            }
+                                            return;
+                                        }
+                                    }
+                                    parcelGUI.open(player, target);
                                 }
                                 case "radar" -> {
                                     if (!(sender instanceof Player player)) {
@@ -745,6 +939,9 @@ public final class Lifeline extends JavaPlugin {
                         public Collection<String> suggest(CommandSourceStack stack, String[] args) {
                             if (args.length <= 1) {
                                 List<String> list = new java.util.ArrayList<>(List.of("help", "radar", "revives"));
+                                if (hasParcelPermission(stack.getSender())) {
+                                    list.add("parcel");
+                                }
                                 if (stack.getSender().hasPermission("lifeline.admin")) {
                                     list.add("backup");
                                     list.add("reload");
@@ -754,6 +951,12 @@ public final class Lifeline extends JavaPlugin {
                                 }
                                 String prefix = args.length == 0 ? "" : args[0].toLowerCase();
                                 return list.stream().filter(s -> s.startsWith(prefix)).toList();
+                            }
+                            if (args.length == 2 && (args[0].equalsIgnoreCase("parcel") || args[0].equalsIgnoreCase("package")) && hasParcelPermission(stack.getSender())) {
+                                String prefix = args[1].toLowerCase();
+                                return List.of("hand").stream()
+                                        .filter(s -> s.startsWith(prefix))
+                                        .toList();
                             }
                             if (args.length == 2 && args[0].equalsIgnoreCase("backup") && stack.getSender().hasPermission("lifeline.admin")) {
                                 String prefix = args[1].toLowerCase();
@@ -832,6 +1035,12 @@ public final class Lifeline extends JavaPlugin {
                 || sender.hasPermission("lifeline.use");
     }
 
+    private boolean hasParcelPermission(CommandSender sender) {
+        return sender.hasPermission("lifeline.parcel")
+                || sender.hasPermission("lifeline.package")
+                || sender.hasPermission("lifeline.use");
+    }
+
     private void sendHelp(CommandSender sender) {
         MessageUtil.sendPrefixed(sender, "help.header");
         MessageUtil.sendRaw(sender, "help.node");
@@ -839,6 +1048,7 @@ public final class Lifeline extends JavaPlugin {
         MessageUtil.sendRaw(sender, "help.stash");
         MessageUtil.sendRaw(sender, "help.pstash");
         MessageUtil.sendRaw(sender, "help.trash");
+        MessageUtil.sendRaw(sender, "help.parcel");
         MessageUtil.sendRaw(sender, "help.tpq");
         MessageUtil.sendRaw(sender, "help.tpqhere");
         MessageUtil.sendRaw(sender, "help.radar");
@@ -923,6 +1133,18 @@ public final class Lifeline extends JavaPlugin {
 
     public com.lifeline.trash.TrashGUI getTrashGUI() {
         return trashGUI;
+    }
+
+    public com.lifeline.parcel.ParcelManager getParcelManager() {
+        return parcelManager;
+    }
+
+    public com.lifeline.parcel.ParcelGUI getParcelGUI() {
+        return parcelGUI;
+    }
+
+    public com.lifeline.synergy.SynergyManager getSynergyManager() {
+        return synergyManager;
     }
 
     /**

@@ -223,6 +223,7 @@ help:
   stash: "  <yellow>/stash (or /st, /safe)</yellow> <dark_gray>-</dark_gray> <gray>Open shared co-op stash</gray>"
   pstash: "  <yellow>/pstash (or /stashp, /pst, /mystash)</yellow> <dark_gray>-</dark_gray> <gray>Open personal stash</gray>"
   trash: "  <yellow>/lltrash (or /lft, /lftrash)</yellow> <dark_gray>-</dark_gray> <gray>Open quick trash GUI</gray>"
+  parcel: "  <yellow>/parcel [player] (or /parcel hand)</yellow> <dark_gray>-</dark_gray> <gray>Send item parcel to partner</gray>"
   tpq: "  <yellow>/tpq (or /teleportgui)</yellow> <dark_gray>-</dark_gray> <gray>Open player teleport GUI / request</gray>"
   tpqhere: "  <yellow>/tpq here <player> (or /tpqhere)</yellow> <dark_gray>-</dark_gray> <gray>Request player to teleport to you</gray>"
   radar: "  <yellow>/coradar (or /teamradar, /lfradar)</yellow> <dark_gray>-</dark_gray> <gray>Toggle teammate actionbar radar</gray>"
@@ -314,8 +315,48 @@ trash:
   disposed: "<green>Successfully disposed of <yellow><count></yellow> items!</green>"
   empty: "<yellow>The trash bin is empty! Place items inside first.</yellow>"
   cancelled: "<yellow>Disposal cancelled. Your items have been safely returned.</yellow>"
-  no-permission: "<red>You do not have permission to use the trash bin.</red>"
-  downed-blocked: "<red>You cannot access the trash bin while downed!</red>"
   globally-disabled: "<red>Quick trash is disabled on this server.</red>"
+
+parcel:
+  title: "<gradient:#00FFA3:#00B8D9><bold>Send Parcel</bold></gradient> <dark_gray>»</dark_gray> <yellow><target></yellow>"
+  no-permission: "<red>You do not have permission to send parcels.</red>"
+  downed-blocked: "<red>You cannot send or receive parcels while downed!</red>"
+  sender-spectator: "<red>You cannot send parcels while in Spectator mode.</red>"
+  target-spectator: "<red><yellow><player></yellow> is in Spectator mode and cannot receive parcels.</red>"
+  self-target: "<red>You cannot send a parcel to yourself.</red>"
+  player-offline: "<red>Player '<yellow><player></yellow>' is not online.</red>"
+  target-downed: "<red><yellow><player></yellow> is currently downed and cannot receive parcels.</red>"
+  different-dimension: "<red><yellow><player></yellow> is in another dimension. Cross-dimension delivery is disabled.</red>"
+  cooldown: "<red>You must wait <gold><seconds>s</gold> before sending another parcel.</red>"
+  empty: "<yellow>Your parcel is empty! Place items in the parcel slots first.</yellow>"
+  hand-empty: "<yellow>You are not holding any item in your main hand to send.</yellow>"
+  sent: "<green>Successfully sent a parcel with <yellow><count></yellow> item(s) to <gold><player></gold>!</green>"
+  sent-hand: "<green>Successfully sent <yellow><amount>x <item></yellow> to <gold><player></gold>!</green>"
+  received: "<green>You received a parcel from <gold><player></gold> with <yellow><count></yellow> item(s)!</green>"
+  received-hand: "<green>You received <yellow><amount>x <item></yellow> from <gold><player></gold>!</green>"
+  received-overflow: "<yellow>Your inventory was full! Some parcel items dropped at your feet.</yellow>"
+  cancelled: "<yellow>Parcel cancelled. All items were returned to your inventory.</yellow>"
+  send-button-name: "<green><bold>[ Send Parcel ]</bold></green>"
+  send-button-lore:
+    - "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+    - "<gray>Click to deliver the items placed in"
+    - "<gray>the parcel slots directly to <gold><player></gold>."
+    - ""
+    - "<yellow>Cooldown: <gold><cooldown>s</gold></yellow>"
+  info-button-name: "<yellow><bold>Parcel Information</bold></yellow>"
+  info-button-lore:
+    - "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>"
+    - "<gray>Recipient: <gold><player></gold></gray>"
+    - "<gray>Max Item Slots: <yellow><slots></yellow></gray>"
+    - "<gray>Closing this window safely returns all items.</gray>"
+  no-partner-online: "<yellow>No teammates online to receive a parcel.</yellow>"
+  usage: "<yellow>Usage: <gold>/parcel [player]</gold> or <gold>/parcel hand [player]</gold></yellow>"
+  globally-disabled: "<red>Item parcel delivery is disabled on this server.</red>"
+
+synergy:
+  activated: "<gradient:#00FFA3:#00B8D9><bold>✦ Partner Synergy Activated</bold></gradient> <gray>(+<percent>% Speed)</gray>"
+  deactivated: "<gray>Partner Synergy deactivated (out of range).</gray>"
+  globally-disabled: "<red>Proximity synergy buffs are disabled on this server.</red>"
+
 
 

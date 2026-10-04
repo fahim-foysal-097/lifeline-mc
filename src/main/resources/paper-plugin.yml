@@ -84,6 +84,12 @@ permissions:
   lifeline.lft:
     description: Alias for lifeline.trash.
     default: true
+  lifeline.parcel:
+    description: Allows sending item parcels to teammates.
+    default: true
+  lifeline.package:
+    description: Alias for lifeline.parcel.
+    default: true
   lifeline.admin:
     description: Allows reloading configuration and managing other players' revives.
     default: op

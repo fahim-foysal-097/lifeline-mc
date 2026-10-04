@@ -359,4 +359,105 @@ public class PluginConfigTest {
         assertTrue(config.isTrashEnabled());
         assertFalse(config.isTrashSoundEffectsEnabled());
     }
+
+    @Test
+    public void testParcelConfigSettingsAndClamping() {
+        PluginConfig config = new PluginConfig(null);
+        YamlConfiguration emptyConfig = new YamlConfiguration();
+        config.load(emptyConfig);
+
+        assertTrue(config.isParcelEnabled());
+        assertEquals(60, config.getParcelCooldownSeconds());
+        assertEquals(4, config.getParcelMaxSlots());
+        assertTrue(config.isParcelAllowCrossDimension());
+        assertTrue(config.isParcelSoundEffectsEnabled());
+
+        String customYaml = """
+                parcel:
+                  enabled: false
+                  cooldown-seconds: 120
+                  max-slots: 8
+                  allow-cross-dimension: false
+                  sound-effects: false
+                """;
+        config.load(YamlConfiguration.loadConfiguration(new StringReader(customYaml)));
+        assertFalse(config.isParcelEnabled());
+        assertEquals(120, config.getParcelCooldownSeconds());
+        assertEquals(8, config.getParcelMaxSlots());
+        assertFalse(config.isParcelAllowCrossDimension());
+        assertFalse(config.isParcelSoundEffectsEnabled());
+
+        // Test clamping (1..9)
+        String clampLow = "parcel:\n  max-slots: 0\n  cooldown-seconds: -5";
+        config.load(YamlConfiguration.loadConfiguration(new StringReader(clampLow)));
+        assertEquals(1, config.getParcelMaxSlots());
+        assertEquals(0, config.getParcelCooldownSeconds());
+
+        String clampHigh = "parcel:\n  max-slots: 15";
+        config.load(YamlConfiguration.loadConfiguration(new StringReader(clampHigh)));
+        assertEquals(9, config.getParcelMaxSlots());
+    }
+
+    @Test
+    public void testSynergyConfigSettingsAndClamping() {
+        PluginConfig config = new PluginConfig(null);
+        YamlConfiguration emptyConfig = new YamlConfiguration();
+        config.load(emptyConfig);
+
+        assertTrue(config.isSynergyEnabled());
+        assertEquals(20.0, config.getSynergyRangeBlocks());
+        assertEquals(20, config.getSynergyUpdateIntervalTicks());
+        assertEquals(5.0, config.getSynergySpeedBoostPercentage());
+        assertTrue(config.isSynergySoundEffectsEnabled());
+        assertFalse(config.isSynergyRegenEnabled());
+        assertFalse(config.isSynergyResistanceEnabled());
+        assertFalse(config.isSynergyHasteEnabled());
+
+        String customYaml = """
+                synergy:
+                  enabled: false
+                  range-blocks: 15.0
+                  update-interval-ticks: 10
+                  speed-boost-percentage: 10.0
+                  sound-effects: false
+                  buffs:
+                    regeneration:
+                      enabled: true
+                      amplifier: 1
+                    resistance:
+                      enabled: true
+                      amplifier: 0
+                    haste:
+                      enabled: true
+                      amplifier: 2
+                """;
+        config.load(YamlConfiguration.loadConfiguration(new StringReader(customYaml)));
+        assertFalse(config.isSynergyEnabled());
+        assertEquals(15.0, config.getSynergyRangeBlocks());
+        assertEquals(10, config.getSynergyUpdateIntervalTicks());
+        assertEquals(10.0, config.getSynergySpeedBoostPercentage());
+        assertFalse(config.isSynergySoundEffectsEnabled());
+        assertTrue(config.isSynergyRegenEnabled());
+        assertEquals(1, config.getSynergyRegenAmplifier());
+        assertTrue(config.isSynergyResistanceEnabled());
+        assertEquals(0, config.getSynergyResistanceAmplifier());
+        assertTrue(config.isSynergyHasteEnabled());
+        assertEquals(2, config.getSynergyHasteAmplifier());
+
+        // Test clamping (range >= 1.0, ticks >= 1, speed >= 0)
+        String clampYaml = """
+                synergy:
+                  range-blocks: 0.1
+                  update-interval-ticks: 0
+                  speed-boost-percentage: -5.0
+                  buffs:
+                    regeneration:
+                      amplifier: -2
+                """;
+        config.load(YamlConfiguration.loadConfiguration(new StringReader(clampYaml)));
+        assertEquals(1.0, config.getSynergyRangeBlocks());
+        assertEquals(1, config.getSynergyUpdateIntervalTicks());
+        assertEquals(0.0, config.getSynergySpeedBoostPercentage());
+        assertEquals(0, config.getSynergyRegenAmplifier());
+    }
 }

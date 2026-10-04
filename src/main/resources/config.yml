@@ -199,4 +199,64 @@ trash:
   sound-effects: true
 
 
+# ------------------------------------------------------------------------------
+# Item Parcel Delivery Settings (/parcel, /llparcel, /package)
+# ------------------------------------------------------------------------------
+# A lightweight item delivery system letting teammates send single items or
+# small packages directly to each other without needing a full teleport.
+parcel:
+  # Master toggle to enable/disable item parcel deliveries.
+  enabled: true
+
+  # Cooldown in seconds between successful deliveries (default: 60).
+  # Prevents spamming items across the server.
+  cooldown-seconds: 60
+
+  # Maximum number of item delivery slots allowed per parcel session.
+  # Valid range: 1 to 9 slots. (default: 4)
+  max-slots: 4
+
+  # Whether parcels can be sent to teammates across different dimensions.
+  allow-cross-dimension: true
+
+  # Whether sound effects play on parcel dispatch and delivery.
+  sound-effects: true
+
+
+# ------------------------------------------------------------------------------
+# Proximity Synergy Buffs Settings
+# ------------------------------------------------------------------------------
+# Passive co-op perks granted when partners stay within close range of each other.
+synergy:
+  # Master toggle to enable/disable proximity synergy perks.
+  enabled: true
+
+  # Maximum distance in blocks between partners to activate synergy perks.
+  # Default: 20.0 blocks.
+  range-blocks: 20.0
+
+  # Check interval in server ticks (20 ticks = 1 second). Default: 20
+  update-interval-ticks: 20
+
+  # Movement speed percentage bonus applied while near your partner (default: 5.0%).
+  # Applied as a safe transient attribute modifier (no FOV glitch, no lingering NBT).
+  speed-boost-percentage: 5.0
+
+  # Whether subtle sound effects play when entering/leaving synergy range.
+  sound-effects: true
+
+  # Optional passive potion buffs while partners remain in proximity.
+  buffs:
+    regeneration:
+      enabled: false
+      amplifier: 0
+    resistance:
+      enabled: false
+      amplifier: 0
+    haste:
+      enabled: false
+      amplifier: 0
+
+
+
 
