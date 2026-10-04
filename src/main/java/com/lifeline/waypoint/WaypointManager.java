@@ -256,7 +256,7 @@ public class WaypointManager implements Listener {
                 // Check movement
                 Location initial = warmupStartLocations.get(uuid);
                 if (initial == null) {
-                    // Location already removed — warmup was cancelled externally; stop silently.
+                    // Location already removed - warmup was cancelled externally; stop silently.
                     cancelWarmup(player, false);
                     return;
                 }

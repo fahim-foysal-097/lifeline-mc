@@ -277,6 +277,12 @@ public class ParcelManager {
         ItemStack toSend = handItem.clone();
         int amount = toSend.getAmount();
         String itemName = toSend.getType().name().replace('_', ' ').toLowerCase(Locale.ROOT);
+        if (toSend.hasItemMeta() && toSend.getItemMeta().hasDisplayName() && toSend.getItemMeta().displayName() != null) {
+            String customName = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(toSend.getItemMeta().displayName());
+            if (customName != null && !customName.isBlank()) {
+                itemName = customName;
+            }
+        }
 
         // Remove from sender hand
         sender.getInventory().setItemInMainHand(null);

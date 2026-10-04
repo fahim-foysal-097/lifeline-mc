@@ -641,7 +641,17 @@ public final class Lifeline extends JavaPlugin {
                                 } else {
                                     target = parcelManager.getDefaultPartner(player);
                                     if (target == null) {
-                                        MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                        List<Player> others = new java.util.ArrayList<>();
+                                        for (Player p : Bukkit.getOnlinePlayers()) {
+                                            if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                                others.add(p);
+                                            }
+                                        }
+                                        if (others.isEmpty()) {
+                                            MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                        } else {
+                                            MessageUtil.sendPrefixed(player, "parcel.usage");
+                                        }
                                         return;
                                     }
                                 }
@@ -835,7 +845,17 @@ public final class Lifeline extends JavaPlugin {
                                         } else {
                                             target = parcelManager.getDefaultPartner(player);
                                             if (target == null) {
-                                                MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                                List<Player> others = new java.util.ArrayList<>();
+                                                for (Player p : Bukkit.getOnlinePlayers()) {
+                                                    if (!p.getUniqueId().equals(player.getUniqueId())) {
+                                                        others.add(p);
+                                                    }
+                                                }
+                                                if (others.isEmpty()) {
+                                                    MessageUtil.sendPrefixed(player, "parcel.no-partner-online");
+                                                } else {
+                                                    MessageUtil.sendPrefixed(player, "parcel.usage");
+                                                }
                                                 return;
                                             }
                                         }

@@ -64,7 +64,7 @@ public class RadarManager implements Listener {
                 UUID uuid = UUID.fromString(key);
                 playerToggles.put(uuid, toggleConfig.getBoolean(key));
             } catch (IllegalArgumentException ignored) {
-                // malformed entry — skip
+                // malformed entry - skip
             }
         }
     }

@@ -135,6 +135,9 @@ public class DownedManager {
             plugin.getTetherManager().cancelWarmup(player, false, null);
             plugin.getTetherManager().cancelOutgoingRequest(player);
         }
+        if (plugin.getSynergyManager() != null) {
+            plugin.getSynergyManager().removeSynergy(player);
+        }
 
         // Close any open GUI
         player.closeInventory();

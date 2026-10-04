@@ -2,6 +2,7 @@ package com.lifeline.synergy;
 
 import com.lifeline.Lifeline;
 import com.lifeline.config.PluginConfig;
+import com.lifeline.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -19,7 +20,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,10 +48,12 @@ public class SynergyManager implements Listener {
     public synchronized void startTask() {
         if (task != null) {
             task.cancel();
+            task = null;
         }
 
         PluginConfig config = plugin.getPluginConfig();
         if (!config.isSynergyEnabled()) {
+            cleanupActiveBuffs();
             return;
         }
 
@@ -131,8 +133,12 @@ public class SynergyManager implements Listener {
         UUID uuid = player.getUniqueId();
         boolean newlyActivated = activeSynergyPlayers.add(uuid);
 
-        if (newlyActivated && config.isSynergySoundEffectsEnabled()) {
-            player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.6f, 1.6f);
+        if (newlyActivated) {
+            if (config.isSynergySoundEffectsEnabled()) {
+                player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.6f, 1.6f);
+            }
+            MessageUtil.sendActionBar(player, "synergy.activated",
+                    MessageUtil.p("percent", String.format(java.util.Locale.ROOT, "%.0f", config.getSynergySpeedBoostPercentage())));
         }
 
         // Apply transient attribute modifier for movement speed
@@ -163,13 +169,20 @@ public class SynergyManager implements Listener {
         }
     }
 
-    private void removeSynergy(Player player) {
+    public void removeSynergy(Player player) {
+        if (player == null) {
+            return;
+        }
         UUID uuid = player.getUniqueId();
-        activeSynergyPlayers.remove(uuid);
+        boolean wasActive = activeSynergyPlayers.remove(uuid);
 
         AttributeInstance speedAttr = player.getAttribute(Attribute.MOVEMENT_SPEED);
         if (speedAttr != null) {
             speedAttr.removeModifier(speedKey);
+        }
+
+        if (wasActive && player.isOnline() && !player.isDead()) {
+            MessageUtil.sendActionBar(player, "synergy.deactivated");
         }
     }
 

@@ -237,9 +237,11 @@ public class ParcelGUI implements Listener {
                     }
                 }
             }
-            MessageUtil.sendPrefixed(player, "parcel.cancelled");
-            if (plugin.getPluginConfig().isParcelSoundEffectsEnabled()) {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.0f);
+            if (player.isOnline()) {
+                MessageUtil.sendPrefixed(player, "parcel.cancelled");
+                if (plugin.getPluginConfig().isParcelSoundEffectsEnabled()) {
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.7f, 1.0f);
+                }
             }
         }
     }
@@ -318,10 +320,14 @@ public class ParcelGUI implements Listener {
         for (int slot : activeSlots) {
             ItemStack existing = inv.getItem(slot);
             if (existing == null || existing.getType().isAir()) {
+                int placeAmount = Math.min(remaining, toAdd.getMaxStackSize());
                 ItemStack placed = toAdd.clone();
-                placed.setAmount(remaining);
+                placed.setAmount(placeAmount);
                 inv.setItem(slot, placed);
-                return 0;
+                remaining -= placeAmount;
+                if (remaining <= 0) {
+                    return 0;
+                }
             }
         }
 
