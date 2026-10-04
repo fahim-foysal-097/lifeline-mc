@@ -164,7 +164,6 @@ public class TetherGUI implements Listener, InventoryHolder {
             lore.add(MessageUtil.get("teleport.head-lore-spectator-footer"));
         } else if (isHereMode) {
             lore.add(MessageUtil.get("teleport.head-lore-click-footer-here"));
-            lore.add(MessageUtil.get("teleport.head-lore-summon-footer-here"));
         } else {
             lore.add(MessageUtil.get("teleport.head-lore-click-footer"));
             lore.add(MessageUtil.get("teleport.head-lore-summon-footer"));
@@ -229,21 +228,19 @@ public class TetherGUI implements Listener, InventoryHolder {
 
         if (!isHereMode) {
             // Normal /tpq:
-            // Right-click: tp to other player
-            // Left-click: summon player here
+            // Left-click: tp to other player
+            // Right-click: summon player here
             if (event.isRightClick()) {
-                manager.sendRequest(player, target, TetherRequest.Type.TELEPORT_TO);
-            } else {
                 manager.sendRequest(player, target, TetherRequest.Type.SUMMON_HERE);
+            } else {
+                manager.sendRequest(player, target, TetherRequest.Type.TELEPORT_TO);
             }
         } else {
-            // Inverted /tpqhere:
-            // Right-click: summon player here
-            // Left-click: tp to other player
-            if (event.isRightClick()) {
+            // /tpqhere mode:
+            // Left-click: summon player here (only action)
+            // Right-click: do nothing
+            if (!event.isRightClick()) {
                 manager.sendRequest(player, target, TetherRequest.Type.SUMMON_HERE);
-            } else {
-                manager.sendRequest(player, target, TetherRequest.Type.TELEPORT_TO);
             }
         }
     }

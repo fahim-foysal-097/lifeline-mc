@@ -92,7 +92,7 @@ teleport:
   head-lore-spectator-footer: "<red>✖ Cannot teleport to Spectator mode players.</red>"
   head-lore-click-footer: "<yellow>✦ Right-Click</yellow> <gray>to teleport to player</gray>"
   head-lore-summon-footer: "<gold>✦ Left-Click</gold> <gray>to summon player here</gray>"
-  head-lore-click-footer-here: "<gold>✦ Right-Click</gold> <gray>to summon player here</gray>"
+  head-lore-click-footer-here: "<gold>✦ Left-Click</gold> <gray>to summon player here</gray>"
   head-lore-summon-footer-here: "<yellow>✦ Left-Click</yellow> <gray>to teleport to player</gray>"
   self-target: "<red>You cannot send a teleport request to yourself."
   sender-spectator: "<red>You cannot use teleportation while in Spectator mode."
